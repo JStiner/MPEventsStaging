@@ -4,6 +4,10 @@
   "summary": "Monthly downtown 2nd Fridays schedule for May through August 2026 with market, music, food, and family activity demo data.",
   "dateLabel": "May 8 \u2022 June 12 \u2022 July 10 \u2022 August 14, 2026",
   "areaLabel": "Historic Downtown",
+  "disclaimer": {
+  "title": "Important Notice",
+  "text": "This is not an official publication of the Community Association of Mt. Pulaski. Information is provided for convenience only and may not be complete or current. The Community Association of Mt. Pulaski is not responsible for updates, corrections, or omissions."
+}
   "days": [
     {
       "id": "may-08",
