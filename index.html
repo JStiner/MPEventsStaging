@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community Events Calendar</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body class="page-shell soft-light">
+  <main class="phone-shell home-shell wide-shell">
+    <header class="hero-card home-hero">
+      <div class="hero-topline">
+        <p class="eyebrow">Community Events Demo</p>
+        <span class="pill">Static Demo Data</span>
+      </div>
+      <h1>Community Calendar</h1>
+      <p class="subtle">Month view now uses a proper calendar grid. You can also filter which event buckets are visible.</p>
+
+      <div id="calendar-filters" class="filter-chip-row"></div>
+
+      <div class="calendar-toolbar">
+        <div class="segmented-control" role="tablist" aria-label="Calendar view">
+          <button class="view-button active" data-view="month">Month</button>
+          <button class="view-button" data-view="week">Week</button>
+          <button class="view-button" data-view="day">Day</button>
+        </div>
+
+        <div class="calendar-nav">
+          <button id="prev-period" class="nav-button" aria-label="Previous period">←</button>
+          <div id="calendar-title" class="calendar-title">Loading...</div>
+          <button id="next-period" class="nav-button" aria-label="Next period">→</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="calendar-shell proper-calendar-shell">
+      <div id="calendar-weekdays" class="calendar-weekdays month-only"></div>
+      <div id="calendar-grid" class="calendar-grid"></div>
+    </section>
+
+    <section class="info-card">
+      <h3>Included Event Buckets</h3>
+      <div id="event-summary-cards" class="grid-cards"></div>
+    </section>
+  </main>
+
+  <script src="assets/js/home.js"></script>
+</body>
+</html>

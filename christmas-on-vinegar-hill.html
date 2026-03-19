@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" data-event-file="data/covh/event.json">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Christmas on Vinegar Hill</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body class="page-shell">
+  <main class="phone-shell">
+    <header class="top-bar">
+      <a class="back-link" href="index.html">← Events</a>
+      <span class="top-badge">Demo + Structure</span>
+    </header>
+
+    <section class="hero-card compact">
+      <p id="event-eyebrow" class="eyebrow">Community Event</p>
+      <h1 id="event-name">Christmas on Vinegar Hill</h1>
+      <p id="event-summary" class="subtle">Loading event details...</p>
+      <div class="hero-meta">
+        <span id="event-dates" class="meta-chip">Dates</span>
+        <span id="event-location" class="meta-chip">Location</span>
+      </div>
+      <div id="resource-links" class="resource-links"></div>
+    </section>
+
+    <nav class="tab-row" aria-label="Event Views">
+      <button class="tab-button active" data-tab="schedule">Schedule</button>
+      <button class="tab-button" data-tab="map">Map</button>
+      <button class="tab-button" data-tab="vendors">Vendors</button>
+      <button class="tab-button" data-tab="locations">Locations</button>
+      <button class="tab-button" data-tab="flyer">Flyer</button>
+    </nav>
+
+    <section id="schedule" class="tab-panel active">
+      <div id="day-filter" class="chip-row"></div>
+      <div id="schedule-list" class="stack-list"></div>
+    </section>
+
+    <section id="map" class="tab-panel">
+      <div class="map-card">
+        <div class="map-surface">
+          <div class="map-grid"></div>
+          <div id="map-pins"></div>
+          <div class="map-label">Illustrative event map</div>
+        </div>
+      </div>
+      <div id="map-location-list" class="stack-list map-list"></div>
+    </section>
+
+    <section id="vendors" class="tab-panel">
+      <div id="vendor-list" class="stack-list"></div>
+    </section>
+
+    <section id="locations" class="tab-panel">
+      <div id="location-list" class="stack-list"></div>
+    </section>
+
+    <section id="flyer" class="tab-panel">
+      <div id="flyer-panel" class="flyer-shell"></div>
+    </section>
+  </main>
+
+  <div id="detail-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <button id="close-modal" class="close-button" aria-label="Close">×</button>
+      <p id="modal-kicker" class="eyebrow"></p>
+      <h2 id="modal-title"></h2>
+      <div id="modal-content" class="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

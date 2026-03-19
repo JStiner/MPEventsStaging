@@ -1,0 +1,88 @@
+[
+  {
+    "id": "cvh-open",
+    "dayId": "holiday",
+    "title": "Main Event Hours",
+    "startTime": "8:00 AM",
+    "endTime": "4:00 PM",
+    "locationId": "courthouse",
+    "category": "Event Window",
+    "description": "Core event hours for most Mt. Pulaski locations.",
+    "vendorIds": [],
+    "date": "2026-11-21"
+  },
+  {
+    "id": "cvh-food-1",
+    "dayId": "holiday",
+    "title": "Boy Scout Pork Chop Sandwiches",
+    "startTime": "10:00 AM",
+    "endTime": "2:00 PM",
+    "locationId": "boyscouts",
+    "category": "Food",
+    "description": "Fresh hot pork chop sandwiches.",
+    "vendorIds": [
+      "boyscouts-food"
+    ],
+    "date": "2026-11-21"
+  },
+  {
+    "id": "cvh-zion",
+    "dayId": "holiday",
+    "title": "Zion Lunch Service",
+    "startTime": "11:00 AM",
+    "endTime": "1:30 PM",
+    "locationId": "zion",
+    "category": "Food",
+    "description": "Soup, sandwiches, and vendors.",
+    "vendorIds": [],
+    "date": "2026-11-21"
+  },
+  {
+    "id": "cvh-market",
+    "dayId": "holiday",
+    "title": "Market on the Hill Extended Hours",
+    "startTime": "7:00 AM",
+    "endTime": "7:00 PM",
+    "locationId": "market",
+    "category": "Food & Coffee",
+    "description": "Extended hours for coffee, treats, and food.",
+    "vendorIds": [],
+    "date": "2026-11-21"
+  },
+  {
+    "id": "cvh-elkhart",
+    "dayId": "holiday",
+    "title": "Elkhart Stops Open",
+    "startTime": "8:00 AM",
+    "endTime": "4:00 PM",
+    "locationId": "elkhartstore",
+    "category": "Satellite",
+    "description": "Elkhart Station General Store and nearby food stop.",
+    "vendorIds": [],
+    "date": "2026-11-21"
+  },
+  {
+    "id": "cvh-latham",
+    "dayId": "holiday",
+    "title": "Latham Stop Open",
+    "startTime": "10:30 AM",
+    "endTime": "12:00 PM",
+    "locationId": "bbs",
+    "category": "Satellite",
+    "description": "Latham partner venue open with food and vendors.",
+    "vendorIds": [],
+    "date": "2026-11-21"
+  },
+  {
+    "id": "cvh-photo",
+    "dayId": "holiday",
+    "title": "Courthouse Gazebo Photo Op",
+    "startTime": "8:00 AM",
+    "endTime": "4:00 PM",
+    "locationId": "gazebo",
+    "category": "Photo Op",
+    "description": "Holiday-decorated gazebo for family photos.",
+    "vendorIds": [],
+    "date": "2026-11-21"
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "eventName": "Christmas on Vinegar Hill",
+  "eventType": "Holiday Walk",
+  "summary": "One-day holiday event organized by location, with shopping, food, photo stops, and community destinations across Mt. Pulaski and nearby partner locations.",
+  "dateLabel": "Saturday, November 21, 2026",
+  "areaLabel": "Mt. Pulaski, Chestnut, Elkhart, and Latham",
+  "days": [
+    {
+      "id": "holiday",
+      "label": "Saturday",
+      "date": "2026-11-21"
+    }
+  ],
+  "tabs": [
+    "schedule",
+    "map",
+    "vendors",
+    "locations",
+    "flyer"
+  ],
+  "resources": [],
+  "_split": {
+    "locations": "locations.json",
+    "schedule": "schedule.json",
+    "vendors": "vendors.json",
+    "flyer": "flyer.json"
+  },
+  "_meta": {
+    "code": "COVH",
+    "publicName": "Christmas on Vinegar Hill"
+  }
+}
