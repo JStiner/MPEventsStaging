@@ -1,5 +1,6 @@
 ## Live Site
-- `https://jstiner.github.io/MP_CommunityEvents/`
+- https://jstiner.github.io/MP_CommunityEvents/
+
 ## Dev Site
 - https://jstiner.github.io/MPEventsStaging/
 
