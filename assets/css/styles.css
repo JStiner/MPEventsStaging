@@ -936,3 +936,381 @@ body.soft-light {
   padding: 14px 16px;
   border-radius: 18px;
 }
+
+
+/* Flyer / printable pamphlet */
+.flyer-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.flyer-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.flyer-action {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  border-radius: 16px;
+  padding: 12px 14px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.flyer-preview-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.flyer-page {
+  background: #fff;
+  color: #111;
+  border: 1px solid rgba(145, 164, 190, 0.28);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.flyer-page-inner {
+  padding: 18px;
+}
+
+.flyer-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(145, 164, 190, 0.28);
+  padding-bottom: 12px;
+}
+
+.flyer-title-wrap h2 {
+  margin-bottom: 6px;
+  font-size: 1.8rem;
+}
+
+.flyer-legend {
+  gap: 8px;
+}
+
+.legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.legend-pill,
+.sponsor-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(145, 164, 190, 0.32);
+  background: #f8fbff;
+  font-size: 0.82rem;
+}
+
+.flyer-page-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.flyer-page-columns.page-two {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+}
+
+.flyer-column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.flyer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.flyer-section-heading {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #32445d;
+}
+
+.flyer-entry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.flyer-entry-list.compact {
+  gap: 8px;
+}
+
+.flyer-entry {
+  border: 1px solid rgba(145, 164, 190, 0.24);
+  border-radius: 16px;
+  padding: 10px 11px;
+  background: #fff;
+}
+
+.flyer-entry-top,
+.card-header-line,
+.flyer-note-top,
+.flyer-region-top {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.flyer-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: #edf3ff;
+  font-weight: 800;
+  font-size: 0.92rem;
+}
+
+.flyer-name-block {
+  min-width: 0;
+  flex: 1;
+}
+
+.flyer-name-block h4 {
+  margin: 0 0 4px;
+  font-size: 0.98rem;
+  line-height: 1.18;
+}
+
+.flyer-meta {
+  color: #52657d;
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.flyer-entry p,
+.flyer-note-card p,
+.flyer-footer-lines {
+  margin: 0;
+  color: #2e3e54;
+  line-height: 1.35;
+  font-size: 0.85rem;
+}
+
+.flyer-callout-grid,
+.flyer-thanks-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.flyer-note-card {
+  border: 1px solid rgba(145, 164, 190, 0.24);
+  border-radius: 16px;
+  padding: 12px;
+  background: #fbfdff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.flyer-note-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.flyer-tree-sign {
+  width: 78px;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(145, 164, 190, 0.24);
+  background: white;
+}
+
+.flyer-qr {
+  width: 120px;
+  max-width: 100%;
+  height: auto;
+  align-self: center;
+  border-radius: 10px;
+  border: 1px solid rgba(145, 164, 190, 0.24);
+  background: white;
+  padding: 6px;
+}
+
+.flyer-mini-map {
+  width: 100px;
+  max-width: 34%;
+  border-radius: 10px;
+  border: 1px solid rgba(145, 164, 190, 0.24);
+  background: white;
+}
+
+.flyer-list {
+  padding-left: 18px;
+  margin: 0;
+  color: #2e3e54;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.flyer-footer-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 6px;
+}
+
+.qr-card {
+  align-items: center;
+  text-align: center;
+}
+
+.flyer-print-page {
+  background: white;
+}
+
+.flyer-print-shell {
+  width: fit-content;
+  margin: 0 auto;
+  padding: 12px;
+}
+
+@media (max-width: 699px) {
+  .flyer-page-columns,
+  .flyer-page-columns.page-two {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  body.flyer-print-page,
+  .flyer-print-page {
+    background: white !important;
+  }
+
+  .flyer-print-shell {
+    padding: 0;
+    margin: 0;
+  }
+
+  .flyer-page {
+    width: 8.5in;
+    min-height: 11in;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .flyer-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .flyer-page-inner {
+    padding: 0.35in;
+  }
+
+  .flyer-page-header {
+    margin-bottom: 0.12in;
+    padding-bottom: 0.08in;
+  }
+
+  .flyer-title-wrap h2 {
+    font-size: 20pt;
+  }
+
+  .flyer-section-heading {
+    font-size: 10pt;
+  }
+
+  .flyer-entry {
+    padding: 7pt 8pt;
+    border-radius: 10pt;
+  }
+
+  .flyer-number {
+    min-width: 24pt;
+    height: 24pt;
+    font-size: 8.5pt;
+    border-radius: 8pt;
+  }
+
+  .flyer-name-block h4 {
+    font-size: 8.9pt;
+    margin-bottom: 2pt;
+  }
+
+  .flyer-meta,
+  .flyer-entry p,
+  .flyer-note-card p,
+  .flyer-list,
+  .legend-pill,
+  .sponsor-pill,
+  .flyer-footer-lines {
+    font-size: 7.5pt;
+    line-height: 1.2;
+  }
+
+  .legend-row {
+    gap: 5pt;
+  }
+
+  .flyer-page-columns {
+    gap: 10pt;
+  }
+
+  .flyer-column {
+    gap: 8pt;
+  }
+
+  .flyer-entry-list {
+    gap: 6pt;
+  }
+
+  .flyer-section,
+  .flyer-callout-grid,
+  .flyer-thanks-grid {
+    gap: 7pt;
+  }
+
+  .flyer-note-card {
+    padding: 8pt;
+    border-radius: 10pt;
+    gap: 6pt;
+  }
+
+  .flyer-tree-sign {
+    width: 56pt;
+  }
+
+  .flyer-qr {
+    width: 78pt;
+  }
+
+  .flyer-mini-map {
+    width: 62pt;
+  }
+
+  @page {
+    size: letter portrait;
+    margin: 0;
+  }
+}
