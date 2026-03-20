@@ -1,7 +1,22 @@
 {
-  "title": "Christmas on Vinegar Hill",
-  "subtitle": "36th Annual • Saturday, November 21, 2026",
-  "iconLegend": [
+  "document": {
+    "title": "Christmas on Vinegar Hill",
+    "subtitle": "Saturday, November 21, 2026",
+    "eyebrow": "Printable flyer",
+    "paperSize": "letter",
+    "orientation": "portrait"
+  },
+  "assets": {
+    "treeSign": "assets/images/covh/flyer-tree-sign.jpg",
+    "qrMap": "assets/images/covh/flyer-qr-map.png",
+    "maps": {
+      "mtPulaski": "assets/images/covh/flyer-map-mt-pulaski.png",
+      "chestnut": "assets/images/covh/flyer-map-chestnut.png",
+      "elkhart": "assets/images/covh/flyer-map-elkhart.png",
+      "latham": "assets/images/covh/flyer-map-latham.png"
+    }
+  },
+  "legend": [
     {
       "label": "MV",
       "meaning": "Multiple Vendors"
@@ -15,8 +30,8 @@
       "meaning": "Food Available"
     }
   ],
-  "sections": [
-    {
+  "sections": {
+    "mt-pulaski-a": {
       "title": "Mt. Pulaski",
       "entries": [
         {
@@ -24,11 +39,8 @@
           "name": "Mt. Pulaski Courthouse State Historic Site",
           "address": "113 S. Washington St.",
           "hours": "8 AM–4 PM",
-          "description": "Warm refreshments, festive treats, and Christmas décor.",
-          "badges": [
-            "🚻",
-            "🍴"
-          ]
+          "description": "Enjoy warm refreshments, festive treats, and Christmas decor.",
+          "badges": ["🚻", "🍴"]
         },
         {
           "number": "2",
@@ -36,19 +48,15 @@
           "address": "103 E. Scroggin Ave.",
           "hours": "8 AM–4 PM",
           "description": "Crafts, antiques, florals, clothing, soaps, candles, jewelry, Pampered Chef, wood, and holiday goods.",
-          "badges": [
-            "MV"
-          ]
+          "badges": ["MV"]
         },
         {
           "number": "3",
           "name": "Boy Scout Troop 122",
-          "address": "103 E. Scroggin Ave. (Parking Lot)",
+          "address": "103 E. Scroggin Ave. (parking lot)",
           "hours": "10 AM–2 PM",
           "description": "Fresh hot pork chop sandwiches.",
-          "badges": [
-            "🍴"
-          ]
+          "badges": ["🍴"]
         },
         {
           "number": "4",
@@ -56,30 +64,31 @@
           "address": "206 Spring St.",
           "hours": "8 AM–4 PM",
           "description": "60+ vendors, crafts, homemade goods, and direct market sales.",
-          "badges": [
-            "MV"
-          ]
+          "badges": ["MV"]
         },
         {
           "number": "5",
           "name": "Vinegar Hill Treasure Chest",
-          "address": "121 S. Lafayette St.",
+          "address": "121 S. Lafayette St. – New Location",
           "hours": "8 AM–4 PM",
           "description": "Antiques, repurposed furniture, wood crafts, vintage, handmade, and miscellaneous goods.",
-          "badges": [
-            "MV"
-          ]
+          "badges": ["MV"]
         },
         {
           "number": "6",
           "name": "Topper’s Storage – Complete Storage Solutions",
           "address": "926 McDonald St.",
           "hours": "8 AM–4 PM",
-          "description": "Large indoor shopping with Christmas décor, gifts, and multiple food trucks.",
-          "badges": [
-            "MV",
-            "🍴"
-          ]
+          "description": "Large indoor shopping with Christmas decor, gifts, and multiple food trucks.",
+          "badges": ["MV", "🍴"]
+        },
+        {
+          "number": "7",
+          "name": "The Crafty Corner",
+          "address": "403 N. Spring St.",
+          "hours": "10 AM–1 PM",
+          "description": "Hats, ear warmers, miniatures, baked goods, and scrubbies.",
+          "badges": []
         },
         {
           "number": "8",
@@ -87,9 +96,36 @@
           "address": "320 N. Washington St.",
           "hours": "8 AM–4 PM",
           "description": "Annual book sale. Free donuts and hot drinks.",
-          "badges": [
-            "🍴"
-          ]
+          "badges": ["🍴"]
+        }
+      ]
+    },
+    "mt-pulaski-b": {
+      "title": "Mt. Pulaski",
+      "entries": [
+        {
+          "number": "9",
+          "name": "Mt. Pulaski Township Historical Museum",
+          "address": "102–104 E. Cooke St.",
+          "hours": "8 AM–4 PM",
+          "description": "Bake sale and gently used Christmas items for sale.",
+          "badges": []
+        },
+        {
+          "number": "10",
+          "name": "Red Ribbon Christmas",
+          "address": "505 E. Cooke St.",
+          "hours": "8 AM–4 PM",
+          "description": "Christmas, Thanksgiving, and Americana crafts and items.",
+          "badges": []
+        },
+        {
+          "number": "11",
+          "name": "Daily Wrap",
+          "address": "113 S. Washington (on the square)",
+          "hours": "8 AM–4 PM",
+          "description": "Breakfast and lunch wraps, plus fresh and fried sides.",
+          "badges": ["🍴"]
         },
         {
           "number": "12",
@@ -97,103 +133,212 @@
           "address": "119 N. Garden St.",
           "hours": "8 AM–4 PM",
           "description": "60+ vendors, cookie walk, walking tacos, sloppy joes, and hot dogs.",
-          "badges": [
-            "MV",
-            "🍴"
-          ]
+          "badges": ["MV", "🍴"]
+        },
+        {
+          "number": "13",
+          "name": "Mt. Pulaski Cafe",
+          "address": "304 E. McDonald St.",
+          "hours": "6 AM–7:30 PM",
+          "description": "Breakfast, lunch, and dinner served all day.",
+          "badges": ["🍴"]
+        },
+        {
+          "number": "14",
+          "name": "We Three Sweets",
+          "address": "113 S. Washington (on the square)",
+          "hours": "8 AM–4 PM",
+          "description": "Hot chocolate, homemade marshmallows, hot cider, cinnamon rolls, and sweet treats.",
+          "badges": ["🍴"]
         },
         {
           "number": "15",
           "name": "Zion Lutheran Church",
           "address": "203 S. Vine St.",
           "hours": "11 AM–1:30 PM",
-          "description": "Soup and sandwiches and vendors.",
-          "badges": [
-            "MV",
-            "🍴"
-          ]
+          "description": "Soup and sandwiches plus vendors.",
+          "badges": ["MV", "🍴"]
         },
         {
           "number": "16",
           "name": "Mt. Pulaski Courthouse Gazebo",
           "address": "113 S. Washington",
           "hours": "8 AM–4 PM",
-          "description": "Gazebo decorated for Christmas photo ops.",
+          "description": "Gazebo decorated for a Christmas photo opportunity.",
           "badges": []
         }
       ]
     },
-    {
-      "title": "Chestnut",
+    "mt-pulaski-c": {
+      "title": "Mt. Pulaski",
       "entries": [
         {
-          "number": "C1",
-          "name": "Chestnut Fire Dept.",
-          "address": "110 E. Olive St.",
+          "number": "17",
+          "name": "Johnson’s True Value Hardware",
+          "address": "501 E. Chestnut St.",
           "hours": "8 AM–4 PM",
-          "description": "Crafts, bake sale, jewelry, and more.",
-          "badges": [
-            "MV"
-          ]
+          "description": "Retail full-line hardware store with Christmas decor and holiday lighting.",
+          "badges": []
+        },
+        {
+          "number": "18",
+          "name": "Davis Dairy Bar, Inc.",
+          "address": "511 E. Chestnut St.",
+          "hours": "8 AM–4 PM",
+          "description": "Mini donuts 8 AM–10:30 AM and a limited menu 11 AM–4 PM.",
+          "badges": ["🍴"]
+        },
+        {
+          "number": "19",
+          "name": "St. Thomas Aquinas Church",
+          "address": "321 S. Lafayette St.",
+          "hours": "7 AM–11 AM",
+          "description": "Pancakes, sausage, biscuits and gravy, drinks, and a bake sale.",
+          "badges": ["🍴"]
+        },
+        {
+          "number": "20",
+          "name": "Annette Hahn Memorial",
+          "address": "102 S. Garden St.",
+          "hours": "8 AM–4 PM",
+          "description": "In loving memory of Annette, a longtime Christmas on Vinegar Hill board member; gone but not forgotten.",
+          "badges": []
+        },
+        {
+          "number": "21",
+          "name": "The Next Stop Saloon",
+          "address": "100 E. Cooke St.",
+          "hours": "11 AM–1 AM",
+          "description": "Special holiday drinks, cold beer, pizza, and gaming.",
+          "badges": ["🍴"]
+        },
+        {
+          "number": "22",
+          "name": "Boomer’s BBQ",
+          "address": "113 S. Washington (on the square)",
+          "hours": "8 AM–4 PM",
+          "description": "Brisket, pork, nachos, fries, wings, and more.",
+          "badges": ["🍴"]
+        },
+        {
+          "number": "23",
+          "name": "Market on the Hill",
+          "address": "125 S. Lafayette St.",
+          "hours": "7 AM–7 PM",
+          "description": "Sandwiches, soup, baked treats, iced lattes, coffee, crafts, and more.",
+          "badges": ["🍴"]
+        },
+        {
+          "number": "24",
+          "name": "Pizza Man – Photo Op",
+          "address": "120 E. Cooke St.",
+          "hours": "8 AM–4 PM",
+          "description": "Fence decorated for a Christmas photo opportunity.",
+          "badges": []
+        },
+        {
+          "number": "25",
+          "name": "Loo’s Sugar Buzz",
+          "address": "113 S. Washington (on the square)",
+          "hours": "8 AM–4 PM",
+          "description": "Coffees, dirty drinks, lemonade shake-ups, and sweet tea.",
+          "badges": ["🍴"]
         }
       ]
     },
-    {
-      "title": "Elkhart",
-      "entries": [
+    "regional": {
+      "title": "Regional Stops",
+      "blocks": [
         {
-          "number": "E1",
-          "name": "Elkhart Station General Store",
-          "address": "101 Governor Oglesby St.",
-          "hours": "8 AM–4 PM",
-          "description": "Illinois products and wine tastings.",
-          "badges": [
-            "🍴"
+          "title": "Chestnut",
+          "mapKey": "chestnut",
+          "entries": [
+            {
+              "number": "C1",
+              "name": "Chestnut Fire Dept.",
+              "address": "110 E. Olive St.",
+              "hours": "8 AM–4 PM",
+              "description": "Crafts, bake sale, jewelry, and more.",
+              "badges": ["MV"]
+            }
           ]
         },
         {
-          "number": "E2",
-          "name": "The Talk of the Town",
-          "address": "115 Governor Oglesby St.",
-          "hours": "8 AM–2 PM",
-          "description": "Restaurant and bar with good food and drinks.",
-          "badges": [
-            "🍴"
+          "title": "Elkhart",
+          "mapKey": "elkhart",
+          "entries": [
+            {
+              "number": "E1",
+              "name": "Elkhart Station General Store",
+              "address": "101 Governor Oglesby St.",
+              "hours": "8 AM–4 PM",
+              "description": "General store with Illinois products and wine tastings.",
+              "badges": ["🍴"]
+            },
+            {
+              "number": "E2",
+              "name": "The Talk of the Town",
+              "address": "115 Governor Oglesby St.",
+              "hours": "8 AM–2 PM",
+              "description": "Restaurant and bar with good food and good drinks.",
+              "badges": ["🍴"]
+            }
           ]
-        }
-      ]
-    },
-    {
-      "title": "Latham",
-      "entries": [
+        },
         {
-          "number": "L1",
-          "name": "BB’s BFE Bar & Grill",
-          "address": "2371 N Rt. 121",
-          "hours": "10:30 AM–12 AM",
-          "description": "Restaurant and bar with hot food, cold drinks, and vendors.",
-          "badges": [
-            "MV",
-            "🍴"
+          "title": "Latham",
+          "mapKey": "latham",
+          "entries": [
+            {
+              "number": "L1",
+              "name": "BB’s BFE Bar & Grill",
+              "address": "2371 N Rt. 121",
+              "hours": "10:30 AM–12 AM",
+              "description": "Restaurant and bar with hot food, cold drinks, and vendors.",
+              "badges": ["MV", "🍴"]
+            }
           ]
         }
       ]
     }
+  },
+  "pageFlow": [
+    {
+      "pageId": "page-1",
+      "leftSection": "mt-pulaski-a",
+      "rightSection": "mt-pulaski-b"
+    },
+    {
+      "pageId": "page-2",
+      "leftSection": "mt-pulaski-c",
+      "rightSection": "regional"
+    }
   ],
-  "footerNotes": [
-    "Look for the tree sign for participating locations.",
-    "Visit a location with the bag symbol and receive a reusable shopping bag with any donation while supplies last.",
-    "Follow Facebook and cityofmtpulaski.com for updates and vendor listings."
-  ],
-  "sponsors": [
-    "Mt. Pulaski Economic Development & Planning Board",
-    "Tomlinson Trust",
-    "Community Foundation for the Land of Lincoln",
-    "Logan County Tourism Bureau",
-    "The City of Mt. Pulaski",
-    "Casey’s General Store",
-    "Eaton Corp.",
-    "INB",
-    "Land & Home Real Estate & Property Management"
-  ]
+  "callouts": {
+    "treeSign": "Look for the tree sign for participating locations.",
+    "bagNotice": "Visit a location with the bag symbol and receive a reusable shopping bag with any donation to the 2026 Christmas on Vinegar Hill event while supplies last.",
+    "scanText": "Scan for Google Map of Event",
+    "thankYouTitle": "Thank You",
+    "thankYouText": "Thank you for your patronage and to our Christmas on Vinegar Hill grant benefactors:",
+    "benefactors": [
+      "Mt. Pulaski Economic Development & Planning Board",
+      "Tomlinson Trust",
+      "Community Foundation for the Land of Lincoln",
+      "Logan County Tourism Bureau",
+      "The City of Mt. Pulaski",
+      "Casey’s General Store"
+    ],
+    "sponsorsTitle": "Sponsors",
+    "sponsors": [
+      "Eaton Corp.",
+      "INB",
+      "Land & Home Real Estate & Property Management"
+    ],
+    "footer": [
+      "Follow us on Facebook and",
+      "www.cityofmtpulaski.com",
+      "click on “In Our Community” then “Christmas on Vinegar Hill”",
+      "for updates and vendor listings."
+    ]
+  }
 }
