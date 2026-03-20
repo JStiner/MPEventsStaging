@@ -657,7 +657,9 @@ function setupTabs() {
   tabs.forEach(tab => {
     const name = tab.dataset.tab;
     const isAllowed = !allowedTabs.length || allowedTabs.includes(name);
-    tab.style.display = isAllowed ? '' : 'none';
+    const tabContainer = tab.closest('li') || tab;
+
+    tabContainer.style.display = isAllowed ? '' : 'none';
     tab.classList.remove('active');
   });
 
@@ -674,14 +676,8 @@ function setupTabs() {
       const isAllowed = !allowedTabs.length || allowedTabs.includes(name);
       if (!isAllowed) return;
 
-    tabs.forEach(tab => {
-  const name = tab.dataset.tab;
-  const isAllowed = !allowedTabs.length || allowedTabs.includes(name);
-  const tabContainer = tab.closest('li') || tab;
-
-  tabContainer.style.display = isAllowed ? '' : 'none';
-  tab.classList.remove('active');
-});
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
 
       tab.classList.add('active');
 
@@ -692,7 +688,11 @@ function setupTabs() {
     };
   });
 
-  const firstVisibleTab = Array.from(tabs).find(tab => tab.style.display !== 'none');
+  const firstVisibleTab = Array.from(tabs).find(tab => {
+    const tabContainer = tab.closest('li') || tab;
+    return tabContainer.style.display !== 'none';
+  });
+
   if (firstVisibleTab) {
     firstVisibleTab.click();
   }
