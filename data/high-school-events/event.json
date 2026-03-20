@@ -9,6 +9,12 @@
     "title": "Important Notice",
     "text": "This is not an official publication of Mt. Pulaski Community Unit School District 23. Information is provided for convenience only and may not be complete or current. Mt. Pulaski Community Unit School District 23 is not responsible for updates, corrections, or omissions."
   },
+    "tabs": [
+    "schedule",
+    "map",
+    "locations",
+    "flyer"
+  ],
   "days": [
     {
       "id": "fri-01-02",
@@ -733,12 +739,7 @@
     "2026-12-28",
     "2026-12-31"
   ],
-  "tabs": [
-    "schedule",
-    "map",
-    "locations",
-    "flyer"
-  ],
+
   "_split": {
     "locations": "locations.json",
     "schedule": "schedule.json",
