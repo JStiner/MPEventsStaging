@@ -4,6 +4,10 @@
   "summary": "One-day holiday event organized by location, with shopping, food, photo stops, and community destinations across Mt. Pulaski and nearby partner locations.",
   "dateLabel": "Saturday, November 21, 2026",
   "areaLabel": "Mt. Pulaski, Chestnut, Elkhart, and Latham",
+  "disclaimer": {
+  "title": "Important Notice",
+  "text": "This is not an official publication of the board and supporters of Christmas on Vinegar Hill. Information is provided for convenience only and may not be complete or current. The board, supporters, and sponsors of Christmas on Vinegar Hill are not responsible for updates, corrections, or omissions."
+}
   "days": [
     {
       "id": "holiday",
