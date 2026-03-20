@@ -4,6 +4,10 @@
   "summary": "2026 Mt. Pulaski Fall Festival schedule loaded from last year's flyer, organized across downtown locations, food areas, and activity zones.",
   "dateLabel": "September 9\u201313, 2026",
   "areaLabel": "Downtown Mt. Pulaski",
+  "disclaimer": {
+  "title": "Important Notice",
+  "text": "This is not an official publication of the Mt. Pulaski Fall Fest Committee, Hilltop Club, or supporting sponsors. Information is provided for convenience only and may not be complete or current. The Fall Fest Committee, Hilltop Club, and supporters or sponsors are not responsible for updates, corrections, or omissions."
+}
   "theme": {
     "year": 2026,
     "title": "Off to the Races",
