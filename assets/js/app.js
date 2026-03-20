@@ -409,64 +409,246 @@ function renderLocations(data) {
   });
 }
 
-function renderFlyer(data) {
-  if (!el.flyerPanel) return;
-  if (!data.flyer) {
-    el.flyerPanel.innerHTML = '<div class="empty-state">Flyer content coming soon.</div>';
-    return;
-  }
-  const flyer = data.flyer;
+function flyerActionsMarkup() {
+  return `
+    <div class="flyer-toolbar">
+      <button type="button" class="flyer-action" data-flyer-action="share">Share flyer</button>
+      <button type="button" class="flyer-action" data-flyer-action="print">Print</button>
+      <button type="button" class="flyer-action" data-flyer-action="pdf">Download PDF</button>
+    </div>
+  `;
+}
 
-  el.flyerPanel.innerHTML = `
-    <section class="flyer-card">
-      <div class="flyer-hero">
-        <p class="eyebrow">Rendered from data</p>
-        <h2>${flyer.title}</h2>
-        <p class="subtle">${flyer.subtitle}</p>
-      </div>
-
-      <div class="legend-row">
-        ${(flyer.iconLegend || []).map(item => `<span class="legend-pill"><strong>${item.label}</strong> ${item.meaning}</span>`).join('')}
-      </div>
-
-      ${(flyer.sections || []).map(section => `
-        <section class="flyer-section">
-          <h3>${section.title}</h3>
-          <div class="flyer-entry-list">
-            ${(section.entries || []).map(entry => `
-              <article class="flyer-entry">
-                <div class="flyer-entry-top">
-                  <span class="flyer-number">${entry.number}</span>
-                  <div class="flyer-name-block">
-                    <h4>${entry.name}</h4>
-                    <div class="flyer-meta">${entry.address} • ${entry.hours}</div>
-                  </div>
-                </div>
-                <p>${entry.description}</p>
-                <div class="badge-row">${(entry.badges || []).map(b => `<span class="mini-badge">${b}</span>`).join('')}</div>
-              </article>
-            `).join('')}
-          </div>
-        </section>
-      `).join('')}
-
-      <section class="flyer-section">
-        <h3>Notes</h3>
-        <ul class="flyer-list">
-          ${(flyer.footerNotes || []).map(note => `<li>${note}</li>`).join('')}
-        </ul>
-      </section>
-
-      <section class="flyer-section">
-        <h3>Sponsors</h3>
-        <div class="sponsor-grid">
-          ${(flyer.sponsors || []).map(name => `<span class="sponsor-pill">${name}</span>`).join('')}
+function renderFlyerEntry(entry) {
+  return `
+    <article class="flyer-entry">
+      <div class="flyer-entry-top">
+        <span class="flyer-number">${entry.number}</span>
+        <div class="flyer-name-block">
+          <h4>${entry.name}</h4>
+          <div class="flyer-meta">${entry.address} • ${entry.hours}</div>
         </div>
-      </section>
+      </div>
+      <p>${entry.description}</p>
+      ${(entry.badges || []).length ? `<div class="badge-row">${entry.badges.map(b => `<span class="mini-badge">${b}</span>`).join('')}</div>` : ''}
+    </article>
+  `;
+}
+
+function renderFlyerSection(section, showTitle = true) {
+  if (!section) return '';
+  const titleMarkup = showTitle && section.title ? `<div class="flyer-section-heading">${section.title}</div>` : '';
+  return `
+    <section class="flyer-section">
+      ${titleMarkup}
+      <div class="flyer-entry-list">
+        ${(section.entries || []).map(renderFlyerEntry).join('')}
+      </div>
     </section>
   `;
 }
 
+function renderRegionalBlock(block, flyer) {
+  const mapSrc = flyer.assets?.maps?.[block.mapKey];
+  return `
+    <section class="flyer-section regional-block">
+      <div class="card-header-line flyer-region-top">
+        <div class="flyer-section-heading">${block.title}</div>
+        ${mapSrc ? `<img class="flyer-mini-map" src="${mapSrc}" alt="${block.title} map" loading="lazy" />` : ''}
+      </div>
+      <div class="flyer-entry-list compact">
+        ${(block.entries || []).map(renderFlyerEntry).join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderFlyerPage(pageConfig, flyer, index) {
+  const leftSection = flyer.sections?.[pageConfig.leftSection];
+  const rightSection = flyer.sections?.[pageConfig.rightSection];
+  const regionalBlocks = rightSection?.blocks || [];
+  const callouts = flyer.callouts || {};
+  const isSecondPage = index === 1;
+
+  return `
+    <article class="flyer-page" data-page="${index + 1}">
+      <div class="flyer-page-inner">
+        <header class="flyer-page-header">
+          <div class="flyer-title-wrap">
+            <p class="eyebrow">${flyer.document?.eyebrow || 'Printable flyer'}</p>
+            <h2>${flyer.document?.title || 'Event Flyer'}</h2>
+            <p class="subtle">${flyer.document?.subtitle || ''}</p>
+          </div>
+          <div class="legend-row flyer-legend">
+            ${(flyer.legend || []).map(item => `<span class="legend-pill"><strong>${item.label}</strong> ${item.meaning}</span>`).join('')}
+          </div>
+        </header>
+
+        <div class="flyer-page-columns ${isSecondPage ? 'page-two' : ''}">
+          <section class="flyer-column flyer-column-main">
+            ${renderFlyerSection(leftSection, true)}
+          </section>
+
+          <section class="flyer-column flyer-column-side">
+            ${!isSecondPage ? renderFlyerSection(rightSection, false) : `
+              <section class="flyer-section">
+                <div class="flyer-section-heading">Regional Stops</div>
+                ${regionalBlocks.map(block => renderRegionalBlock(block, flyer)).join('')}
+              </section>
+
+              <section class="flyer-section flyer-callout-grid">
+                <div class="flyer-note-card">
+                  <div class="flyer-note-top">
+                    ${flyer.assets?.treeSign ? `<img class="flyer-tree-sign" src="${flyer.assets.treeSign}" alt="Christmas on Vinegar Hill tree sign" loading="lazy" />` : ''}
+                    <div>
+                      <h3>Look for the Tree Sign</h3>
+                      <p>${callouts.treeSign || ''}</p>
+                    </div>
+                  </div>
+                  <p>${callouts.bagNotice || ''}</p>
+                </div>
+
+                <div class="flyer-note-card qr-card">
+                  <div>
+                    <h3>${callouts.scanText || 'Scan for map'}</h3>
+                    <p>Use the QR code for the public event map.</p>
+                  </div>
+                  ${flyer.assets?.qrMap ? `<img class="flyer-qr" src="${flyer.assets.qrMap}" alt="QR code for event map" loading="lazy" />` : ''}
+                </div>
+              </section>
+
+              <section class="flyer-section flyer-thanks-grid">
+                <div class="flyer-note-card">
+                  <h3>${callouts.thankYouTitle || 'Thank You'}</h3>
+                  <p>${callouts.thankYouText || ''}</p>
+                  <ul class="flyer-list">
+                    ${(callouts.benefactors || []).map(item => `<li>${item}</li>`).join('')}
+                  </ul>
+                </div>
+
+                <div class="flyer-note-card">
+                  <h3>${callouts.sponsorsTitle || 'Sponsors'}</h3>
+                  <div class="sponsor-grid">
+                    ${(callouts.sponsors || []).map(name => `<span class="sponsor-pill">${name}</span>`).join('')}
+                  </div>
+                  <div class="flyer-footer-lines">
+                    ${(callouts.footer || []).map(line => `<div>${line}</div>`).join('')}
+                  </div>
+                </div>
+              </section>
+            `}
+          </section>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function buildFlyerPrintDocument(flyer) {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <title>${flyer.document?.title || 'Event Flyer'}</title>
+      <link rel="stylesheet" href="assets/css/styles.css" />
+    </head>
+    <body class="flyer-print-page">
+      <main class="flyer-print-shell">
+        ${(flyer.pageFlow || []).map((page, index) => renderFlyerPage(page, flyer, index)).join('')}
+      </main>
+    </body>
+    </html>
+  `;
+}
+
+async function shareFlyerLink() {
+  const shareData = {
+    title: `${state.eventData?.eventName || 'Event'} Flyer`,
+    text: 'Printable event flyer',
+    url: window.location.href
+  };
+
+  if (navigator.share) {
+    await navigator.share(shareData);
+    return;
+  }
+
+  await navigator.clipboard.writeText(window.location.href);
+  alert('Flyer link copied.');
+}
+
+function openFlyerPrintView(mode = 'print') {
+  const flyer = state.eventData?.flyer;
+  if (!flyer) return;
+
+  const printWindow = window.open('', '_blank', 'noopener,noreferrer');
+  if (!printWindow) return;
+
+  printWindow.document.open();
+  printWindow.document.write(buildFlyerPrintDocument(flyer));
+  printWindow.document.close();
+
+  const runPrint = () => {
+    if (mode === 'print' || mode === 'pdf') {
+      printWindow.focus();
+      printWindow.print();
+    }
+  };
+
+  if (printWindow.document.readyState === 'complete') {
+    runPrint();
+  } else {
+    printWindow.addEventListener('load', runPrint, { once: true });
+  }
+}
+
+function setupFlyerActions() {
+  if (!el.flyerPanel) return;
+  el.flyerPanel.querySelectorAll('[data-flyer-action]').forEach(button => {
+    button.addEventListener('click', async () => {
+      const action = button.dataset.flyerAction;
+
+      if (action === 'share') {
+        try {
+          await shareFlyerLink();
+        } catch (error) {
+          console.error(error);
+        }
+        return;
+      }
+
+      if (action === 'print') {
+        openFlyerPrintView('print');
+        return;
+      }
+
+      if (action === 'pdf') {
+        openFlyerPrintView('pdf');
+      }
+    });
+  });
+}
+
+function renderFlyer(data) {
+  if (!el.flyerPanel) return;
+  if (!data.flyer?.pageFlow?.length) {
+    el.flyerPanel.innerHTML = '<div class="empty-state">Flyer content coming soon.</div>';
+    return;
+  }
+
+  const flyer = data.flyer;
+
+  el.flyerPanel.innerHTML = `
+    ${flyerActionsMarkup()}
+    <div class="flyer-preview-shell">
+      ${(flyer.pageFlow || []).map((page, index) => renderFlyerPage(page, flyer, index)).join('')}
+    </div>
+  `;
+
+  setupFlyerActions();
+}
+  
 function setupTabs() {
   document.querySelectorAll('.tab-button').forEach(button => {
     button.addEventListener('click', () => {
