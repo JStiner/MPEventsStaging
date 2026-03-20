@@ -12,6 +12,15 @@
   --radius-xl: 28px;
   --radius-lg: 22px;
   --radius-md: 18px;
+  --color-community: #cfe8ff;     /* light blue */
+  --color-school: #e6d9ff;        /* lavender */
+  --color-town: #e8d8c3;          /* light brown */
+  --color-secondfriday: #ffe2cc;  /* light peach */
+  --color-fallfest: #ffd6e7;      /* light pink */
+  --color-covh: #d9f5d6;          /* light green */
+
+  /* optional text contrast */
+  --color-text-dark: #333;
 }
 
 * { box-sizing: border-box; }
