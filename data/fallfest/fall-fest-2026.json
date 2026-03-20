@@ -1,17 +1,17 @@
 {
   "eventName": "Mt. Pulaski Fall Festival 2026",
   "eventType": "Community Festival",
-  "summary": "2026 Mt. Pulaski Fall Festival schedule loaded from last year's flyer, organized across downtown locations, food areas, and activity zones.",
-  "dateLabel": "September 9\u201313, 2026",
+  "summary": "2026 Mt. Pulaski Fall Festival rough draft schedule, organized across downtown locations, food areas, and activity zones.",
+  "dateLabel": "September 9–13, 2026",
   "areaLabel": "Downtown Mt. Pulaski",
   "disclaimer": {
-  "title": "Important Notice",
-  "text": "This is not an official publication of the Mt. Pulaski Fall Fest Committee, Hilltop Club, or supporting sponsors. Information is provided for convenience only and may not be complete or current. The Fall Fest Committee, Hilltop Club, and supporters or sponsors are not responsible for updates, corrections, or omissions."
-},
+    "title": "Important Notice",
+    "text": "This is not an official publication of the Mt. Pulaski Fall Fest Committee, Hilltop Club, or supporting sponsors. Information is provided for convenience only and may not be complete or current. The Fall Fest Committee, Hilltop Club, and supporters or sponsors are not responsible for updates, corrections, or omissions."
+  },
   "theme": {
     "year": 2026,
     "title": "Off to the Races",
-    "displayText": "2026 Mt. Pulaski Fall Festival \u2014 Off to the Races"
+    "displayText": "2026 Mt. Pulaski Fall Festival — Off to the Races"
   },
   "featuredBranding": {
     "title": "50 Years on the Hill",
@@ -61,7 +61,7 @@
       "description": "Primary parade and street event area.",
       "notes": "Major festival corridor.",
       "directionsText": "Downtown main event zone.",
-      "pinIcon": "\ud83c\udfc1"
+      "pinIcon": "🏁"
     },
     {
       "id": "cooke",
@@ -72,7 +72,7 @@
       "description": "Beer tent and evening entertainment area.",
       "notes": "Evening bands and beer tent.",
       "directionsText": "Southwest festival zone.",
-      "pinIcon": "\ud83c\udf7a"
+      "pinIcon": "🍺"
     },
     {
       "id": "courthouse",
@@ -83,7 +83,7 @@
       "description": "Ceremony, pageant, courthouse open house, and lawn activities.",
       "notes": "Central square.",
       "directionsText": "On the courthouse square.",
-      "pinIcon": "\ud83c\udfdb\ufe0f"
+      "pinIcon": "🏛️"
     },
     {
       "id": "jefferson",
@@ -94,7 +94,7 @@
       "description": "Family activities, inflatables, petting zoo, and climbing wall.",
       "notes": "Kids activity zone.",
       "directionsText": "East side family zone.",
-      "pinIcon": "\ud83c\udfa0"
+      "pinIcon": "🎠"
     },
     {
       "id": "zion",
@@ -105,7 +105,7 @@
       "description": "Dunk tank area.",
       "notes": "Family game stop.",
       "directionsText": "Festival game location.",
-      "pinIcon": "\ud83d\udca6"
+      "pinIcon": "💦"
     },
     {
       "id": "legion",
@@ -116,7 +116,7 @@
       "description": "Class reunion and community gathering site.",
       "notes": "Indoor meeting site.",
       "directionsText": "Legion hall location.",
-      "pinIcon": "\ud83c\udf96\ufe0f"
+      "pinIcon": "🎖️"
     },
     {
       "id": "museum",
@@ -127,7 +127,7 @@
       "description": "Vintage Clothing & Siltennial Exhibit.",
       "notes": "Open selected hours.",
       "directionsText": "Museum exhibit stop.",
-      "pinIcon": "\ud83d\uddbc\ufe0f"
+      "pinIcon": "🖼️"
     },
     {
       "id": "food-tent",
@@ -138,7 +138,7 @@
       "description": "Meals, bingo, and food-related events.",
       "notes": "Festival food area.",
       "directionsText": "Food service location.",
-      "pinIcon": "\ud83c\udf54"
+      "pinIcon": "🍔"
     },
     {
       "id": "gazebo",
@@ -149,7 +149,7 @@
       "description": "Concerts and service events.",
       "notes": "Bring lawn chairs.",
       "directionsText": "Square gazebo.",
-      "pinIcon": "\ud83c\udfb5"
+      "pinIcon": "🎵"
     },
     {
       "id": "south-washington",
@@ -160,18 +160,18 @@
       "description": "Anything With Wheels Show and Charlie Bingo area.",
       "notes": "South street activities.",
       "directionsText": "South Washington corridor.",
-      "pinIcon": "\ud83d\ude97"
+      "pinIcon": "🚗"
     },
     {
       "id": "announcer-stand",
-      "name": "Washington St Announcer\u2019s Stand",
+      "name": "Washington St Announcer’s Stand",
       "address": "Washington St, Mt. Pulaski",
       "mapX": 50,
       "mapY": 43,
       "description": "Parade staging and race flag pickup.",
       "notes": "Pre-parade coordination point.",
       "directionsText": "On Washington St.",
-      "pinIcon": "\ud83d\udce3"
+      "pinIcon": "📣"
     },
     {
       "id": "market-on-the-hill",
@@ -182,7 +182,7 @@
       "description": "Cooking contest host.",
       "notes": "Food-related stop.",
       "directionsText": "Near downtown food area.",
-      "pinIcon": "\ud83e\udd58"
+      "pinIcon": "🥘"
     },
     {
       "id": "bubble-bus",
@@ -193,7 +193,7 @@
       "description": "Bubble Bus location.",
       "notes": "Family activity stop.",
       "directionsText": "Intersection event area.",
-      "pinIcon": "\ud83e\udee7"
+      "pinIcon": "🫧"
     },
     {
       "id": "cooke-lafayette",
@@ -204,7 +204,7 @@
       "description": "Evening live music area.",
       "notes": "Band location.",
       "directionsText": "Downtown music corner.",
-      "pinIcon": "\ud83c\udfb8"
+      "pinIcon": "🎸"
     },
     {
       "id": "logan-cath",
@@ -212,10 +212,10 @@
       "address": "Mt. Pulaski",
       "mapX": 66,
       "mapY": 60,
-      "description": "Kids\u2019 activities and moms\u2019 rest spot.",
+      "description": "Kids’ activities and moms’ rest spot.",
       "notes": "Family support area.",
       "directionsText": "Community support space.",
-      "pinIcon": "\ud83d\udc68\u200d\ud83d\udc69\u200d\ud83d\udc67\u200d\ud83d\udc66"
+      "pinIcon": "👨‍👩‍👧‍👦"
     },
     {
       "id": "unknown",
@@ -226,7 +226,7 @@
       "description": "General festival area where no specific flyer location was listed.",
       "notes": "Update when exact placement is known.",
       "directionsText": "Downtown festival footprint.",
-      "pinIcon": "\ud83d\udccd"
+      "pinIcon": "📍"
     }
   ],
   "schedule": [
@@ -296,7 +296,7 @@
       "date": "2026-09-11",
       "startTime": "12:00 PM",
       "endTime": "7:00 PM",
-      "title": "Museum Open \u2013 Vintage Clothing & Siltennial Exhibit",
+      "title": "Museum Open – Vintage Clothing & Siltennial Exhibit",
       "locationId": "museum",
       "category": "Exhibit",
       "description": "Museum open with vintage clothing and Siltennial exhibit.",
@@ -380,10 +380,10 @@
       "date": "2026-09-11",
       "startTime": "5:00 PM",
       "endTime": "8:00 PM",
-      "title": "Kids\u2019 Activities / Moms\u2019 Rest Spot",
+      "title": "Kids’ Activities / Moms’ Rest Spot",
       "locationId": "logan-cath",
       "category": "Family",
-      "description": "Kids\u2019 activities and moms\u2019 rest spot.",
+      "description": "Kids’ activities and moms’ rest spot.",
       "vendorIds": []
     },
     {
@@ -455,7 +455,7 @@
       "title": "Cake Walk",
       "locationId": "unknown",
       "category": "Family",
-      "description": "Cake Walk \u2013 Girl Scouts.",
+      "description": "Cake Walk – Girl Scouts.",
       "vendorIds": []
     },
     {
@@ -524,7 +524,7 @@
       "date": "2026-09-12",
       "startTime": "9:00 AM",
       "endTime": "10:00 AM",
-      "title": "5th Annual Kids\u2019 Color Run",
+      "title": "5th Annual Kids’ Color Run",
       "locationId": "unknown",
       "category": "Family",
       "description": "Run only, no bikes.",
@@ -560,10 +560,10 @@
       "date": "2026-09-12",
       "startTime": "9:00 AM",
       "endTime": "9:00 PM",
-      "title": "Kids\u2019 Activities / Moms\u2019 Rest Spot",
+      "title": "Kids’ Activities / Moms’ Rest Spot",
       "locationId": "logan-cath",
       "category": "Family",
-      "description": "Kids\u2019 activities and moms\u2019 rest spot.",
+      "description": "Kids’ activities and moms’ rest spot.",
       "vendorIds": []
     },
     {
@@ -599,7 +599,7 @@
       "title": "Cake Walk",
       "locationId": "unknown",
       "category": "Family",
-      "description": "Cake Walk \u2013 Girl Scouts.",
+      "description": "Cake Walk – Girl Scouts.",
       "vendorIds": []
     },
     {
@@ -680,7 +680,7 @@
       "date": "2026-09-12",
       "startTime": "12:00 PM",
       "endTime": "1:00 PM",
-      "title": "Home Football Game \u2013 Unity Christian v South Fork",
+      "title": "Home Football Game – Unity Christian v South Fork",
       "locationId": "unknown",
       "category": "Sports",
       "description": "Home football game.",
@@ -704,7 +704,7 @@
       "date": "2026-09-12",
       "startTime": "12:00 PM",
       "endTime": "7:00 PM",
-      "title": "Museum Open \u2013 Vintage Clothing & Siltennial Exhibit",
+      "title": "Museum Open – Vintage Clothing & Siltennial Exhibit",
       "locationId": "museum",
       "category": "Exhibit",
       "description": "Museum open with vintage clothing and Siltennial exhibit.",
@@ -743,7 +743,7 @@
       "title": "Cooking Contest",
       "locationId": "market-on-the-hill",
       "category": "Food",
-      "description": "Cooking contest at Market on the Hill \u2013 Food Tent.",
+      "description": "Cooking contest at Market on the Hill – Food Tent.",
       "vendorIds": []
     },
     {
@@ -755,7 +755,7 @@
       "title": "Kids! Pick Up Race Flags for the Parade!",
       "locationId": "announcer-stand",
       "category": "Parade",
-      "description": "Pick up race flags at the Washington St Announcer\u2019s Stand.",
+      "description": "Pick up race flags at the Washington St Announcer’s Stand.",
       "vendorIds": []
     },
     {
@@ -803,7 +803,7 @@
       "title": "Hilltop Club Ribeye Sandwich Meal",
       "locationId": "food-tent",
       "category": "Food",
-      "description": "Proceeds go to Hilltop Club\u2019s Scholarship Program.",
+      "description": "Proceeds go to Hilltop Club’s Scholarship Program.",
       "vendorIds": []
     },
     {
@@ -978,7 +978,7 @@
     },
     {
       "id": "eat-gramma-nana",
-      "name": "Gramma Nana\u2019s Kitchen",
+      "name": "Gramma Nana’s Kitchen",
       "locationId": "food-tent",
       "category": "Food",
       "description": "Friday only.",

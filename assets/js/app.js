@@ -28,7 +28,15 @@ const el = {
 };
 
 function formatTimeRange(start, end) {
-  return `${start} – ${end}`;
+  const startText = String(start || '').trim();
+  const endText = String(end || '').trim();
+  const emptyStart = !startText || startText.toUpperCase() === 'TBD';
+  const emptyEnd = !endText || endText.toUpperCase() === 'TBD';
+
+  if (emptyStart && emptyEnd) return 'TBD';
+  if (emptyEnd || startText === endText) return startText || endText;
+  if (emptyStart) return endText;
+  return `${startText} – ${endText}`;
 }
 
 function convertTimeTo24(timeStr) {
