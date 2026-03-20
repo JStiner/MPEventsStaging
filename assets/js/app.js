@@ -651,49 +651,45 @@ function renderFlyer(data) {
   
 function setupTabs() {
   const tabs = document.querySelectorAll('[data-tab]');
-  const panels = document.querySelectorAll('[data-panel]');
+  const panels = document.querySelectorAll('.tab-panel');
   const allowedTabs = state.eventData?.tabs || [];
 
-  // Hide/show tabs
   tabs.forEach(tab => {
     const name = tab.dataset.tab;
-    if (!allowedTabs.includes(name)) {
-      tab.style.display = 'none';
-    } else {
-      tab.style.display = '';
-    }
+    const isAllowed = !allowedTabs.length || allowedTabs.includes(name);
+    tab.style.display = isAllowed ? '' : 'none';
+    tab.classList.remove('active');
   });
 
-  // Hide/show panels
   panels.forEach(panel => {
-    const name = panel.dataset.panel;
-    if (!allowedTabs.includes(name)) {
-      panel.style.display = 'none';
-    } else {
-      panel.style.display = '';
-    }
+    const name = panel.id;
+    const isAllowed = !allowedTabs.length || allowedTabs.includes(name);
+    panel.style.display = isAllowed ? '' : 'none';
+    panel.classList.remove('active');
   });
 
-  // Tab click behavior
   tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
+    tab.onclick = () => {
       const name = tab.dataset.tab;
-
-      // skip hidden tabs
-      if (!allowedTabs.includes(name)) return;
+      const isAllowed = !allowedTabs.length || allowedTabs.includes(name);
+      if (!isAllowed) return;
 
       tabs.forEach(t => t.classList.remove('active'));
       panels.forEach(p => p.classList.remove('active'));
 
       tab.classList.add('active');
-      const panel = document.querySelector(`[data-panel="${name}"]`);
-      if (panel) panel.classList.add('active');
-    });
+
+      const panel = document.getElementById(name);
+      if (panel) {
+        panel.classList.add('active');
+      }
+    };
   });
 
-  // Activate first visible tab
-  const firstVisible = Array.from(tabs).find(t => t.style.display !== 'none');
-  if (firstVisible) firstVisible.click();
+  const firstVisibleTab = Array.from(tabs).find(tab => tab.style.display !== 'none');
+  if (firstVisibleTab) {
+    firstVisibleTab.click();
+  }
 }
 
 function openScheduleFromHash() {
