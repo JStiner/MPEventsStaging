@@ -1,16 +1,11 @@
-# Data Structure
+# Event Data
 
-Event data now supports folder-based organization.
+Each event folder follows the `data/covh/` split-file standard:
 
-## Current pattern
+- `event.json`
+- `locations.json`
+- `schedule.json`
+- `vendors.json`
+- `flyer.json`
 
-- `data/covh/event.json` → base event metadata + split manifest
-- `data/covh/schedule.json`
-- `data/covh/locations.json`
-- `data/covh/vendors.json`
-- `data/covh/flyer.json`
-- `data/2ndfriday/second-fridays-2026.json`
-- `data/fallfest/fall-fest-2026.json`
-- `data/community-events/community-events-2026.json`
-- `data/high-school-events/high-school-events-2026.json`
-- `data/town-services/town-services-2026.json`
+HTML pages should point to the folder `event.json` entry file. The app loader reads `_split` in that file and loads the related files automatically.

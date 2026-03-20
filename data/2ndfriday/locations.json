@@ -1,0 +1,24 @@
+[
+  {
+    "id": "plaza",
+    "name": "Downtown Plaza",
+    "address": "10 Plaza Dr",
+    "mapX": 42,
+    "mapY": 45,
+    "description": "Central meetup space for booths and music.",
+    "notes": "Main gathering point.",
+    "directionsText": "Street parking available.",
+    "pinIcon": "✨"
+  },
+  {
+    "id": "coffee",
+    "name": "Corner Coffee Patio",
+    "address": "18 Vine St",
+    "mapX": 68,
+    "mapY": 55,
+    "description": "Small acoustic sets and seating.",
+    "notes": "Outdoor seating.",
+    "directionsText": "Walk east from the plaza.",
+    "pinIcon": "☕"
+  }
+]
