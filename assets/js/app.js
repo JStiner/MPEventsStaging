@@ -650,14 +650,50 @@ function renderFlyer(data) {
 }
   
 function setupTabs() {
-  document.querySelectorAll('.tab-button').forEach(button => {
-    button.addEventListener('click', () => {
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
-      button.classList.add('active');
-      document.getElementById(button.dataset.tab)?.classList.add('active');
+  const tabs = document.querySelectorAll('[data-tab]');
+  const panels = document.querySelectorAll('[data-panel]');
+  const allowedTabs = state.eventData?.tabs || [];
+
+  // Hide/show tabs
+  tabs.forEach(tab => {
+    const name = tab.dataset.tab;
+    if (!allowedTabs.includes(name)) {
+      tab.style.display = 'none';
+    } else {
+      tab.style.display = '';
+    }
+  });
+
+  // Hide/show panels
+  panels.forEach(panel => {
+    const name = panel.dataset.panel;
+    if (!allowedTabs.includes(name)) {
+      panel.style.display = 'none';
+    } else {
+      panel.style.display = '';
+    }
+  });
+
+  // Tab click behavior
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const name = tab.dataset.tab;
+
+      // skip hidden tabs
+      if (!allowedTabs.includes(name)) return;
+
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+
+      tab.classList.add('active');
+      const panel = document.querySelector(`[data-panel="${name}"]`);
+      if (panel) panel.classList.add('active');
     });
   });
+
+  // Activate first visible tab
+  const firstVisible = Array.from(tabs).find(t => t.style.display !== 'none');
+  if (firstVisible) firstVisible.click();
 }
 
 function openScheduleFromHash() {
