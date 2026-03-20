@@ -266,8 +266,17 @@ h3 {
 
 .modal-header {
   flex: 0 0 auto;
-  padding: 20px 20px 12px;
+  padding: 22px 56px 12px 24px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.modal-header .eyebrow {
+  margin: 0 0 6px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  line-height: 1.15;
 }
 
 .modal-content {
@@ -275,15 +284,15 @@ h3 {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 16px 20px 20px;
+  padding: 16px 24px 24px;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
 
 .close-button {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 14px;
+  right: 14px;
   z-index: 2;
 }
 
@@ -293,15 +302,24 @@ body.modal-open {
   touch-action: none;
 }
 
-}
 .disclaimer {
-  margin-top: 32px;
+  margin-top: 24px;
   padding: 12px 16px;
   font-size: 12px;
+  line-height: 1.55;
   color: #64748b;
   background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-  text-align: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+}
+
+.page-disclaimer {
+  margin: 18px 0 6px;
+}
+
+.modal-disclaimer {
+  margin-top: 18px;
+  text-align: left;
 }
 
 .empty-state {
@@ -493,7 +511,7 @@ body.modal-open {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 16px;
   text-decoration: none;
   color: var(--text);
@@ -873,27 +891,33 @@ body.soft-light {
   padding: 2px 4px;
 }
 
-.calendar-event-chip.bucket-community {
+.calendar-event-chip.bucket-community,
+.filter-chip[data-filter="Community"].active {
   background: linear-gradient(180deg, #eef8ff 0%, #ddf0ff 100%);
 }
 
-.calendar-event-chip.bucket-school {
+.calendar-event-chip.bucket-school,
+.filter-chip[data-filter="School"].active {
   background: linear-gradient(180deg, #fff3ea 0%, #ffe7d3 100%);
 }
 
-.calendar-event-chip.bucket-town-services {
+.calendar-event-chip.bucket-town-services,
+.filter-chip[data-filter="Town Services"].active {
   background: linear-gradient(180deg, #eff8ef 0%, #dff0df 100%);
 }
 
-.calendar-event-chip.bucket-fall-fest {
+.calendar-event-chip.bucket-fall-fest,
+.filter-chip[data-filter="Fall Fest"].active {
   background: linear-gradient(180deg, #fff5eb 0%, #ffe6ca 100%);
 }
 
-.calendar-event-chip.bucket-2nd-fridays {
+.calendar-event-chip.bucket-2nd-fridays,
+.filter-chip[data-filter="2nd Fridays"].active {
   background: linear-gradient(180deg, #f4efff 0%, #e8defd 100%);
 }
 
-.calendar-event-chip.bucket-christmas {
+.calendar-event-chip.bucket-covh,
+.filter-chip[data-filter="COVH"].active {
   background: linear-gradient(180deg, #eef9f0 0%, #dff2e2 100%);
 }
 

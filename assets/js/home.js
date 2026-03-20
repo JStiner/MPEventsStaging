@@ -1,7 +1,7 @@
 const eventSources = [
   { file: 'data/fallfest/fall-fest-2026.json', page: 'fall-fest.html', slug: 'fall-fest', bucket: 'Fall Fest' },
   { file: 'data/2ndfriday/second-fridays-2026.json', page: 'second-fridays.html', slug: 'second-fridays', bucket: '2nd Fridays' },
-  { file: 'data/covh/event.json', page: 'christmas-on-vinegar-hill.html', slug: 'christmas-on-vinegar-hill', bucket: 'Christmas' },
+  { file: 'data/covh/event.json', page: 'christmas-on-vinegar-hill.html', slug: 'christmas-on-vinegar-hill', bucket: 'COVH' },
   { file: 'data/community-events/community-events-2026.json', page: 'community-events.html', slug: 'community-events', bucket: 'Community' },
   { file: 'data/high-school-events/high-school-events-2026.json', page: 'high-school-events.html', slug: 'high-school-events', bucket: 'School' },
   { file: 'data/town-services/town-services-2026.json', page: 'town-services.html', slug: 'town-services', bucket: 'Town Services' }
@@ -181,7 +181,7 @@ async function loadData() {
 function renderFilterChips() {
   if (!homeEl.filters) return;
   homeEl.filters.innerHTML = '';
-  const filters = ['All', 'Community', 'School', 'Town Services', 'Fall Fest', '2nd Fridays', 'Christmas'];
+  const filters = ['All', 'Community', 'School', 'Town Services', 'Fall Fest', '2nd Fridays', 'COVH'];
 
   filters.forEach(name => {
     const btn = document.createElement('button');
@@ -189,6 +189,7 @@ function renderFilterChips() {
     const active = homeState.selectedFilters.has(name);
     btn.className = `filter-chip ${active ? 'active' : ''}`;
     btn.textContent = name;
+    btn.dataset.filter = name;
     btn.addEventListener('click', () => {
       if (name === 'All') {
         homeState.selectedFilters = new Set(['All']);
@@ -250,7 +251,6 @@ function createEventChip(event) {
   a.innerHTML = `
     <span class="event-time">${event.startTime}</span>
     <span class="event-text">${event.title}</span>
-    <span class="event-meta">${event.bucket}</span>
   `;
   return a;
 }

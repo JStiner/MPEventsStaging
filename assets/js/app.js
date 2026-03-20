@@ -50,15 +50,45 @@ function makeButton(label, onClick, className = '') {
   return button;
 }
 
+function getDisclaimerMarkup(data = state.eventData, extraClass = '') {
+  if (!data?.disclaimer?.text) return '';
+  const title = data.disclaimer.title || 'Important Notice';
+  const className = ['disclaimer', extraClass].filter(Boolean).join(' ');
+  return `
+    <section class="${className}" aria-label="${title}">
+      <strong>${title}:</strong> ${data.disclaimer.text}
+    </section>
+  `;
+}
+
+function ensureModalHeaderStructure() {
+  if (!el.modal || !el.modalKicker || !el.modalTitle) return;
+  const card = el.modal.querySelector('.modal-card');
+  if (!card) return;
+
+  let header = card.querySelector('.modal-header');
+  if (!header) {
+    header = document.createElement('div');
+    header.className = 'modal-header';
+    card.insertBefore(header, el.modalContent || el.closeModal?.nextSibling || null);
+  }
+
+  if (el.modalKicker.parentElement !== header) header.appendChild(el.modalKicker);
+  if (el.modalTitle.parentElement !== header) header.appendChild(el.modalTitle);
+}
+
 function openModal(kicker, title, html) {
+  ensureModalHeaderStructure();
   el.modalKicker.textContent = kicker;
   el.modalTitle.textContent = title;
-  el.modalContent.innerHTML = html;
+  el.modalContent.innerHTML = `${html}${getDisclaimerMarkup(state.eventData, 'modal-disclaimer')}`;
   el.modal.classList.remove('hidden');
+  document.body.classList.add('modal-open');
 }
 
 function closeModal() {
   el.modal.classList.add('hidden');
+  document.body.classList.remove('modal-open');
 }
 
 function showLoadError(message) {
@@ -84,12 +114,28 @@ function badgeMarkup(tags = []) {
   return `<div class="badge-row">${tags.map(tag => `<span class="mini-badge">${tag}</span>`).join('')}</div>`;
 }
 
+function renderPageDisclaimer(data) {
+  const shell = document.querySelector('main.phone-shell');
+  if (!shell) return;
+
+  let disclaimer = document.getElementById('page-disclaimer');
+  if (!disclaimer) {
+    disclaimer = document.createElement('section');
+    disclaimer.id = 'page-disclaimer';
+    shell.appendChild(disclaimer);
+  }
+
+  disclaimer.outerHTML = getDisclaimerMarkup(data, 'page-disclaimer');
+}
+
 function renderHeader(data) {
   if (el.eventEyebrow) el.eventEyebrow.textContent = data.eventType || 'Community Event';
   if (el.eventName) el.eventName.textContent = data.eventName;
   if (el.eventSummary) el.eventSummary.textContent = data.summary;
   if (el.eventDates) el.eventDates.textContent = data.dateLabel;
   if (el.eventLocation) el.eventLocation.textContent = data.areaLabel;
+
+  renderPageDisclaimer(data);
 
   if (el.resourceLinks) {
     el.resourceLinks.innerHTML = '';
