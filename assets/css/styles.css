@@ -902,32 +902,32 @@ body.soft-light {
 
 .calendar-event-chip.bucket-community,
 .filter-chip[data-filter="Community"].active {
-  background: linear-gradient(180deg, #eef8ff 0%, var(--color-community) 100%);
+  background: linear-gradient(180deg, #eef8ff 0%, #ddf0ff 100%);
 }
 
 .calendar-event-chip.bucket-school,
 .filter-chip[data-filter="School"].active {
-  background: linear-gradient(180deg, #f4edff 0%, var(--color-school) 100%);
+  background: linear-gradient(180deg, #fff3ea 0%, #ffe7d3 100%);
 }
 
 .calendar-event-chip.bucket-town-services,
 .filter-chip[data-filter="Town Services"].active {
-  background: linear-gradient(180deg, #f3eadf 0%, var(--color-town) 100%);
+  background: linear-gradient(180deg, #eff8ef 0%, #dff0df 100%);
 }
 
 .calendar-event-chip.bucket-fall-fest,
 .filter-chip[data-filter="Fall Fest"].active {
-  background: linear-gradient(180deg, #ffeef5 0%, var(--color-fallfest) 100%);
+  background: linear-gradient(180deg, #fff5eb 0%, #ffe6ca 100%);
 }
 
 .calendar-event-chip.bucket-2nd-fridays,
 .filter-chip[data-filter="2nd Fridays"].active {
-  background: linear-gradient(180deg, #fff0e5 0%, var(--color-secondfriday) 100%);
+  background: linear-gradient(180deg, #f4efff 0%, #e8defd 100%);
 }
 
 .calendar-event-chip.bucket-covh,
 .filter-chip[data-filter="COVH"].active {
-  background: linear-gradient(180deg, #eef9ee 0%, var(--color-covh) 100%);
+  background: linear-gradient(180deg, #eef9f0 0%, #dff2e2 100%);
 }
 
 @media (max-width: 700px) {
@@ -1369,5 +1369,431 @@ body.soft-light {
   @page {
     size: letter portrait;
     margin: 0;
+  }
+}
+
+/* COVH pamphlet flyer */
+.covh-preview-shell {
+  gap: 20px;
+}
+
+.covh-pamphlet-page {
+  background: #fff;
+  border-radius: 6px;
+  color: #171717;
+}
+
+.covh-page-inner {
+  padding: 22px 24px 24px;
+}
+
+.covh-banner {
+  text-align: center;
+  padding: 10px 0 16px;
+  border-bottom: 2px solid #d8d8d8;
+  margin-bottom: 18px;
+}
+
+.covh-banner-date {
+  font-size: 0.88rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #5a5a5a;
+  margin-bottom: 6px;
+}
+
+.covh-banner-title,
+.covh-script-heading {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: 700;
+  color: #2f4f3b;
+}
+
+.covh-banner-title {
+  font-size: 2.35rem;
+  line-height: 1.05;
+  margin-bottom: 6px;
+}
+
+.covh-banner-note {
+  font-size: 0.92rem;
+  color: #4d4d4d;
+}
+
+.covh-page-one-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.covh-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.covh-list-item,
+.covh-regional-block,
+.covh-key-card,
+.covh-bag-callout,
+.covh-map-main-card,
+.covh-map-card,
+.covh-thanks-block,
+.covh-qr-block,
+.covh-sponsor-block,
+.covh-art-block {
+  border: 1px solid #cfcfcf;
+  background: #fff;
+}
+
+.covh-list-item {
+  padding: 8px 10px;
+}
+
+.covh-item-head,
+.covh-regional-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.covh-item-title-line {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.covh-item-number {
+  min-width: 18px;
+  font-weight: 700;
+}
+
+.covh-item-title-line h4,
+.covh-regional-name {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.covh-item-hours,
+.covh-regional-hours {
+  font-size: 0.79rem;
+  white-space: nowrap;
+  color: #525252;
+}
+
+.covh-item-meta,
+.covh-regional-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 2px 0 4px 26px;
+  color: #4f4f4f;
+  font-size: 0.77rem;
+}
+
+.covh-list-item p,
+.covh-regional-item p,
+.covh-thanks-block p,
+.covh-footer-lines,
+.covh-sponsor-list,
+.covh-benefactor-list {
+  margin: 0 0 0 26px;
+  font-size: 0.78rem;
+  line-height: 1.28;
+  color: #303030;
+}
+
+.covh-regional-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.covh-regional-block {
+  padding: 8px 10px;
+}
+
+.covh-regional-title,
+.covh-key-title,
+.covh-qr-title {
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #36523c;
+  margin-bottom: 8px;
+}
+
+.covh-regional-item + .covh-regional-item {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dotted #cfcfcf;
+}
+
+.covh-key-card {
+  padding: 10px;
+  position: sticky;
+  top: 10px;
+}
+
+.covh-key-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  border-top: 1px dotted #d0d0d0;
+}
+
+.covh-key-row:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.covh-key-label,
+.covh-inline-badge {
+  font-weight: 800;
+  color: #2d4d37;
+}
+
+.covh-bag-callout {
+  padding: 10px;
+  background: #f6faf6;
+  font-size: 0.77rem;
+  line-height: 1.3;
+  color: #31503a;
+}
+
+.covh-map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.95fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.covh-map-main-card,
+.covh-map-card {
+  padding: 10px;
+  position: relative;
+}
+
+.covh-main-map,
+.covh-map-card img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.covh-map-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.covh-map-tag {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid #cfcfcf;
+  padding: 3px 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.covh-compass-card {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 34px;
+  height: 56px;
+  border: 1px solid #cfcfcf;
+  background: rgba(255,255,255,0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.76rem;
+  line-height: 1.05;
+}
+
+.covh-footer-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) 180px minmax(0, 1fr);
+  grid-template-areas:
+    'thanks sponsors art'
+    'qr sponsors art';
+  gap: 14px;
+  align-items: start;
+}
+
+.covh-thanks-block,
+.covh-qr-block,
+.covh-sponsor-block,
+.covh-art-block {
+  padding: 12px;
+}
+
+.covh-thanks-block { grid-area: thanks; }
+.covh-qr-block { grid-area: qr; text-align: center; }
+.covh-sponsor-block { grid-area: sponsors; }
+.covh-art-block { grid-area: art; }
+
+.covh-script-heading {
+  font-size: 1.55rem;
+  margin-bottom: 8px;
+}
+
+.covh-benefactor-list,
+.covh-sponsor-list,
+.covh-footer-lines {
+  margin-left: 0;
+}
+
+.covh-benefactor-list > div,
+.covh-sponsor-list > div,
+.covh-footer-lines > div {
+  padding: 2px 0;
+}
+
+.covh-qr-image,
+.covh-art-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.covh-art-image {
+  margin-bottom: 10px;
+}
+
+@media (max-width: 900px) {
+  .covh-page-one-grid,
+  .covh-map-layout,
+  .covh-footer-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .covh-footer-layout {
+    grid-template-areas:
+      'thanks'
+      'qr'
+      'sponsors'
+      'art';
+  }
+
+  .covh-key-card {
+    position: static;
+  }
+}
+
+@media print {
+  .flyer-toolbar {
+    display: none !important;
+  }
+
+  .covh-pamphlet-page {
+    border: 0;
+    box-shadow: none;
+    border-radius: 0;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .covh-pamphlet-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .covh-page-inner {
+    padding: 0.35in 0.33in 0.32in;
+  }
+
+  .covh-banner {
+    padding-top: 0;
+    margin-bottom: 0.15in;
+  }
+
+  .covh-banner-title {
+    font-size: 24pt;
+  }
+
+  .covh-banner-date {
+    font-size: 8.5pt;
+  }
+
+  .covh-page-one-grid {
+    grid-template-columns: 3.05in 1.25in 2.55in;
+    gap: 0.12in;
+  }
+
+  .covh-map-layout {
+    grid-template-columns: 3.85in 2.0in;
+    gap: 0.14in;
+    margin-bottom: 0.14in;
+  }
+
+  .covh-footer-layout {
+    grid-template-columns: 2.65in 1.5in 2.2in;
+    gap: 0.12in;
+  }
+
+  .covh-list-item,
+  .covh-regional-block,
+  .covh-key-card,
+  .covh-bag-callout,
+  .covh-map-main-card,
+  .covh-map-card,
+  .covh-thanks-block,
+  .covh-qr-block,
+  .covh-sponsor-block,
+  .covh-art-block {
+    border-color: #bfbfbf;
+  }
+
+  .covh-list-item {
+    padding: 6pt 7pt;
+  }
+
+  .covh-item-title-line h4,
+  .covh-regional-name {
+    font-size: 7.8pt;
+  }
+
+  .covh-item-hours,
+  .covh-regional-hours,
+  .covh-item-meta,
+  .covh-regional-meta,
+  .covh-list-item p,
+  .covh-regional-item p,
+  .covh-bag-callout,
+  .covh-thanks-block p,
+  .covh-benefactor-list,
+  .covh-sponsor-list,
+  .covh-footer-lines,
+  .covh-key-row,
+  .covh-qr-title {
+    font-size: 6.9pt;
+  }
+
+  .covh-script-heading {
+    font-size: 16pt;
+  }
+
+  .covh-map-tag {
+    font-size: 6.4pt;
+  }
+
+  .covh-compass-card {
+    font-size: 6.4pt;
+    width: 24pt;
+    height: 40pt;
   }
 }

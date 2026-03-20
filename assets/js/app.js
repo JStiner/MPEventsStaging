@@ -463,6 +463,189 @@ function renderLocations(data) {
   });
 }
 
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function isCovhFlyer(flyer = state.eventData?.flyer, data = state.eventData) {
+  return data?._meta?.code === 'COVH' || /christmas on vinegar hill/i.test(flyer?.document?.title || '');
+}
+
+function renderCovhBadgeKey(flyer) {
+  return `
+    <aside class="covh-key-card">
+      <div class="covh-key-title">Icon Key</div>
+      ${(flyer.legend || []).map(item => `
+        <div class="covh-key-row">
+          <span class="covh-key-label">${escapeHtml(item.label)}</span>
+          <span class="covh-key-meaning">${escapeHtml(item.meaning)}</span>
+        </div>
+      `).join('')}
+    </aside>
+  `;
+}
+
+function renderCovhListItem(entry) {
+  const badges = (entry.badges || []).map(b => `<span class="covh-inline-badge">${escapeHtml(b)}</span>`).join(' ');
+  return `
+    <article class="covh-list-item">
+      <div class="covh-item-head">
+        <div class="covh-item-title-line">
+          <span class="covh-item-number">${escapeHtml(entry.number)}</span>
+          <h4>${escapeHtml(entry.name)}</h4>
+        </div>
+        <div class="covh-item-hours">${escapeHtml(entry.hours || 'TBD')}</div>
+      </div>
+      <div class="covh-item-meta">${badges ? `<span class="covh-item-badges">${badges}</span>` : ''}<span>${escapeHtml(entry.address || '')}</span></div>
+      <p>${escapeHtml(entry.description || '')}</p>
+    </article>
+  `;
+}
+
+function renderCovhRegionalItem(entry) {
+  const badges = (entry.badges || []).map(b => `<span class="covh-inline-badge">${escapeHtml(b)}</span>`).join(' ');
+  return `
+    <div class="covh-regional-item">
+      <div class="covh-regional-head">
+        <span class="covh-regional-name">${escapeHtml(entry.number)} ${escapeHtml(entry.name)}</span>
+        <span class="covh-regional-hours">${escapeHtml(entry.hours || 'TBD')}</span>
+      </div>
+      <div class="covh-regional-meta">${badges ? `<span class="covh-item-badges">${badges}</span>` : ''}<span>${escapeHtml(entry.address || '')}</span></div>
+      <p>${escapeHtml(entry.description || '')}</p>
+    </div>
+  `;
+}
+
+function renderCovhPageOne(flyer) {
+  const allEntries = [
+    ...(flyer.sections?.['mt-pulaski-a']?.entries || []),
+    ...(flyer.sections?.['mt-pulaski-b']?.entries || []),
+    ...(flyer.sections?.['mt-pulaski-c']?.entries || [])
+  ];
+
+  const leftEntries = allEntries.filter(entry => Number.parseInt(entry.number, 10) <= 16);
+  const rightEntries = allEntries.filter(entry => Number.parseInt(entry.number, 10) >= 17);
+  const regionalBlocks = flyer.sections?.regional?.blocks || [];
+
+  return `
+    <article class="flyer-page covh-pamphlet-page covh-page-one" data-page="1">
+      <div class="flyer-page-inner covh-page-inner">
+        <header class="covh-banner">
+          <div class="covh-banner-date">${escapeHtml(flyer.document?.subtitle || '')}</div>
+          <div class="covh-banner-title">Christmas on Vinegar Hill</div>
+          <div class="covh-banner-note">Look for the tree sign for participating locations</div>
+        </header>
+
+        <div class="covh-page-one-grid">
+          <section class="covh-column covh-main-list">
+            ${leftEntries.map(renderCovhListItem).join('')}
+          </section>
+
+          <section class="covh-column covh-middle-column">
+            ${renderCovhBadgeKey(flyer)}
+          </section>
+
+          <section class="covh-column covh-side-list">
+            ${rightEntries.map(renderCovhListItem).join('')}
+
+            <div class="covh-regional-wrap">
+              ${regionalBlocks.map(block => `
+                <section class="covh-regional-block">
+                  <div class="covh-regional-title">${escapeHtml(block.title)} Location</div>
+                  ${(block.entries || []).map(renderCovhRegionalItem).join('')}
+                </section>
+              `).join('')}
+            </div>
+
+            <div class="covh-bag-callout">Visit a location with the bag symbol and receive a reusable shopping bag with any donation to the Christmas on Vinegar Hill event while supplies last.</div>
+          </section>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderCovhPageTwo(flyer) {
+  const maps = flyer.assets?.maps || {};
+  const callouts = flyer.callouts || {};
+  return `
+    <article class="flyer-page covh-pamphlet-page covh-page-two" data-page="2">
+      <div class="flyer-page-inner covh-page-inner">
+        <header class="covh-banner covh-banner-secondary">
+          <div class="covh-banner-date">${escapeHtml(flyer.document?.subtitle || '')}</div>
+          <div class="covh-banner-title">Christmas on Vinegar Hill</div>
+        </header>
+
+        <div class="covh-map-layout">
+          <div class="covh-map-main-card">
+            <img src="${escapeHtml(maps.mtPulaski || '')}" alt="Mt. Pulaski event map" class="covh-main-map" loading="lazy" />
+            <div class="covh-map-tag covh-main-map-tag">Mt. Pulaski</div>
+            <div class="covh-compass-card">N<br>✦<br>S</div>
+          </div>
+          <div class="covh-map-stack">
+            <div class="covh-map-card">
+              <img src="${escapeHtml(maps.chestnut || '')}" alt="Chestnut map" loading="lazy" />
+              <div class="covh-map-tag">Chestnut</div>
+            </div>
+            <div class="covh-map-card">
+              <img src="${escapeHtml(maps.elkhart || '')}" alt="Elkhart map" loading="lazy" />
+              <div class="covh-map-tag">Elkhart</div>
+            </div>
+            <div class="covh-map-card">
+              <img src="${escapeHtml(maps.latham || '')}" alt="Latham map" loading="lazy" />
+              <div class="covh-map-tag">Latham</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="covh-footer-layout">
+          <section class="covh-thanks-block">
+            <div class="covh-script-heading">${escapeHtml(callouts.thankYouTitle || 'Thank You')}</div>
+            <p>${escapeHtml(callouts.thankYouText || '')}</p>
+            <div class="covh-benefactor-list">
+              ${(callouts.benefactors || []).map(item => `<div>${escapeHtml(item)}</div>`).join('')}
+            </div>
+          </section>
+
+          <section class="covh-qr-block">
+            <div class="covh-qr-title">Scan for Google Map of Event</div>
+            ${flyer.assets?.qrMap ? `<img src="${escapeHtml(flyer.assets.qrMap)}" alt="QR code for event map" class="covh-qr-image" loading="lazy" />` : ''}
+          </section>
+
+          <section class="covh-sponsor-block">
+            <div class="covh-script-heading">${escapeHtml(callouts.sponsorsTitle || 'Sponsors')}</div>
+            <div class="covh-sponsor-list">
+              ${(callouts.sponsors || []).map(item => `<div>${escapeHtml(item)}</div>`).join('')}
+            </div>
+          </section>
+
+          <section class="covh-art-block">
+            ${flyer.assets?.treeSign ? `<img src="${escapeHtml(flyer.assets.treeSign)}" alt="Christmas on Vinegar Hill sign" class="covh-art-image" loading="lazy" />` : ''}
+            <div class="covh-footer-lines">
+              ${(callouts.footer || []).map(line => `<div>${escapeHtml(line)}</div>`).join('')}
+            </div>
+          </section>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderCovhPamphlet(flyer) {
+  return `
+    <div class="flyer-preview-shell covh-preview-shell">
+      ${renderCovhPageOne(flyer)}
+      ${renderCovhPageTwo(flyer)}
+    </div>
+  `;
+}
+
 function flyerActionsMarkup() {
   return `
     <div class="flyer-toolbar">
@@ -599,17 +782,24 @@ function renderFlyerPage(pageConfig, flyer, index) {
 }
 
 function buildFlyerPrintDocument(flyer) {
+  const baseHref = window.location.href.replace(/[^/]*$/, '');
+  const flyerMarkup = isCovhFlyer(flyer)
+    ? `${renderCovhPageOne(flyer)}${renderCovhPageTwo(flyer)}`
+    : (flyer.pageFlow || []).map((page, index) => renderFlyerPage(page, flyer, index)).join('');
+
   return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <base href="${baseHref}" />
       <title>${flyer.document?.title || 'Event Flyer'}</title>
       <link rel="stylesheet" href="assets/css/styles.css" />
     </head>
-    <body class="flyer-print-page">
+    <body class="flyer-print-page covh-print-page">
       <main class="flyer-print-shell">
-        ${(flyer.pageFlow || []).map((page, index) => renderFlyerPage(page, flyer, index)).join('')}
+        ${flyerMarkup}
       </main>
     </body>
     </html>
@@ -636,25 +826,24 @@ function openFlyerPrintView(mode = 'print') {
   const flyer = state.eventData?.flyer;
   if (!flyer) return;
 
-  const printWindow = window.open('', '_blank', 'noopener,noreferrer');
-  if (!printWindow) return;
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('Allow pop-ups for this site to print or save the flyer.');
+    return;
+  }
 
   printWindow.document.open();
   printWindow.document.write(buildFlyerPrintDocument(flyer));
   printWindow.document.close();
 
   const runPrint = () => {
-    if (mode === 'print' || mode === 'pdf') {
-      printWindow.focus();
+    printWindow.focus();
+    window.setTimeout(() => {
       printWindow.print();
-    }
+    }, mode === 'pdf' ? 500 : 250);
   };
 
-  if (printWindow.document.readyState === 'complete') {
-    runPrint();
-  } else {
-    printWindow.addEventListener('load', runPrint, { once: true });
-  }
+  printWindow.onload = runPrint;
 }
 
 function setupFlyerActions() {
@@ -686,23 +875,28 @@ function setupFlyerActions() {
 
 function renderFlyer(data) {
   if (!el.flyerPanel) return;
-  if (!data.flyer?.pageFlow?.length) {
+  if (!data.flyer) {
     el.flyerPanel.innerHTML = '<div class="empty-state">Flyer content coming soon.</div>';
     return;
   }
 
   const flyer = data.flyer;
+  const flyerMarkup = isCovhFlyer(flyer, data)
+    ? renderCovhPamphlet(flyer)
+    : `
+      <div class="flyer-preview-shell">
+        ${(flyer.pageFlow || []).map((page, index) => renderFlyerPage(page, flyer, index)).join('')}
+      </div>
+    `;
 
   el.flyerPanel.innerHTML = `
     ${flyerActionsMarkup()}
-    <div class="flyer-preview-shell">
-      ${(flyer.pageFlow || []).map((page, index) => renderFlyerPage(page, flyer, index)).join('')}
-    </div>
+    ${flyerMarkup}
   `;
 
   setupFlyerActions();
 }
-  
+
 function setupTabs() {
   const tabs = document.querySelectorAll('[data-tab]');
   const panels = document.querySelectorAll('.tab-panel');
