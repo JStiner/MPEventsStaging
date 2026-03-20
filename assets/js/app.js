@@ -674,8 +674,14 @@ function setupTabs() {
       const isAllowed = !allowedTabs.length || allowedTabs.includes(name);
       if (!isAllowed) return;
 
-      tabs.forEach(t => t.classList.remove('active'));
-      panels.forEach(p => p.classList.remove('active'));
+    tabs.forEach(tab => {
+  const name = tab.dataset.tab;
+  const isAllowed = !allowedTabs.length || allowedTabs.includes(name);
+  const tabContainer = tab.closest('li') || tab;
+
+  tabContainer.style.display = isAllowed ? '' : 'none';
+  tab.classList.remove('active');
+});
 
       tab.classList.add('active');
 
