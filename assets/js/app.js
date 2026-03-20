@@ -14,7 +14,7 @@ const el = {
   eventLocation: document.getElementById('event-location'),
   dayFilter: document.getElementById('day-filter'),
   scheduleList: document.getElementById('schedule-list'),
-  mapPins: document.getElementById('map-pins'),
+  mapSurface: document.getElementById('map-surface'),
   mapLocationList: document.getElementById('map-location-list'),
   vendorList: document.getElementById('vendor-list'),
   locationList: document.getElementById('location-list'),
@@ -56,6 +56,70 @@ function makeButton(label, onClick, className = '') {
   if (className) button.className = className;
   button.addEventListener('click', onClick);
   return button;
+}
+
+
+function escapeAttr(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function getDirectionsUrl(location) {
+  if (location?.googleMapsUrl) return location.googleMapsUrl;
+  const destination = encodeURIComponent(location?.address || location?.name || state.eventData?.eventName || 'Mt. Pulaski, IL');
+  return `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+}
+
+function getInteractiveMapUrl(data = state.eventData) {
+  return data?.interactiveMapUrl || '';
+}
+
+function getLocationCardId(locationId) {
+  return `location-card-${locationId}`;
+}
+
+function getMapPanelTitle(panelKey) {
+  return {
+    mtPulaski: 'Mt. Pulaski',
+    chestnut: 'Chestnut',
+    elkhart: 'Elkhart',
+    latham: 'Latham'
+  }[panelKey] || 'Map';
+}
+
+function buildMapHotspot(location, data = state.eventData, className = 'map-hotspot') {
+  const x = location.panelX ?? location.mapX ?? 50;
+  const y = location.panelY ?? location.mapY ?? 50;
+  const number = location.flyerNumber || location.number || location.pinNumber || '';
+  return `
+    <button
+      type="button"
+      class="${className}"
+      style="left:${x}%; top:${y}%;"
+      data-location-id="${escapeAttr(location.id)}"
+      aria-label="${escapeAttr(location.name)}"
+      title="${escapeAttr(location.name)}"
+    >${number || '•'}</button>
+  `;
+}
+
+function bindMapHotspots(scope = document, data = state.eventData) {
+  scope.querySelectorAll('[data-location-id]').forEach(button => {
+    button.addEventListener('click', () => {
+      const location = getLocationById(button.dataset.locationId, data);
+      if (location) showLocationModal(location, data);
+    });
+  });
+}
+
+function showLocationCard(locationId) {
+  const locationsTab = document.querySelector('[data-tab="locations"]');
+  locationsTab?.click();
+  const card = document.getElementById(getLocationCardId(locationId));
+  card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function getDisclaimerMarkup(data = state.eventData, extraClass = '') {
@@ -346,35 +410,66 @@ function showLocationModal(location, data) {
       <p><strong>Address:</strong> ${location.address}</p>
       <p><strong>Hours:</strong> ${location.hours || location.notes || 'See event schedule.'}</p>
       <p>${location.description}</p>
+      <div class="modal-action-row">
+        <button type="button" class="modal-action-button" data-modal-action="details" data-location-id="${escapeAttr(location.id)}">View Details</button>
+        <a class="modal-action-button" href="${escapeAttr(getDirectionsUrl(location))}" target="_blank" rel="noopener">Get Directions</a>
+      </div>
       ${badgeMarkup(location.tags)}
       ${renderVendorSection(location, locationVendors)}
       <hr class="modal-divider" />
       <h3>Scheduled items</h3>
       ${eventsHtml}
       <hr class="modal-divider" />
-      <p><strong>Directions:</strong> ${location.directionsText || 'Add Google Maps link later.'}</p>
+      <p><strong>Directions:</strong> ${location.directionsText || 'Use Get Directions for turn-by-turn navigation.'}</p>
     `
   );
+
+  el.modalContent?.querySelector('[data-modal-action="details"]')?.addEventListener('click', () => {
+    closeModal();
+    showLocationCard(location.id);
+  });
 }
 
 function renderMap(data) {
-  if (!el.mapPins || !el.mapLocationList) return;
-  el.mapPins.innerHTML = '';
+  if (!el.mapSurface || !el.mapLocationList) return;
+  el.mapSurface.innerHTML = '';
   el.mapLocationList.innerHTML = '';
 
-  data.locations.forEach(location => {
-    const pin = document.createElement('button');
-    pin.type = 'button';
-    pin.className = 'map-pin';
-    pin.style.left = `${location.mapX}%`;
-    pin.style.top = `${location.mapY}%`;
-    pin.textContent = location.pinIcon || '📍';
-    pin.title = location.name;
-    pin.addEventListener('click', () => showLocationModal(location, data));
-    el.mapPins.appendChild(pin);
+  const interactiveMapLink = document.getElementById('interactive-map-link');
+  if (interactiveMapLink) {
+    const interactiveUrl = getInteractiveMapUrl(data) || '#';
+    interactiveMapLink.href = interactiveUrl;
+    interactiveMapLink.style.display = interactiveUrl ? '' : 'none';
+  }
 
+  const covhPanels = [
+    { key: 'mtPulaski', title: 'Mt. Pulaski', image: data.flyer?.assets?.maps?.mtPulaski },
+    { key: 'chestnut', title: 'Chestnut', image: data.flyer?.assets?.maps?.chestnut },
+    { key: 'elkhart', title: 'Elkhart', image: data.flyer?.assets?.maps?.elkhart },
+    { key: 'latham', title: 'Latham', image: data.flyer?.assets?.maps?.latham }
+  ].filter(panel => panel.image);
+
+  if (covhPanels.length) {
+    el.mapSurface.innerHTML = `
+      <div class="covh-map-layout covh-map-layout-tab">
+        ${covhPanels.map(panel => `
+          <section class="covh-map-panel ${panel.key === 'mtPulaski' ? 'covh-map-main-card' : 'covh-map-card'}">
+            <img src="${escapeAttr(panel.image)}" alt="${escapeAttr(panel.title)} event map" class="${panel.key === 'mtPulaski' ? 'covh-main-map' : ''}" loading="lazy" />
+            <div class="covh-map-tag ${panel.key === 'mtPulaski' ? 'covh-main-map-tag' : ''}">${panel.title}</div>
+            <div class="covh-map-hotspots">
+              ${(data.locations || []).filter(location => (location.mapPanel || 'mtPulaski') === panel.key).map(location => buildMapHotspot(location, data, 'map-hotspot')).join('')}
+            </div>
+          </section>
+        `).join('')}
+      </div>
+    `;
+    bindMapHotspots(el.mapSurface, data);
+  }
+
+  data.locations.forEach(location => {
     const card = document.createElement('article');
     card.className = 'item-card';
+    card.id = getLocationCardId(location.id);
     card.innerHTML = `
       <div class="card-header-line">
         <h2>${location.name}</h2>
@@ -386,6 +481,13 @@ function renderMap(data) {
       ${badgeMarkup(location.tags)}
     `;
     card.appendChild(makeButton('Open location details', () => showLocationModal(location, data)));
+    const directions = document.createElement('a');
+    directions.className = 'inline-link-button';
+    directions.href = getDirectionsUrl(location);
+    directions.target = '_blank';
+    directions.rel = 'noopener';
+    directions.textContent = 'Get directions';
+    card.appendChild(directions);
     el.mapLocationList.appendChild(card);
   });
 }
@@ -583,23 +685,35 @@ function renderCovhPageTwo(flyer) {
         </header>
 
         <div class="covh-map-layout">
-          <div class="covh-map-main-card">
+          <div class="covh-map-main-card covh-map-panel">
             <img src="${escapeHtml(maps.mtPulaski || '')}" alt="Mt. Pulaski event map" class="covh-main-map" loading="lazy" />
             <div class="covh-map-tag covh-main-map-tag">Mt. Pulaski</div>
             <div class="covh-compass-card">N<br>✦<br>S</div>
+            <div class="covh-map-hotspots">
+              ${(state.eventData?.locations || []).filter(location => (location.mapPanel || 'mtPulaski') === 'mtPulaski').map(location => buildMapHotspot(location, state.eventData, 'map-hotspot flyer-hotspot')).join('')}
+            </div>
           </div>
           <div class="covh-map-stack">
-            <div class="covh-map-card">
+            <div class="covh-map-card covh-map-panel">
               <img src="${escapeHtml(maps.chestnut || '')}" alt="Chestnut map" loading="lazy" />
               <div class="covh-map-tag">Chestnut</div>
+              <div class="covh-map-hotspots">
+                ${(state.eventData?.locations || []).filter(location => location.mapPanel === 'chestnut').map(location => buildMapHotspot(location, state.eventData, 'map-hotspot flyer-hotspot')).join('')}
+              </div>
             </div>
-            <div class="covh-map-card">
+            <div class="covh-map-card covh-map-panel">
               <img src="${escapeHtml(maps.elkhart || '')}" alt="Elkhart map" loading="lazy" />
               <div class="covh-map-tag">Elkhart</div>
+              <div class="covh-map-hotspots">
+                ${(state.eventData?.locations || []).filter(location => location.mapPanel === 'elkhart').map(location => buildMapHotspot(location, state.eventData, 'map-hotspot flyer-hotspot')).join('')}
+              </div>
             </div>
-            <div class="covh-map-card">
+            <div class="covh-map-card covh-map-panel">
               <img src="${escapeHtml(maps.latham || '')}" alt="Latham map" loading="lazy" />
               <div class="covh-map-tag">Latham</div>
+              <div class="covh-map-hotspots">
+                ${(state.eventData?.locations || []).filter(location => location.mapPanel === 'latham').map(location => buildMapHotspot(location, state.eventData, 'map-hotspot flyer-hotspot')).join('')}
+              </div>
             </div>
           </div>
         </div>
@@ -894,6 +1008,7 @@ function renderFlyer(data) {
     ${flyerMarkup}
   `;
 
+  bindMapHotspots(el.flyerPanel, data);
   setupFlyerActions();
 }
 

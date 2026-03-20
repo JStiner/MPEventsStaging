@@ -212,27 +212,63 @@ h3 {
   border: 1px solid var(--border);
 }
 
-.map-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(143, 165, 200, 0.18) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(143, 165, 200, 0.18) 1px, transparent 1px);
-  background-size: 48px 48px;
+.covh-map-gallery {
+  background: transparent;
+  border: 0;
+  min-height: 0;
 }
 
-.map-pin {
+.covh-map-tab-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.map-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.covh-map-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.covh-map-panel img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.covh-map-hotspots {
   position: absolute;
-  transform: translate(-50%, -100%);
-  border: 0;
-  border-radius: 18px 18px 18px 4px;
-  width: 44px;
-  height: 44px;
+  inset: 0;
+}
+
+.map-hotspot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(63, 84, 130, 0.24);
+  background: rgba(255, 255, 255, 0.94);
+  color: #1f2a44;
+  font-weight: 800;
+  font-size: 0.88rem;
+  box-shadow: 0 10px 24px rgba(55, 78, 116, 0.18);
   cursor: pointer;
-  font-size: 1.1rem;
-  box-shadow: var(--shadow);
-  background: linear-gradient(180deg, #ffffff 0%, #dce7ff 100%);
-  border: 1px solid var(--border);
+}
+
+.map-hotspot:hover,
+.map-hotspot:focus-visible {
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.flyer-hotspot {
+  width: 28px;
+  height: 28px;
+  font-size: 0.8rem;
 }
 
 .map-label {
@@ -244,6 +280,31 @@ h3 {
   background: rgba(255, 255, 255, 0.8);
   color: var(--muted);
   font-size: 0.8rem;
+}
+
+.inline-link-button,
+.modal-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  min-height: 44px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, #f7faff 0%, #e8efff 100%);
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-action-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 4px;
 }
 
 .modal {
@@ -1795,5 +1856,22 @@ body.soft-light {
     font-size: 6.4pt;
     width: 24pt;
     height: 40pt;
+  }
+}
+
+
+.covh-map-layout-tab {
+  grid-template-columns: 1.5fr 1fr;
+}
+
+@media (max-width: 700px) {
+  .modal-action-row {
+    grid-template-columns: 1fr;
+  }
+
+  .map-hotspot {
+    width: 28px;
+    height: 28px;
+    font-size: 0.78rem;
   }
 }
