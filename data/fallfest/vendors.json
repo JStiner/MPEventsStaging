@@ -1,0 +1,128 @@
+[
+  {
+    "id": "eat-davis-donuts",
+    "name": "Davis Donuts",
+    "locationId": "food-tent",
+    "category": "Food",
+    "description": "Eats-n-Treats vendor.",
+    "booth": "Food Area",
+    "hours": "Festival Hours"
+  },
+  {
+    "id": "eat-tacos-tochimilco",
+    "name": "Tacos Tochimilco",
+    "locationId": "food-tent",
+    "category": "Food",
+    "description": "Eats-n-Treats vendor.",
+    "booth": "Food Area",
+    "hours": "Festival Hours"
+  },
+  {
+    "id": "eat-becks",
+    "name": "Becks Concessions",
+    "locationId": "food-tent",
+    "category": "Food",
+    "description": "Eats-n-Treats vendor.",
+    "booth": "Food Area",
+    "hours": "Festival Hours"
+  },
+  {
+    "id": "eat-boomers",
+    "name": "Boomers BBQ",
+    "locationId": "food-tent",
+    "category": "Food",
+    "description": "Eats-n-Treats vendor.",
+    "booth": "Food Area",
+    "hours": "Festival Hours"
+  },
+  {
+    "id": "eat-we3",
+    "name": "We 3 Sweets",
+    "locationId": "food-tent",
+    "category": "Food",
+    "description": "Eats-n-Treats vendor.",
+    "booth": "Food Area",
+    "hours": "Festival Hours"
+  },
+  {
+    "id": "eat-cheesed-out",
+    "name": "Cheesed Out",
+    "locationId": "food-tent",
+    "category": "Food",
+    "description": "Eats-n-Treats vendor.",
+    "booth": "Food Area",
+    "hours": "Festival Hours"
+  },
+  {
+    "id": "eat-daily-wrap",
+    "name": "The Daily Wrap",
+    "locationId": "food-tent",
+    "category": "Food",
+    "description": "Eats-n-Treats vendor.",
+    "booth": "Food Area",
+    "hours": "Festival Hours"
+  },
+  {
+    "id": "eat-kona-ice",
+    "name": "Kona Ice",
+    "locationId": "food-tent",
+    "category": "Dessert",
+    "description": "Friday only.",
+    "booth": "Food Area",
+    "hours": "Friday Only"
+  },
+  {
+    "id": "eat-gramma-nana",
+    "name": "Gramma Nana’s Kitchen",
+    "locationId": "food-tent",
+    "category": "Food",
+    "description": "Friday only.",
+    "booth": "Food Area",
+    "hours": "Friday Only"
+  },
+  {
+    "id": "eat-old-brickyard",
+    "name": "The Old Brickyard",
+    "locationId": "unknown",
+    "category": "Restaurant",
+    "description": "Local bar/restaurant partner.",
+    "booth": "Off-site",
+    "hours": "Business Hours"
+  },
+  {
+    "id": "eat-market-on-the-hill",
+    "name": "Market on the Hill",
+    "locationId": "market-on-the-hill",
+    "category": "Restaurant",
+    "description": "Local restaurant partner.",
+    "booth": "Off-site",
+    "hours": "Business Hours"
+  },
+  {
+    "id": "eat-pizza-man",
+    "name": "Pizza Man",
+    "locationId": "unknown",
+    "category": "Restaurant",
+    "description": "Local restaurant partner.",
+    "booth": "Off-site",
+    "hours": "Business Hours"
+  },
+  {
+    "id": "eat-next-stop",
+    "name": "The Next Stop Saloon",
+    "locationId": "unknown",
+    "category": "Restaurant",
+    "description": "Local bar/restaurant partner.",
+    "booth": "Off-site",
+    "hours": "Business Hours"
+  },
+  {
+    "id": "eat-mt-pulaski-cafe",
+    "name": "Mt. Pulaski Cafe",
+    "locationId": "unknown",
+    "category": "Restaurant",
+    "description": "Local restaurant partner.",
+    "booth": "Off-site",
+    "hours": "Business Hours"
+  }
+]

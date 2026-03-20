@@ -1,0 +1,71 @@
+{
+  "eventName": "Mt. Pulaski Fall Festival 2026",
+  "eventType": "Community Festival",
+  "summary": "2026 Mt. Pulaski Fall Festival schedule loaded from last year's flyer, organized across downtown locations, food areas, and activity zones.",
+  "dateLabel": "September 9–13, 2026",
+  "areaLabel": "Downtown Mt. Pulaski",
+  "disclaimer": {
+    "title": "Important Notice",
+    "text": "This is not an official publication of the Mt. Pulaski Fall Fest Committee, Hilltop Club, or supporting sponsors. Information is provided for convenience only and may not be complete or current. The Fall Fest Committee, Hilltop Club, and supporters or sponsors are not responsible for updates, corrections, or omissions."
+  },
+  "theme": {
+    "year": 2026,
+    "title": "Off to the Races",
+    "displayText": "2026 Mt. Pulaski Fall Festival — Off to the Races"
+  },
+  "featuredBranding": {
+    "title": "50 Years on the Hill",
+    "subtitle": "Mt. Pulaski IL"
+  },
+  "days": [
+    {
+      "id": "wed",
+      "label": "Wednesday",
+      "date": "2026-09-09"
+    },
+    {
+      "id": "thu",
+      "label": "Thursday",
+      "date": "2026-09-10"
+    },
+    {
+      "id": "fri",
+      "label": "Friday",
+      "date": "2026-09-11"
+    },
+    {
+      "id": "sat",
+      "label": "Saturday",
+      "date": "2026-09-12"
+    },
+    {
+      "id": "sun",
+      "label": "Sunday",
+      "date": "2026-09-13"
+    }
+  ],
+  "dates": [
+    "2026-09-09",
+    "2026-09-10",
+    "2026-09-11",
+    "2026-09-12",
+    "2026-09-13"
+  ],
+  "tabs": [
+    "schedule",
+    "map",
+    "vendors",
+    "locations",
+    "flyer"
+  ],
+  "_split": {
+    "locations": "locations.json",
+    "schedule": "schedule.json",
+    "vendors": "vendors.json",
+    "flyer": "flyer.json"
+  },
+  "_meta": {
+    "code": "FALLFEST",
+    "publicName": "Mt. Pulaski Fall Festival 2026"
+  }
+}

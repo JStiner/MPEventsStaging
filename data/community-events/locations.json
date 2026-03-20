@@ -1,0 +1,38 @@
+[
+  {
+    "id": "community-square",
+    "name": "Town Square",
+    "address": "1 Main St",
+    "mapX": 54,
+    "mapY": 45,
+    "description": "Downtown community gathering area.",
+    "pinIcon": "🎉"
+  },
+  {
+    "id": "city-park",
+    "name": "City Park",
+    "address": "100 Park Ln",
+    "mapX": 40,
+    "mapY": 52,
+    "description": "Open-air family event space.",
+    "pinIcon": "🌳"
+  },
+  {
+    "id": "courthouse-lawn",
+    "name": "Courthouse Lawn",
+    "address": "Courthouse Square",
+    "mapX": 45,
+    "mapY": 40,
+    "description": "Central event lawn.",
+    "pinIcon": "🏛️"
+  },
+  {
+    "id": "library",
+    "name": "Public Library",
+    "address": "320 N Washington St",
+    "mapX": 43,
+    "mapY": 30,
+    "description": "Community learning and activity site.",
+    "pinIcon": "📚"
+  }
+]
