@@ -902,32 +902,32 @@ body.soft-light {
 
 .calendar-event-chip.bucket-community,
 .filter-chip[data-filter="Community"].active {
-  background: linear-gradient(180deg, #eef8ff 0%, #ddf0ff 100%);
+  background: linear-gradient(180deg, #eef8ff 0%, var(--color-community) 100%);
 }
 
 .calendar-event-chip.bucket-school,
 .filter-chip[data-filter="School"].active {
-  background: linear-gradient(180deg, #fff3ea 0%, #ffe7d3 100%);
+  background: linear-gradient(180deg, #f4edff 0%, var(--color-school) 100%);
 }
 
 .calendar-event-chip.bucket-town-services,
 .filter-chip[data-filter="Town Services"].active {
-  background: linear-gradient(180deg, #eff8ef 0%, #dff0df 100%);
+  background: linear-gradient(180deg, #f3eadf 0%, var(--color-town) 100%);
 }
 
 .calendar-event-chip.bucket-fall-fest,
 .filter-chip[data-filter="Fall Fest"].active {
-  background: linear-gradient(180deg, #fff5eb 0%, #ffe6ca 100%);
+  background: linear-gradient(180deg, #ffeef5 0%, var(--color-fallfest) 100%);
 }
 
 .calendar-event-chip.bucket-2nd-fridays,
 .filter-chip[data-filter="2nd Fridays"].active {
-  background: linear-gradient(180deg, #f4efff 0%, #e8defd 100%);
+  background: linear-gradient(180deg, #fff0e5 0%, var(--color-secondfriday) 100%);
 }
 
 .calendar-event-chip.bucket-covh,
 .filter-chip[data-filter="COVH"].active {
-  background: linear-gradient(180deg, #eef9f0 0%, #dff2e2 100%);
+  background: linear-gradient(180deg, #eef9ee 0%, var(--color-covh) 100%);
 }
 
 @media (max-width: 700px) {
