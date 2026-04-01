@@ -725,7 +725,18 @@ function escapeHtml(value = '') {
 }
 
 function isCovhFlyer(flyer = state.eventData?.flyer, data = state.eventData) {
-  return data?._meta?.code === 'COVH' || /christmas on vinegar hill/i.test(flyer?.document?.title || '');
+  const covhMatch =
+    data?._meta?.code === 'COVH' ||
+    /christmas on vinegar hill/i.test(flyer?.document?.title || '');
+
+  if (!covhMatch) return false;
+
+  const hasPamphletStructure =
+    flyer?.sections?.['mt-pulaski-a'] ||
+    flyer?.sections?.['regional'] ||
+    flyer?.assets?.maps;
+
+  return !!hasPamphletStructure;
 }
 
 function renderCovhBadgeKey(flyer) {
@@ -1386,6 +1397,107 @@ function mapVendorRow(row) {
   };
 }
 
+function slugifyFlyerSectionKey(value = '') {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function normalizeFlyerSection(section, index) {
+  const title = section?.title || `Section ${index + 1}`;
+  const key = section?.key || slugifyFlyerSectionKey(title) || `section-${index + 1}`;
+
+  return {
+    key,
+    title,
+    entries: Array.isArray(section?.entries) ? section.entries : [],
+    blocks: Array.isArray(section?.blocks) ? section.blocks : []
+  };
+}
+
+function buildDefaultFlyerPageFlow(sectionKeys = []) {
+  if (!sectionKeys.length) return [];
+
+  const pages = [];
+  for (let i = 0; i < sectionKeys.length; i += 2) {
+    pages.push({
+      leftSection: sectionKeys[i],
+      rightSection: sectionKeys[i + 1] || null
+    });
+  }
+
+  return pages;
+}
+
+function normalizeFlyer(flyer, pageRow = {}, raw = {}) {
+  if (!flyer || typeof flyer !== 'object') return null;
+
+  const normalizedSections = {};
+  const sourceSections = Array.isArray(flyer.sections)
+    ? flyer.sections
+    : Object.values(flyer.sections || {});
+
+  sourceSections.forEach((section, index) => {
+    const normalized = normalizeFlyerSection(section, index);
+    normalizedSections[normalized.key] = normalized;
+  });
+
+  const sectionKeys = Object.keys(normalizedSections);
+
+  const title =
+    flyer?.document?.title ||
+    flyer?.title ||
+    pageRow?.event_name ||
+    raw?.eventName ||
+    'Event Flyer';
+
+  const subtitle =
+    flyer?.document?.subtitle ||
+    flyer?.subtitle ||
+    pageRow?.date_label ||
+    raw?.dateLabel ||
+    '';
+
+  const eyebrow =
+    flyer?.document?.eyebrow ||
+    flyer?.eyebrow ||
+    'Printable flyer';
+
+  return {
+    ...flyer,
+    document: {
+      eyebrow,
+      title,
+      subtitle
+    },
+    legend: Array.isArray(flyer.legend)
+      ? flyer.legend
+      : Array.isArray(flyer.iconLegend)
+        ? flyer.iconLegend
+        : [],
+    sections: normalizedSections,
+    pageFlow: Array.isArray(flyer.pageFlow) && flyer.pageFlow.length
+      ? flyer.pageFlow
+      : buildDefaultFlyerPageFlow(sectionKeys),
+    callouts: {
+      ...(flyer.callouts || {}),
+      footer: Array.isArray(flyer.callouts?.footer)
+        ? flyer.callouts.footer
+        : Array.isArray(flyer.footerNotes)
+          ? flyer.footerNotes
+          : [],
+      sponsors: Array.isArray(flyer.callouts?.sponsors)
+        ? flyer.callouts.sponsors
+        : Array.isArray(flyer.sponsors)
+          ? flyer.sponsors
+          : []
+    }
+  };
+}
+
 function buildEventData(pageRow, dayRows, locationRows, scheduleRows, vendorRows) {
   const raw = pageRow.raw || {};
   return {
@@ -1400,7 +1512,7 @@ function buildEventData(pageRow, dayRows, locationRows, scheduleRows, vendorRows
     dates: Array.isArray(pageRow.dates) ? pageRow.dates : (raw.dates || []),
     theme: pageRow.theme ?? raw.theme,
     featuredBranding: pageRow.featured_branding ?? raw.featuredBranding,
-    flyer: pageRow.flyer ?? raw.flyer,
+    flyer: normalizeFlyer(pageRow.flyer ?? raw.flyer, pageRow, raw),
     resources: Array.isArray(pageRow.resources) ? pageRow.resources : (raw.resources || []),
     days: dayRows.map(mapDayRow),
     locations: locationRows.map(mapLocationRow),
