@@ -1,0 +1,97 @@
+[
+  {
+    "id": "alfredo-sauce",
+    "name": "Alfredo Sauce",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "barbecue-sauce",
+    "name": "Barbecue Sauce",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "buffalo-sauce",
+    "name": "Buffalo Sauce",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "cheese-sauce",
+    "name": "Cheese Sauce",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "enchilada-sauce",
+    "name": "Enchilada Sauce",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "hot-sauce",
+    "name": "Hot Sauce",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "ketchup",
+    "name": "Ketchup",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "mayo",
+    "name": "Mayo",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "marinara-sauce",
+    "name": "Marinara Sauce",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "mustard",
+    "name": "Mustard",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "olive-oil",
+    "name": "Olive Oil",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "pesto",
+    "name": "Pesto",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "ranch-dressing",
+    "name": "Ranch Dressing",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "rice-vinegar",
+    "name": "Rice Vinegar",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "salsa",
+    "name": "Salsa",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "soy-sauce",
+    "name": "Soy Sauce",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "teriyaki-sauce",
+    "name": "Teriyaki Sauce",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "tomato-sauce",
+    "name": "Tomato Sauce",
+    "pantryUnit": "tbsp"
+  },
+  {
+    "id": "worcestershire-sauce",
+    "name": "Worcestershire Sauce",
+    "pantryUnit": "tbsp"
+  }
+]

@@ -1,0 +1,360 @@
+[
+  {
+    "id": "veggie-stir-fry-rice",
+    "name": "Veggie Stir Fry Rice",
+    "description": "A quick vegetable stir fry served over rice.",
+    "time": "25 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [],
+      "veggies": [
+        "broccoli",
+        "bell pepper",
+        "carrot",
+        "onion",
+        "garlic"
+      ],
+      "grains": [
+        "white rice"
+      ]
+    },
+    "groceryList": [
+      "2 cups cooked rice",
+      "2 cups broccoli",
+      "1 bell pepper",
+      "2 carrots",
+      "1 onion",
+      "2 cloves garlic",
+      "soy sauce"
+    ],
+    "directions": [
+      "Cook rice.",
+      "Sauté vegetables and garlic until tender-crisp.",
+      "Season and serve over rice."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "mushroom-fried-rice",
+    "name": "Mushroom Fried Rice",
+    "description": "Savory fried rice with mushrooms, peas, and onion.",
+    "time": "20 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [],
+      "veggies": [
+        "mushrooms",
+        "peas",
+        "onion",
+        "green onion",
+        "garlic"
+      ],
+      "grains": [
+        "white rice"
+      ]
+    },
+    "groceryList": [
+      "3 cups cooked rice",
+      "8 oz mushrooms",
+      "1 cup peas",
+      "1 onion",
+      "3 green onions",
+      "2 cloves garlic",
+      "soy sauce"
+    ],
+    "directions": [
+      "Sauté vegetables and garlic.",
+      "Add rice and stir-fry until hot.",
+      "Season and top with green onion."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "broccoli-alfredo-penne",
+    "name": "Broccoli Alfredo Penne",
+    "description": "Creamy penne with broccoli and garlic.",
+    "time": "25 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [],
+      "veggies": [
+        "broccoli",
+        "garlic"
+      ],
+      "grains": [
+        "penne"
+      ]
+    },
+    "groceryList": [
+      "12 oz penne",
+      "3 cups broccoli",
+      "3 cloves garlic",
+      "1 cup alfredo sauce"
+    ],
+    "directions": [
+      "Cook penne.",
+      "Cook broccoli and garlic.",
+      "Stir in sauce and toss with pasta."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "vegetable-shepherds-pie",
+    "name": "Vegetable Shepherd's Pie",
+    "description": "Vegetables topped with creamy mashed potatoes and baked.",
+    "time": "45 min",
+    "difficulty": "Medium",
+    "servings": 6,
+    "ingredients": {
+      "meats": [],
+      "veggies": [
+        "carrot",
+        "peas",
+        "corn",
+        "onion",
+        "mushrooms",
+        "potato"
+      ],
+      "grains": [
+        "potatoes"
+      ]
+    },
+    "groceryList": [
+      "2 carrots",
+      "1 cup peas",
+      "1 cup corn",
+      "1 onion",
+      "8 oz mushrooms",
+      "5 potatoes"
+    ],
+    "directions": [
+      "Cook chopped vegetables until softened.",
+      "Spread in a baking dish.",
+      "Top with mashed potatoes and bake until golden."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "spinach-tomato-pasta",
+    "name": "Spinach Tomato Pasta",
+    "description": "Simple pasta with spinach, tomato, and garlic.",
+    "time": "20 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [],
+      "veggies": [
+        "spinach",
+        "tomato",
+        "garlic"
+      ],
+      "grains": [
+        "spaghetti"
+      ]
+    },
+    "groceryList": [
+      "12 oz spaghetti",
+      "2 tomatoes",
+      "3 cloves garlic",
+      "3 cups spinach"
+    ],
+    "directions": [
+      "Cook spaghetti.",
+      "Cook garlic and tomato briefly.",
+      "Add spinach until wilted.",
+      "Toss with pasta."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "quinoa-stuffed-peppers",
+    "name": "Quinoa Stuffed Peppers",
+    "description": "Bell peppers filled with quinoa and vegetables.",
+    "time": "40 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [],
+      "veggies": [
+        "bell pepper",
+        "onion",
+        "tomato",
+        "corn"
+      ],
+      "grains": [
+        "quinoa"
+      ]
+    },
+    "groceryList": [
+      "4 bell peppers",
+      "1 cup quinoa",
+      "1 onion",
+      "2 tomatoes",
+      "1 cup corn",
+      "cheese optional"
+    ],
+    "directions": [
+      "Cook quinoa.",
+      "Cook onion, tomato, and corn.",
+      "Fill peppers with quinoa mixture and bake until tender."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "potato-and-green-bean-skillet",
+    "name": "Potato and Green Bean Skillet",
+    "description": "Hearty skillet dinner with potatoes, green beans, and onion.",
+    "time": "30 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [],
+      "veggies": [
+        "potato",
+        "green beans",
+        "onion",
+        "garlic"
+      ],
+      "grains": [
+        "potatoes"
+      ]
+    },
+    "groceryList": [
+      "5 potatoes",
+      "1 lb green beans",
+      "1 onion",
+      "3 cloves garlic"
+    ],
+    "directions": [
+      "Brown potatoes in a skillet.",
+      "Add onion, green beans, and garlic.",
+      "Cook until everything is tender and browned."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "vegetable-couscous-bowls",
+    "name": "Vegetable Couscous Bowls",
+    "description": "Couscous with roasted vegetables and garlic.",
+    "time": "25 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [],
+      "veggies": [
+        "zucchini",
+        "bell pepper",
+        "carrot",
+        "onion",
+        "garlic"
+      ],
+      "grains": [
+        "couscous"
+      ]
+    },
+    "groceryList": [
+      "1 cup couscous",
+      "1 zucchini",
+      "1 bell pepper",
+      "2 carrots",
+      "1 onion",
+      "2 cloves garlic"
+    ],
+    "directions": [
+      "Cook couscous.",
+      "Roast or sauté vegetables with garlic.",
+      "Serve vegetables over couscous."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "creamy-macaroni-and-cheese",
+    "name": "Creamy Macaroni and Cheese",
+    "description": "Classic stovetop macaroni and cheese.",
+    "time": "20 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [],
+      "veggies": [],
+      "grains": [
+        "macaroni"
+      ]
+    },
+    "groceryList": [
+      "12 oz macaroni",
+      "3 cups cheese sauce"
+    ],
+    "directions": [
+      "Cook macaroni.",
+      "Stir in cheese sauce and serve hot."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "vegetable-tacos",
+    "name": "Vegetable Tacos",
+    "description": "Warm tortillas filled with sautéed vegetables.",
+    "time": "20 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [],
+      "veggies": [
+        "bell pepper",
+        "onion",
+        "corn",
+        "avocado"
+      ],
+      "grains": [
+        "flour tortillas"
+      ]
+    },
+    "groceryList": [
+      "8 flour tortillas",
+      "1 bell pepper",
+      "1 onion",
+      "1 cup corn",
+      "1 avocado"
+    ],
+    "directions": [
+      "Cook peppers, onion, and corn until tender.",
+      "Warm tortillas.",
+      "Fill tortillas and top with sliced avocado."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  }
+]

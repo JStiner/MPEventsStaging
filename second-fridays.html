@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-event-file="data/2ndfriday/event.json">
+<html lang="en" data-page-slug="second-fridays" data-event-file="data/2ndfriday/event.json">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,11 +8,20 @@
 </head>
 <body class="page-shell">
   <main class="phone-shell">
-    <header class="top-bar">
-      <a class="back-link" href="index.html">← Events</a>
-      <span class="top-badge">Demo Data</span>
-    </header>
+<header class="top-bar">
+  <a class="back-link" href="index.html">← Events</a>
 
+  <div class="header-actions">
+    <span class="top-badge">Demo + Structure</span>
+
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Toggle dark mode">
+      <span class="theme-toggle-label">Dark mode</span>
+      <span class="theme-toggle-track">
+        <span class="theme-toggle-thumb"></span>
+      </span>
+    </button>
+  </div>
+</header>
     <section class="hero-card compact">
       <p id="event-eyebrow" class="eyebrow">Community Event</p>
       <h1 id="event-name">2nd Fridays</h1>
@@ -64,6 +73,8 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>

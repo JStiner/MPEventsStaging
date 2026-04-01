@@ -1,0 +1,97 @@
+[
+  {
+    "id": "butter",
+    "name": "Butter",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "cheddar-cheese",
+    "name": "Cheddar Cheese",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "colby-jack-cheese",
+    "name": "Colby Jack Cheese",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "cottage-cheese",
+    "name": "Cottage Cheese",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "cream-cheese",
+    "name": "Cream Cheese",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "eggs",
+    "name": "Eggs",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "feta-cheese",
+    "name": "Feta Cheese",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "heavy-cream",
+    "name": "Heavy Cream",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "milk",
+    "name": "Milk",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "monterey-jack-cheese",
+    "name": "Monterey Jack Cheese",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "mozzarella-cheese",
+    "name": "Mozzarella Cheese",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "parmesan-cheese",
+    "name": "Parmesan Cheese",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "pepper-jack-cheese",
+    "name": "Pepper Jack Cheese",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "provolone-cheese",
+    "name": "Provolone Cheese",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "shredded-cheese",
+    "name": "Shredded Cheese",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "sour-cream",
+    "name": "Sour Cream",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "whipped-cream",
+    "name": "Whipped Cream",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "yogurt",
+    "name": "Yogurt",
+    "pantryUnit": "cup"
+  },
+  {
+    "id": "yogurt-sauce",
+    "name": "Yogurt Sauce",
+    "pantryUnit": "cup"
+  }
+]

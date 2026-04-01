@@ -1,0 +1,398 @@
+[
+  {
+    "id": "chicken-alfredo-primavera",
+    "name": "Chicken Alfredo Primavera",
+    "description": "Chicken pasta with a creamy sauce and mixed vegetables.",
+    "time": "30 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "chicken breast"
+      ],
+      "veggies": [
+        "broccoli",
+        "bell pepper",
+        "spinach",
+        "garlic"
+      ],
+      "grains": [
+        "penne"
+      ]
+    },
+    "groceryList": [
+      "1 lb chicken breast",
+      "12 oz penne",
+      "2 cups broccoli",
+      "1 bell pepper",
+      "2 cups spinach",
+      "3 cloves garlic",
+      "1 cup alfredo sauce"
+    ],
+    "directions": [
+      "Cook pasta.",
+      "Season and cook chicken until browned, then slice.",
+      "Cook vegetables and garlic until just tender.",
+      "Stir in sauce and toss with pasta and chicken."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": "52796"
+    }
+  },
+  {
+    "id": "chicken-fried-rice",
+    "name": "Chicken Fried Rice",
+    "description": "Skillet fried rice with chicken and vegetables.",
+    "time": "25 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "chicken breast"
+      ],
+      "veggies": [
+        "carrot",
+        "peas",
+        "onion",
+        "green onion",
+        "garlic"
+      ],
+      "grains": [
+        "white rice"
+      ]
+    },
+    "groceryList": [
+      "1 lb chicken breast",
+      "3 cups cooked rice",
+      "2 carrots",
+      "1 cup peas",
+      "1 onion",
+      "3 green onions",
+      "2 cloves garlic",
+      "3 tbsp soy sauce"
+    ],
+    "directions": [
+      "Cook chicken and dice or shred.",
+      "Sauté onion, carrot, peas, and garlic.",
+      "Add rice and chicken and stir-fry.",
+      "Season with soy sauce and top with green onion."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": "53367"
+    }
+  },
+  {
+    "id": "chicken-enchilada-casserole",
+    "name": "Chicken Enchilada Casserole",
+    "description": "Layered chicken casserole with tortillas and sauce.",
+    "time": "40 min",
+    "difficulty": "Easy",
+    "servings": 6,
+    "ingredients": {
+      "meats": [
+        "chicken breast"
+      ],
+      "veggies": [
+        "onion",
+        "bell pepper",
+        "corn"
+      ],
+      "grains": [
+        "tortillas"
+      ]
+    },
+    "groceryList": [
+      "2 cups cooked chicken",
+      "8 tortillas",
+      "1 onion",
+      "1 bell pepper",
+      "1 cup corn",
+      "2 cups enchilada sauce",
+      "2 cups shredded cheese"
+    ],
+    "directions": [
+      "Cook onion and pepper until softened.",
+      "Layer tortillas, chicken, vegetables, sauce, and cheese in a baking dish.",
+      "Repeat layers and bake until bubbly."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": "52765"
+    }
+  },
+  {
+    "id": "chicken-fajita-mac-and-cheese",
+    "name": "Chicken Fajita Mac and Cheese",
+    "description": "Creamy mac and cheese with chicken and peppers.",
+    "time": "35 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "chicken breast"
+      ],
+      "veggies": [
+        "bell pepper",
+        "onion",
+        "garlic"
+      ],
+      "grains": [
+        "macaroni"
+      ]
+    },
+    "groceryList": [
+      "1 lb chicken breast",
+      "12 oz macaroni",
+      "1 bell pepper",
+      "1 onion",
+      "2 cloves garlic",
+      "2 cups cheese sauce"
+    ],
+    "directions": [
+      "Cook macaroni.",
+      "Cook chicken and slice.",
+      "Sauté peppers, onion, and garlic.",
+      "Combine pasta, cheese sauce, chicken, and vegetables."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": "52818"
+    }
+  },
+  {
+    "id": "teriyaki-chicken-casserole",
+    "name": "Teriyaki Chicken Casserole",
+    "description": "Baked chicken, broccoli, and rice with teriyaki flavor.",
+    "time": "35 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "chicken thighs"
+      ],
+      "veggies": [
+        "broccoli",
+        "garlic"
+      ],
+      "grains": [
+        "white rice"
+      ]
+    },
+    "groceryList": [
+      "1.5 lb chicken thighs",
+      "3 cups broccoli",
+      "2 cups cooked rice",
+      "3 cloves garlic",
+      "1/2 cup teriyaki sauce"
+    ],
+    "directions": [
+      "Cook rice and set aside.",
+      "Bake or sauté chicken until cooked through.",
+      "Cook broccoli until tender-crisp.",
+      "Combine with teriyaki sauce and serve over rice."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": "52772"
+    }
+  },
+  {
+    "id": "chicken-mushroom-hotpot",
+    "name": "Chicken and Mushroom Hotpot",
+    "description": "Comforting chicken bake with mushrooms and potatoes.",
+    "time": "50 min",
+    "difficulty": "Medium",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "chicken thighs"
+      ],
+      "veggies": [
+        "mushrooms",
+        "onion",
+        "potato",
+        "garlic"
+      ],
+      "grains": [
+        "potatoes"
+      ]
+    },
+    "groceryList": [
+      "1.5 lb chicken thighs",
+      "8 oz mushrooms",
+      "1 onion",
+      "4 potatoes",
+      "2 cloves garlic",
+      "1 cup broth"
+    ],
+    "directions": [
+      "Brown chicken in a skillet.",
+      "Cook mushrooms, onion, and garlic.",
+      "Layer with sliced potatoes in a baking dish and add broth.",
+      "Bake until potatoes are tender and chicken is done."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": "52846"
+    }
+  },
+  {
+    "id": "brown-stew-chicken",
+    "name": "Brown Stew Chicken",
+    "description": "Savory chicken stew with onion, peppers, and carrots.",
+    "time": "45 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "chicken thighs"
+      ],
+      "veggies": [
+        "onion",
+        "bell pepper",
+        "carrot",
+        "garlic"
+      ],
+      "grains": [
+        "white rice"
+      ]
+    },
+    "groceryList": [
+      "2 lb chicken thighs",
+      "1 onion",
+      "1 bell pepper",
+      "2 carrots",
+      "3 cloves garlic",
+      "2 cups broth",
+      "2 cups cooked rice"
+    ],
+    "directions": [
+      "Brown chicken pieces in a pot.",
+      "Add vegetables and cook briefly.",
+      "Pour in broth and simmer until chicken is tender.",
+      "Serve over rice."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": "52940"
+    }
+  },
+  {
+    "id": "chicken-couscous",
+    "name": "Chicken Couscous",
+    "description": "Seasoned chicken with vegetables and fluffy couscous.",
+    "time": "30 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "chicken breast"
+      ],
+      "veggies": [
+        "zucchini",
+        "carrot",
+        "onion",
+        "garlic"
+      ],
+      "grains": [
+        "couscous"
+      ]
+    },
+    "groceryList": [
+      "1 lb chicken breast",
+      "1 cup couscous",
+      "1 zucchini",
+      "2 carrots",
+      "1 onion",
+      "2 cloves garlic"
+    ],
+    "directions": [
+      "Cook couscous according to package directions.",
+      "Cook chicken until browned and cooked through.",
+      "Sauté vegetables and garlic until tender.",
+      "Serve chicken and vegetables over couscous."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": "52850"
+    }
+  },
+  {
+    "id": "chicken-shawarma-bowls",
+    "name": "Chicken Shawarma Bowls",
+    "description": "Spiced chicken served with rice and fresh vegetables.",
+    "time": "35 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "chicken thighs"
+      ],
+      "veggies": [
+        "cucumber",
+        "tomato",
+        "red onion"
+      ],
+      "grains": [
+        "jasmine rice"
+      ]
+    },
+    "groceryList": [
+      "1.5 lb chicken thighs",
+      "2 cups cooked jasmine rice",
+      "1 cucumber",
+      "2 tomatoes",
+      "1/2 red onion",
+      "shawarma seasoning",
+      "yogurt sauce"
+    ],
+    "directions": [
+      "Season chicken and cook until browned and cooked through.",
+      "Chop cucumber, tomato, and red onion.",
+      "Serve chicken over rice with fresh vegetables and sauce."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": "53218"
+    }
+  },
+  {
+    "id": "general-tsos-chicken",
+    "name": "General Tso's Chicken",
+    "description": "Crispy chicken tossed in a sweet-spicy sauce.",
+    "time": "35 min",
+    "difficulty": "Medium",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "chicken breast"
+      ],
+      "veggies": [
+        "green onion",
+        "garlic"
+      ],
+      "grains": [
+        "white rice"
+      ]
+    },
+    "groceryList": [
+      "1 lb chicken breast",
+      "3 green onions",
+      "3 cloves garlic",
+      "1/3 cup sauce",
+      "2 cups cooked rice"
+    ],
+    "directions": [
+      "Cook rice and set aside.",
+      "Cook chicken pieces until crisp and cooked through.",
+      "Make sauce with garlic and seasonings.",
+      "Toss chicken in sauce and top with green onion."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": "52951"
+    }
+  }
+]

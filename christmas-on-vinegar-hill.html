@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-event-file="data/covh/event.json">
+<html lang="en" data-page-slug="christmas-on-vinegar-hill" data-event-file="data/covh/event.json">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -60,19 +60,21 @@
     </section>
   </main>
 
-<div id="detail-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-  <div class="modal-card">
-    <button id="close-modal" class="close-button" aria-label="Close">×</button>
+  <div id="detail-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <button id="close-modal" class="close-button" aria-label="Close">×</button>
 
-    <div class="modal-header">
-      <p id="modal-kicker" class="eyebrow"></p>
-      <h2 id="modal-title"></h2>
+      <div class="modal-header">
+        <p id="modal-kicker" class="eyebrow"></p>
+        <h2 id="modal-title"></h2>
+      </div>
+
+      <div id="modal-content" class="modal-content"></div>
     </div>
-
-    <div id="modal-content" class="modal-content"></div>
   </div>
-</div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>

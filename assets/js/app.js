@@ -1,4 +1,12 @@
 const eventFile = document.documentElement.dataset.eventFile;
+const supabaseClient = window.supabaseClient;
+
+function getPageSlug() {
+  const explicit = document.documentElement.dataset.pageSlug;
+  if (explicit) return explicit;
+  const fileName = window.location.pathname.split('/').pop() || '';
+  return fileName.replace(/\.html$/i, '') || null;
+}
 
 const state = {
   eventData: null,
@@ -24,8 +32,49 @@ const el = {
   modalKicker: document.getElementById('modal-kicker'),
   modalTitle: document.getElementById('modal-title'),
   modalContent: document.getElementById('modal-content'),
-  closeModal: document.getElementById('close-modal')
+  closeModal: document.getElementById('close-modal'),
+  themeToggle: document.getElementById('theme-toggle')
 };
+
+const THEME_STORAGE_KEY = 'mp-community-events-theme';
+
+function getStoredTheme() {
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+  } catch (error) {
+    return 'light';
+  }
+}
+
+function applyTheme(theme) {
+  const isDark = theme === 'dark';
+  document.body.classList.toggle('theme-dark', isDark);
+
+  if (el.themeToggle) {
+    el.themeToggle.setAttribute('aria-pressed', String(isDark));
+    const label = el.themeToggle.querySelector('.theme-toggle-label');
+    if (label) {
+      label.textContent = isDark ? 'Light mode' : 'Dark mode';
+    }
+  }
+}
+
+function initThemeToggle() {
+  applyTheme(getStoredTheme());
+
+  if (!el.themeToggle) return;
+
+  el.themeToggle.addEventListener('click', () => {
+    const nextTheme = document.body.classList.contains('theme-dark') ? 'light' : 'dark';
+    applyTheme(nextTheme);
+
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    } catch (error) {
+      console.warn('Theme preference could not be saved.', error);
+    }
+  });
+}
 
 function formatTimeRange(start, end) {
   const startText = String(start || '').trim();
@@ -247,6 +296,99 @@ function getFilterMode(data) {
   return uniqueDates.length > 31 ? 'month' : 'day';
 }
 
+function todayYmd() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getEventCode(data) {
+  return data?._meta?.code || '';
+}
+
+function getCurrentOrNextDayId(data) {
+  const days = data.days || [];
+  if (!days.length) return null;
+
+  const today = todayYmd();
+
+  // current exact day
+  const current = days.find(day => day.date === today);
+  if (current) return current.id;
+
+  // next future day
+  const upcoming = days.find(day => day.date >= today);
+  if (upcoming) return upcoming.id;
+
+  // fallback to first day
+  return days[0].id;
+}
+
+function getNextAvailableDayIdFromSchedule(data) {
+  const schedule = (data.schedule || []).slice();
+  if (!schedule.length) return null;
+
+  const today = todayYmd();
+
+  const uniqueDates = Array.from(
+    new Set(schedule.map(item => item.date).filter(Boolean))
+  ).sort();
+
+  // first current or future schedule date
+  const nextDate = uniqueDates.find(date => date >= today);
+
+  if (nextDate) {
+    const matchingDay = (data.days || []).find(day => day.date === nextDate);
+    return matchingDay?.id || nextDate;
+  }
+
+  // fallback to last available date/day if all have passed
+  const lastDate = uniqueDates[uniqueDates.length - 1];
+  const matchingDay = (data.days || []).find(day => day.date === lastDate);
+  return matchingDay?.id || lastDate;
+}
+
+function getCurrentMonthId() {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function getBestDefaultSelection(data) {
+  const code = getEventCode(data);
+  const filterMode = getFilterMode(data);
+
+  // Month-driven pages
+  if (code === 'COMMUNITY' || code === 'SCHOOL' || code === 'TOWN') {
+    return getCurrentMonthId();
+  }
+
+  // Fall Fest: active/current day, then next day, then first day
+  if (code === 'FALLFEST') {
+    return getCurrentOrNextDayId(data);
+  }
+
+  // 2nd Fridays: next available event date, else last available
+  if (code === '2NDFRIDAY' || code === 'SECOND_FRIDAYS') {
+    return getNextAvailableDayIdFromSchedule(data);
+  }
+
+  // COVH: leave current behavior
+  if (code === 'COVH') {
+    if (filterMode === 'month') {
+      const months = getMonthOptions(data);
+      return months[0]?.id || 'all';
+    }
+    return data.days?.[0]?.id || null;
+  }
+
+  // Generic fallback
+  if (filterMode === 'month') {
+    const currentMonth = getCurrentMonthId();
+    const monthOptions = getMonthOptions(data);
+    const hasCurrent = monthOptions.some(month => month.id === currentMonth);
+    return hasCurrent ? currentMonth : (monthOptions[0]?.id || 'all');
+  }
+
+  return getCurrentOrNextDayId(data) || data.days?.[0]?.id || null;
+}
 
 function renderDayFilter(data) {
   if (!el.dayFilter) return;
@@ -256,11 +398,14 @@ function renderDayFilter(data) {
   state.filterMode = getFilterMode(data);
 
   if (state.filterMode === 'month') {
-    const monthOptions = getMonthOptions(data);
-    const today = new Date();
-    const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-    const fallbackMonth = monthOptions[0]?.id || defaultMonth;
-    state.selectedDate = state.selectedDate || 'all';
+	const monthOptions = getMonthOptions(data);
+	const defaultSelection = getBestDefaultSelection(data);
+	state.selectedDate = state.selectedDate || defaultSelection || 'all';
+	
+	const validMonthIds = new Set(monthOptions.map(month => month.id));
+if (state.selectedDate !== 'all' && !validMonthIds.has(state.selectedDate)) {
+  state.selectedDate = monthOptions[0]?.id || 'all';
+}
 
     const allChip = document.createElement('button');
     allChip.type = 'button';
@@ -289,7 +434,7 @@ function renderDayFilter(data) {
     return;
   }
 
-  state.selectedDate = state.selectedDate || data.days[0].id;
+	state.selectedDate = state.selectedDate || getBestDefaultSelection(data) || data.days[0]?.id || null;
 
   data.days.forEach(day => {
     const chip = document.createElement('button');
@@ -593,8 +738,17 @@ function renderCovhBadgeKey(flyer) {
   `;
 }
 
-function renderCovhListItem(entry) {
-  const badges = (entry.badges || []).map(b => `<span class="covh-inline-badge">${escapeHtml(b)}</span>`).join(' ');
+function renderCovhListItem(entry, flyer) {
+  const badges = (entry.badges || [])
+    .map(b => `<span class="covh-inline-badge">${escapeHtml(b)}</span>`)
+    .join(' ');
+
+  const bagIcon = entry.bagLocation && flyer?.assets?.bagIcon
+    ? `<img src="${escapeHtml(flyer.assets.bagIcon)}" alt="Bag location" class="covh-bag-icon covh-inline-bag-icon" loading="lazy" />`
+    : '';
+
+  const metaIcons = `${badges}${badges && bagIcon ? ' ' : ''}${bagIcon}`;
+
   return `
     <article class="covh-list-item">
       <div class="covh-item-head">
@@ -604,21 +758,36 @@ function renderCovhListItem(entry) {
         </div>
         <div class="covh-item-hours">${escapeHtml(entry.hours || 'TBD')}</div>
       </div>
-      <div class="covh-item-meta">${badges ? `<span class="covh-item-badges">${badges}</span>` : ''}<span>${escapeHtml(entry.address || '')}</span></div>
+      <div class="covh-item-meta">
+        ${metaIcons ? `<span class="covh-item-badges">${metaIcons}</span>` : ''}
+        <span>${escapeHtml(entry.address || '')}</span>
+      </div>
       <p>${escapeHtml(entry.description || '')}</p>
     </article>
   `;
 }
 
-function renderCovhRegionalItem(entry) {
-  const badges = (entry.badges || []).map(b => `<span class="covh-inline-badge">${escapeHtml(b)}</span>`).join(' ');
+function renderCovhRegionalItem(entry, flyer) {
+  const badges = (entry.badges || [])
+    .map(b => `<span class="covh-inline-badge">${escapeHtml(b)}</span>`)
+    .join(' ');
+
+  const bagIcon = entry.bagLocation && flyer?.assets?.bagIcon
+    ? `<img src="${escapeHtml(flyer.assets.bagIcon)}" alt="Bag location" class="covh-bag-icon covh-inline-bag-icon" loading="lazy" />`
+    : '';
+
+  const metaIcons = `${badges}${badges && bagIcon ? ' ' : ''}${bagIcon}`;
+
   return `
     <div class="covh-regional-item">
       <div class="covh-regional-head">
         <span class="covh-regional-name">${escapeHtml(entry.number)} ${escapeHtml(entry.name)}</span>
         <span class="covh-regional-hours">${escapeHtml(entry.hours || 'TBD')}</span>
       </div>
-      <div class="covh-regional-meta">${badges ? `<span class="covh-item-badges">${badges}</span>` : ''}<span>${escapeHtml(entry.address || '')}</span></div>
+      <div class="covh-regional-meta">
+        ${metaIcons ? `<span class="covh-item-badges">${metaIcons}</span>` : ''}
+        <span>${escapeHtml(entry.address || '')}</span>
+      </div>
       <p>${escapeHtml(entry.description || '')}</p>
     </div>
   `;
@@ -638,15 +807,23 @@ function renderCovhPageOne(flyer) {
   return `
     <article class="flyer-page covh-pamphlet-page covh-page-one" data-page="1">
       <div class="flyer-page-inner covh-page-inner">
-        <header class="covh-banner">
-          <div class="covh-banner-date">${escapeHtml(flyer.document?.subtitle || '')}</div>
-          <div class="covh-banner-title">Christmas on Vinegar Hill</div>
-          <div class="covh-banner-note">Look for the tree sign for participating locations</div>
-        </header>
+			<header class="covh-banner covh-banner-overlay">
+			  ${flyer.assets?.headerGraphic ? `
+				<div class="covh-banner-strip covh-banner-strip-overlay">
+				  <img src="${escapeHtml(flyer.assets.headerGraphic)}" alt="" class="covh-banner-strip-image covh-banner-strip-image-wide" loading="lazy" />
+				</div>
+			  ` : ''}
+
+			  <div class="covh-banner-copy covh-banner-copy-overlay">
+				<div class="covh-banner-date">${escapeHtml(flyer.document?.subtitle || '')}</div>
+				<div class="covh-banner-title">Christmas on Vinegar Hill</div>
+				<div class="covh-banner-note">${escapeHtml(flyer.callouts?.treeSign || 'Look for the tree sign for participating locations')}</div>
+			  </div>
+			</header>
 
         <div class="covh-page-one-grid">
           <section class="covh-column covh-main-list">
-            ${leftEntries.map(renderCovhListItem).join('')}
+            ${leftEntries.map(entry => renderCovhListItem(entry, flyer)).join('')}
           </section>
 
           <section class="covh-column covh-middle-column">
@@ -654,18 +831,24 @@ function renderCovhPageOne(flyer) {
           </section>
 
           <section class="covh-column covh-side-list">
-            ${rightEntries.map(renderCovhListItem).join('')}
+            ${rightEntries.map(entry => renderCovhListItem(entry, flyer)).join('')}
 
             <div class="covh-regional-wrap">
               ${regionalBlocks.map(block => `
                 <section class="covh-regional-block">
                   <div class="covh-regional-title">${escapeHtml(block.title)} Location</div>
-                  ${(block.entries || []).map(renderCovhRegionalItem).join('')}
+                  ${(block.entries || []).map(entry => renderCovhRegionalItem(entry, flyer)).join('')}
                 </section>
               `).join('')}
             </div>
 
-            <div class="covh-bag-callout">Visit a location with the bag symbol and receive a reusable shopping bag with any donation to the Christmas on Vinegar Hill event while supplies last.</div>
+            <div class="covh-bag-callout">
+              <span>Visit a location with the</span>
+              ${flyer.assets?.bagIcon
+                ? `<img src="${escapeHtml(flyer.assets.bagIcon)}" alt="Bag symbol" class="covh-bag-icon covh-callout-bag-icon" loading="lazy" />`
+                : `<span class="covh-bag-text-symbol">bag symbol</span>`}
+              <span>symbol and receive a reusable shopping bag with any donation to the Christmas on Vinegar Hill event while supplies last.</span>
+            </div>
           </section>
         </div>
       </div>
@@ -679,10 +862,18 @@ function renderCovhPageTwo(flyer) {
   return `
     <article class="flyer-page covh-pamphlet-page covh-page-two" data-page="2">
       <div class="flyer-page-inner covh-page-inner">
-        <header class="covh-banner covh-banner-secondary">
-          <div class="covh-banner-date">${escapeHtml(flyer.document?.subtitle || '')}</div>
-          <div class="covh-banner-title">Christmas on Vinegar Hill</div>
-        </header>
+		<header class="covh-banner covh-banner-overlay covh-banner-page-two">
+		  ${flyer.assets?.headerGraphic ? `
+			<div class="covh-banner-strip covh-banner-strip-overlay">
+			  <img src="${escapeHtml(flyer.assets.headerGraphic)}" alt="" class="covh-banner-strip-image covh-banner-strip-image-wide" loading="lazy" />
+			</div>
+		  ` : ''}
+
+		  <div class="covh-banner-copy covh-banner-copy-overlay">
+			<div class="covh-banner-date">${escapeHtml(flyer.document?.subtitle || '')}</div>
+			<div class="covh-banner-title">Christmas on Vinegar Hill</div>
+		  </div>
+		</header>
 
         <div class="covh-map-layout">
           <div class="covh-map-main-card covh-map-panel">
@@ -721,14 +912,14 @@ function renderCovhPageTwo(flyer) {
         <div class="covh-footer-layout">
           <section class="covh-thanks-block">
             <div class="covh-script-heading">${escapeHtml(callouts.thankYouTitle || 'Thank You')}</div>
-            <p>${escapeHtml(callouts.thankYouText || '')}</p>
+            <p>${escapeHtml(callouts.thankYouText || 'Thank you for your patronage and to our Christmas on Vinegar Hill grant benefactors:')}</p>
             <div class="covh-benefactor-list">
               ${(callouts.benefactors || []).map(item => `<div>${escapeHtml(item)}</div>`).join('')}
             </div>
           </section>
 
           <section class="covh-qr-block">
-            <div class="covh-qr-title">Scan for Google Map of Event</div>
+            <div class="covh-qr-title">${escapeHtml(callouts.scanText || 'Scan for Google Map of Event')}</div>
             ${flyer.assets?.qrMap ? `<img src="${escapeHtml(flyer.assets.qrMap)}" alt="QR code for event map" class="covh-qr-image" loading="lazy" />` : ''}
           </section>
 
@@ -765,7 +956,7 @@ function flyerActionsMarkup() {
     <div class="flyer-toolbar">
       <button type="button" class="flyer-action" data-flyer-action="share">Share flyer</button>
       <button type="button" class="flyer-action" data-flyer-action="print">Print</button>
-      <button type="button" class="flyer-action" data-flyer-action="pdf">Download PDF</button>
+      <button type="button" class="flyer-action" data-flyer-action="pdf">Save as PDF</button>
     </div>
   `;
 }
@@ -797,6 +988,27 @@ function renderFlyerSection(section, showTitle = true) {
       </div>
     </section>
   `;
+}
+
+function openFlyerFromHash() {
+  const hash = window.location.hash?.replace('#', '');
+  if (!hash) return;
+
+  if (hash === 'flyer' || hash === 'flyer-panel') {
+    const flyerTab = document.querySelector('[data-tab="flyer"]');
+    flyerTab?.click();
+
+    setTimeout(() => {
+      const flyerTarget =
+        document.getElementById(hash) ||
+        document.getElementById('flyer-panel');
+
+      flyerTarget?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }, 150);
+  }
 }
 
 function renderRegionalBlock(block, flyer) {
@@ -921,10 +1133,12 @@ function buildFlyerPrintDocument(flyer) {
 }
 
 async function shareFlyerLink() {
+	const shareUrl = `${window.location.origin}${window.location.pathname}#flyer`;
+
   const shareData = {
     title: `${state.eventData?.eventName || 'Event'} Flyer`,
     text: 'Printable event flyer',
-    url: window.location.href
+    url: shareUrl
   };
 
   if (navigator.share) {
@@ -932,7 +1146,7 @@ async function shareFlyerLink() {
     return;
   }
 
-  await navigator.clipboard.writeText(window.location.href);
+  await navigator.clipboard.writeText(shareUrl);
   alert('Flyer link copied.');
 }
 
@@ -940,38 +1154,46 @@ function openFlyerPrintView(mode = 'print') {
   const flyer = state.eventData?.flyer;
   if (!flyer) return;
 
-  const printWindow = window.open('', '_blank');
+  const printWindow = window.open('', '_blank', 'noopener,noreferrer');
   if (!printWindow) {
     alert('Allow pop-ups for this site to print or save the flyer.');
     return;
   }
 
+  const html = buildFlyerPrintDocument(flyer);
+
   printWindow.document.open();
-  printWindow.document.write(buildFlyerPrintDocument(flyer));
+  printWindow.document.write(html);
   printWindow.document.close();
 
-  const runPrint = () => {
-    printWindow.focus();
-    window.setTimeout(() => {
+  const triggerPrint = () => {
+    try {
+      printWindow.focus();
       printWindow.print();
-    }, mode === 'pdf' ? 500 : 250);
+    } catch (error) {
+      console.error('Print failed:', error);
+      alert('Print dialog could not be opened.');
+    }
   };
 
-  printWindow.onload = runPrint;
+  printWindow.addEventListener('load', () => {
+    setTimeout(triggerPrint, mode === 'pdf' ? 700 : 400);
+  });
+
+  setTimeout(triggerPrint, mode === 'pdf' ? 1200 : 900);
 }
 
 function setupFlyerActions() {
   if (!el.flyerPanel) return;
+
   el.flyerPanel.querySelectorAll('[data-flyer-action]').forEach(button => {
-    button.addEventListener('click', async () => {
+    button.addEventListener('click', (event) => {
       const action = button.dataset.flyerAction;
 
       if (action === 'share') {
-        try {
-          await shareFlyerLink();
-        } catch (error) {
+        shareFlyerLink().catch(error => {
           console.error(error);
-        }
+        });
         return;
       }
 
@@ -1094,35 +1316,123 @@ function openScheduleFromHash() {
   }, 60);
 }
 
+function mapDayRow(row) {
+  const raw = row.raw || {};
+  return {
+    ...raw,
+    id: row.external_id,
+    label: row.label,
+    date: row.event_date
+  };
+}
+
+function mapLocationRow(row) {
+  const raw = row.raw || {};
+  return {
+    ...raw,
+    id: row.external_id,
+    name: row.name,
+    address: row.address,
+    mapX: row.map_x,
+    mapY: row.map_y,
+    description: row.description,
+    notes: row.notes,
+    directionsText: row.directions_text,
+    pinIcon: row.pin_icon,
+    hours: row.hours,
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    multiVendor: !!row.multi_vendor,
+    group: row.location_group
+  };
+}
+
+function mapScheduleRow(row) {
+  const raw = row.raw || {};
+  return {
+    ...raw,
+    id: row.external_id,
+    dayId: row.day_external_id,
+    title: row.title,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    locationId: row.location_external_id,
+    category: row.category,
+    description: row.description,
+    vendorIds: Array.isArray(row.vendor_ids) ? row.vendor_ids : [],
+    date: row.event_date
+  };
+}
+
+function mapVendorRow(row) {
+  const raw = row.raw || {};
+  return {
+    ...raw,
+    id: row.external_id,
+    name: row.name,
+    locationId: row.location_external_id,
+    category: row.category,
+    description: row.description,
+    booth: row.booth,
+    hours: row.hours
+  };
+}
+
+function buildEventData(pageRow, dayRows, locationRows, scheduleRows, vendorRows) {
+  const raw = pageRow.raw || {};
+  return {
+    ...raw,
+    eventName: pageRow.event_name,
+    eventType: pageRow.event_type,
+    summary: pageRow.summary,
+    dateLabel: pageRow.date_label,
+    areaLabel: pageRow.area_label,
+    category: pageRow.category,
+    tabs: Array.isArray(pageRow.tabs) ? pageRow.tabs : (raw.tabs || []),
+    dates: Array.isArray(pageRow.dates) ? pageRow.dates : (raw.dates || []),
+    theme: pageRow.theme ?? raw.theme,
+    featuredBranding: pageRow.featured_branding ?? raw.featuredBranding,
+    flyer: pageRow.flyer ?? raw.flyer,
+    resources: Array.isArray(pageRow.resources) ? pageRow.resources : (raw.resources || []),
+    days: dayRows.map(mapDayRow),
+    locations: locationRows.map(mapLocationRow),
+    schedule: scheduleRows.map(mapScheduleRow),
+    vendors: vendorRows.map(mapVendorRow)
+  };
+}
+
 async function loadEventData(filePath) {
-  const response = await fetch(filePath);
-  if (!response.ok) {
-    throw new Error(`Failed to load ${filePath} (${response.status})`);
+  const pageSlug = getPageSlug();
+  if (!supabaseClient || !pageSlug) {
+    throw new Error('Supabase client or page slug is missing.');
   }
 
-  const data = await response.json();
-  if (!data?._split) return data;
+  const [pageResult, daysResult, locationsResult, scheduleResult, vendorsResult] = await Promise.all([
+    supabaseClient.from('event_pages').select('*').eq('slug', pageSlug).single(),
+    supabaseClient.from('event_days').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
+    supabaseClient.from('event_locations').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
+    supabaseClient.from('event_schedule').select('*').eq('page_slug', pageSlug).order('event_date', { ascending: true }).order('sort_order', { ascending: true }),
+    supabaseClient.from('event_vendors').select('*').eq('page_slug', pageSlug).order('name', { ascending: true })
+  ]);
 
-  const basePath = filePath.includes('/') ? filePath.slice(0, filePath.lastIndexOf('/') + 1) : '';
-  const entries = await Promise.all(
-    Object.entries(data._split).map(async ([key, relativePath]) => {
-      const partResponse = await fetch(`${basePath}${relativePath}`);
-      if (!partResponse.ok) {
-        throw new Error(`Failed to load ${basePath}${relativePath} (${partResponse.status})`);
-      }
-      return [key, await partResponse.json()];
-    })
+  const results = [pageResult, daysResult, locationsResult, scheduleResult, vendorsResult];
+  const failed = results.find(result => result.error);
+  if (failed) {
+    throw failed.error;
+  }
+
+  return buildEventData(
+    pageResult.data,
+    daysResult.data || [],
+    locationsResult.data || [],
+    scheduleResult.data || [],
+    vendorsResult.data || []
   );
-
-  return Object.assign({}, data, Object.fromEntries(entries));
 }
 
 async function init() {
-  if (!eventFile) return;
-
   try {
+    initThemeToggle();
     const data = await loadEventData(eventFile);
-    state.eventData = data;
 
     renderHeader(data);
     renderDayFilter(data);
@@ -1132,6 +1442,7 @@ async function init() {
     renderLocations(data);
     renderFlyer(data);
     setupTabs();
+	openFlyerFromHash();
 
     el.closeModal?.addEventListener('click', closeModal);
     el.modal?.addEventListener('click', (event) => {

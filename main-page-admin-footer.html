@@ -1,0 +1,32 @@
+<!-- Add this near the bottom of your main event page, just above </body> -->
+<link rel="stylesheet" href="./admin.css">
+
+<section class="admin-footer-panel">
+  <details>
+    <summary>Admin Login</summary>
+
+    <div id="adminLoginWrap" class="admin-auth-wrap">
+      <form id="adminLoginForm" class="admin-login-form">
+        <label>
+          Email
+          <input id="adminEmail" type="email" autocomplete="username" required>
+        </label>
+        <label>
+          Password
+          <input id="adminPassword" type="password" autocomplete="current-password" required>
+        </label>
+        <button type="submit">Sign In</button>
+        <p id="adminError" class="error-text"></p>
+      </form>
+    </div>
+
+    <div id="adminUserWrap" class="admin-auth-wrap hidden">
+      <p><strong>Signed in as:</strong> <span id="adminStatus"></span></p>
+      <div id="adminLinks" class="admin-links"></div>
+      <ul id="adminAccess" class="admin-access-list"></ul>
+      <button id="adminLogoutBtn" type="button">Sign Out</button>
+    </div>
+  </details>
+</section>
+
+<script type="module" src="./js/admin-auth.js"></script>

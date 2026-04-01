@@ -1,0 +1,366 @@
+[
+  {
+    "id": "grilled-chicken-salad",
+    "name": "Grilled Chicken Salad",
+    "description": "Fresh salad topped with seasoned chicken.",
+    "time": "20 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "chicken breast"
+      ],
+      "veggies": [
+        "romaine",
+        "tomato",
+        "cucumber",
+        "red onion"
+      ],
+      "grains": []
+    },
+    "groceryList": [
+      "1 lb chicken breast",
+      "1 head romaine",
+      "2 tomatoes",
+      "1 cucumber",
+      "1/2 red onion",
+      "dressing"
+    ],
+    "directions": [
+      "Cook and slice chicken.",
+      "Chop vegetables.",
+      "Toss salad with dressing and top with chicken."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "chicken-quinoa-greek-salad",
+    "name": "Chicken Quinoa Greek Salad",
+    "description": "Chicken with quinoa, cucumber, tomato, and onion.",
+    "time": "25 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "chicken breast"
+      ],
+      "veggies": [
+        "cucumber",
+        "tomato",
+        "red onion"
+      ],
+      "grains": [
+        "quinoa"
+      ]
+    },
+    "groceryList": [
+      "1 lb chicken breast",
+      "1 cup quinoa",
+      "1 cucumber",
+      "2 tomatoes",
+      "1/2 red onion",
+      "vinaigrette"
+    ],
+    "directions": [
+      "Cook quinoa.",
+      "Cook and slice chicken.",
+      "Chop vegetables and toss with quinoa and dressing.",
+      "Top with chicken."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "steak-noodle-salad",
+    "name": "Steak Noodle Salad",
+    "description": "Sliced steak served over chilled noodles and vegetables.",
+    "time": "30 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "steak"
+      ],
+      "veggies": [
+        "cucumber",
+        "carrot",
+        "green onion"
+      ],
+      "grains": [
+        "ramen"
+      ]
+    },
+    "groceryList": [
+      "1 lb steak",
+      "2 packs ramen noodles",
+      "1 cucumber",
+      "2 carrots",
+      "3 green onions",
+      "dressing"
+    ],
+    "directions": [
+      "Cook noodles and cool.",
+      "Cook steak and slice thin.",
+      "Toss vegetables and noodles with dressing.",
+      "Top with steak."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "tuna-salad-plates",
+    "name": "Tuna Salad Plates",
+    "description": "Simple tuna salad served over crisp romaine.",
+    "time": "15 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "tuna"
+      ],
+      "veggies": [
+        "romaine",
+        "tomato",
+        "cucumber"
+      ],
+      "grains": []
+    },
+    "groceryList": [
+      "2 cans tuna",
+      "1 head romaine",
+      "2 tomatoes",
+      "1 cucumber",
+      "mayo or dressing"
+    ],
+    "directions": [
+      "Mix tuna with preferred dressing.",
+      "Chop vegetables.",
+      "Serve tuna over romaine with tomato and cucumber."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "shrimp-avocado-salad",
+    "name": "Shrimp Avocado Salad",
+    "description": "Shrimp with avocado, tomato, and greens.",
+    "time": "20 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "shrimp"
+      ],
+      "veggies": [
+        "romaine",
+        "avocado",
+        "tomato",
+        "cucumber"
+      ],
+      "grains": []
+    },
+    "groceryList": [
+      "1 lb shrimp",
+      "1 head romaine",
+      "1 avocado",
+      "2 tomatoes",
+      "1 cucumber",
+      "vinaigrette"
+    ],
+    "directions": [
+      "Cook shrimp and chill slightly.",
+      "Chop vegetables.",
+      "Toss greens and vegetables with dressing.",
+      "Top with shrimp."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "cucumber-tomato-salad",
+    "name": "Cucumber Tomato Salad",
+    "description": "Light side salad with cucumber, tomato, and red onion.",
+    "time": "10 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [],
+      "veggies": [
+        "cucumber",
+        "tomato",
+        "red onion"
+      ],
+      "grains": []
+    },
+    "groceryList": [
+      "2 cucumbers",
+      "3 tomatoes",
+      "1/2 red onion",
+      "vinaigrette"
+    ],
+    "directions": [
+      "Slice vegetables.",
+      "Toss with vinaigrette and chill briefly."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "spinach-mushroom-salad",
+    "name": "Spinach Mushroom Salad",
+    "description": "Fresh spinach salad with mushrooms and tomatoes.",
+    "time": "15 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [],
+      "veggies": [
+        "spinach",
+        "mushrooms",
+        "cherry tomatoes",
+        "red onion"
+      ],
+      "grains": []
+    },
+    "groceryList": [
+      "1 bag spinach",
+      "8 oz mushrooms",
+      "1 cup cherry tomatoes",
+      "1/4 red onion",
+      "dressing"
+    ],
+    "directions": [
+      "Slice mushrooms and onion.",
+      "Toss with spinach and tomatoes.",
+      "Serve with dressing."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "pasta-salad",
+    "name": "Pasta Salad",
+    "description": "Cold pasta salad with crunchy vegetables.",
+    "time": "20 min",
+    "difficulty": "Easy",
+    "servings": 6,
+    "ingredients": {
+      "meats": [],
+      "veggies": [
+        "cucumber",
+        "tomato",
+        "bell pepper",
+        "red onion"
+      ],
+      "grains": [
+        "pasta"
+      ]
+    },
+    "groceryList": [
+      "10 oz pasta",
+      "1 cucumber",
+      "2 tomatoes",
+      "1 bell pepper",
+      "1/2 red onion",
+      "italian dressing"
+    ],
+    "directions": [
+      "Cook pasta and cool.",
+      "Chop vegetables.",
+      "Toss with dressing and chill."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "salmon-salad-bowls",
+    "name": "Salmon Salad Bowls",
+    "description": "Flaked salmon over romaine with cucumber and tomato.",
+    "time": "25 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "salmon"
+      ],
+      "veggies": [
+        "romaine",
+        "cucumber",
+        "tomato",
+        "red onion"
+      ],
+      "grains": []
+    },
+    "groceryList": [
+      "4 salmon fillets",
+      "1 head romaine",
+      "1 cucumber",
+      "2 tomatoes",
+      "1/2 red onion",
+      "dressing"
+    ],
+    "directions": [
+      "Cook salmon and flake into pieces.",
+      "Chop vegetables.",
+      "Assemble salad bowls and top with salmon."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "vegetable-quinoa-salad",
+    "name": "Vegetable Quinoa Salad",
+    "description": "Quinoa salad with cucumber, tomato, and avocado.",
+    "time": "20 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [],
+      "veggies": [
+        "cucumber",
+        "tomato",
+        "avocado",
+        "green onion"
+      ],
+      "grains": [
+        "quinoa"
+      ]
+    },
+    "groceryList": [
+      "1 cup quinoa",
+      "1 cucumber",
+      "2 tomatoes",
+      "1 avocado",
+      "3 green onions",
+      "vinaigrette"
+    ],
+    "directions": [
+      "Cook quinoa and cool.",
+      "Chop vegetables.",
+      "Toss quinoa with vegetables and dressing."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  }
+]

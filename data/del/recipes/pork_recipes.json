@@ -1,0 +1,388 @@
+[
+  {
+    "id": "pork-fried-rice",
+    "name": "Pork Fried Rice",
+    "description": "Quick pork fried rice with vegetables.",
+    "time": "25 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "pork chops"
+      ],
+      "veggies": [
+        "carrot",
+        "peas",
+        "onion",
+        "green onion",
+        "garlic"
+      ],
+      "grains": [
+        "white rice"
+      ]
+    },
+    "groceryList": [
+      "1 lb pork chops",
+      "3 cups cooked rice",
+      "2 carrots",
+      "1 cup peas",
+      "1 onion",
+      "3 green onions",
+      "2 cloves garlic",
+      "3 tbsp soy sauce"
+    ],
+    "directions": [
+      "Dice cooked pork.",
+      "Sauté onion, carrot, peas, and garlic.",
+      "Add rice and pork and stir-fry until hot.",
+      "Finish with soy sauce and green onion."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "garlic-pork-tenderloin",
+    "name": "Garlic Pork Tenderloin",
+    "description": "Roasted pork tenderloin with garlic and green beans.",
+    "time": "35 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "pork tenderloin"
+      ],
+      "veggies": [
+        "green beans",
+        "garlic",
+        "potato"
+      ],
+      "grains": [
+        "potatoes"
+      ]
+    },
+    "groceryList": [
+      "1 pork tenderloin",
+      "1 lb green beans",
+      "4 potatoes",
+      "4 cloves garlic",
+      "2 tbsp olive oil"
+    ],
+    "directions": [
+      "Season pork and roast until cooked through.",
+      "Toss green beans and potatoes with garlic and oil.",
+      "Roast vegetables until tender and serve with sliced pork."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "pork-chops-and-apples",
+    "name": "Pork Chops and Apples",
+    "description": "Skillet pork chops with onions and sweet apples.",
+    "time": "30 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "pork chops"
+      ],
+      "veggies": [
+        "onion",
+        "sweet potato"
+      ],
+      "grains": [
+        "potatoes"
+      ]
+    },
+    "groceryList": [
+      "4 pork chops",
+      "1 onion",
+      "2 apples",
+      "2 sweet potatoes",
+      "2 tbsp butter"
+    ],
+    "directions": [
+      "Sear pork chops in a skillet.",
+      "Cook onion and apple slices until softened.",
+      "Roast or sauté sweet potatoes until tender.",
+      "Serve chops topped with apples and onion."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "smoked-sausage-skillet",
+    "name": "Smoked Sausage Skillet",
+    "description": "Smoked sausage with peppers, onion, and potatoes.",
+    "time": "30 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "smoked sausage"
+      ],
+      "veggies": [
+        "bell pepper",
+        "onion",
+        "potato"
+      ],
+      "grains": [
+        "potatoes"
+      ]
+    },
+    "groceryList": [
+      "14 oz smoked sausage",
+      "1 bell pepper",
+      "1 onion",
+      "5 potatoes",
+      "2 tbsp oil"
+    ],
+    "directions": [
+      "Brown sausage in a skillet.",
+      "Add peppers, onion, and potatoes.",
+      "Cook until vegetables are tender and browned.",
+      "Serve straight from the skillet."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "bacon-carbonara",
+    "name": "Bacon Carbonara",
+    "description": "Creamy pasta with bacon, garlic, and parmesan.",
+    "time": "25 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "bacon"
+      ],
+      "veggies": [
+        "garlic",
+        "green onion"
+      ],
+      "grains": [
+        "spaghetti"
+      ]
+    },
+    "groceryList": [
+      "8 oz bacon",
+      "12 oz spaghetti",
+      "3 cloves garlic",
+      "2 eggs",
+      "1/2 cup parmesan",
+      "3 green onions"
+    ],
+    "directions": [
+      "Cook spaghetti.",
+      "Crisp bacon and remove excess grease.",
+      "Cook garlic briefly, then toss with hot pasta.",
+      "Stir in beaten eggs, parmesan, bacon, and green onion."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "ham-and-potato-casserole",
+    "name": "Ham and Potato Casserole",
+    "description": "Baked ham, potatoes, and cheese casserole.",
+    "time": "45 min",
+    "difficulty": "Easy",
+    "servings": 6,
+    "ingredients": {
+      "meats": [
+        "ham"
+      ],
+      "veggies": [
+        "onion",
+        "potato"
+      ],
+      "grains": [
+        "potatoes"
+      ]
+    },
+    "groceryList": [
+      "2 cups diced ham",
+      "6 potatoes",
+      "1 onion",
+      "2 cups cheese sauce"
+    ],
+    "directions": [
+      "Layer sliced potatoes, ham, and onion in a baking dish.",
+      "Pour over cheese sauce.",
+      "Bake until potatoes are tender and bubbly."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "italian-sausage-pasta",
+    "name": "Italian Sausage Pasta",
+    "description": "Italian sausage with penne and tomato sauce.",
+    "time": "30 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "italian sausage"
+      ],
+      "veggies": [
+        "onion",
+        "garlic",
+        "tomato",
+        "spinach"
+      ],
+      "grains": [
+        "penne"
+      ]
+    },
+    "groceryList": [
+      "1 lb italian sausage",
+      "12 oz penne",
+      "1 onion",
+      "3 cloves garlic",
+      "1 can tomatoes",
+      "2 cups spinach"
+    ],
+    "directions": [
+      "Cook penne.",
+      "Brown sausage and break apart.",
+      "Add onion and garlic, then tomatoes and spinach.",
+      "Toss with pasta and simmer briefly."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "pork-taco-bowls",
+    "name": "Pork Taco Bowls",
+    "description": "Seasoned pork served over rice with peppers and onion.",
+    "time": "30 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "pork chops"
+      ],
+      "veggies": [
+        "bell pepper",
+        "onion",
+        "corn"
+      ],
+      "grains": [
+        "white rice"
+      ]
+    },
+    "groceryList": [
+      "1 lb pork chops",
+      "2 cups cooked rice",
+      "1 bell pepper",
+      "1 onion",
+      "1 cup corn",
+      "taco seasoning"
+    ],
+    "directions": [
+      "Cook rice.",
+      "Slice and season pork and cook until done.",
+      "Sauté peppers, onion, and corn.",
+      "Serve over rice."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "breakfast-for-dinner-hash",
+    "name": "Breakfast Hash",
+    "description": "Bacon, potatoes, onion, and eggs in one skillet.",
+    "time": "30 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "bacon"
+      ],
+      "veggies": [
+        "onion",
+        "bell pepper",
+        "potato"
+      ],
+      "grains": [
+        "potatoes"
+      ]
+    },
+    "groceryList": [
+      "8 oz bacon",
+      "5 potatoes",
+      "1 onion",
+      "1 bell pepper",
+      "4 eggs"
+    ],
+    "directions": [
+      "Cook bacon until crisp and set aside.",
+      "Brown potatoes with onion and pepper.",
+      "Return bacon to skillet and top with eggs.",
+      "Cover and cook until eggs are set."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  },
+  {
+    "id": "pork-noodle-bowls",
+    "name": "Pork Noodle Bowls",
+    "description": "Savory pork and vegetables tossed with noodles.",
+    "time": "25 min",
+    "difficulty": "Easy",
+    "servings": 4,
+    "ingredients": {
+      "meats": [
+        "pork tenderloin"
+      ],
+      "veggies": [
+        "cabbage",
+        "carrot",
+        "green onion",
+        "garlic"
+      ],
+      "grains": [
+        "ramen"
+      ]
+    },
+    "groceryList": [
+      "1 lb pork tenderloin",
+      "2 packs ramen noodles",
+      "2 cups cabbage",
+      "2 carrots",
+      "3 green onions",
+      "2 cloves garlic",
+      "soy sauce"
+    ],
+    "directions": [
+      "Cook noodles and drain.",
+      "Cook sliced pork until browned.",
+      "Add cabbage, carrot, green onion, and garlic.",
+      "Toss with noodles and sauce."
+    ],
+    "source": {
+      "name": "TheMealDB",
+      "mealId": ""
+    }
+  }
+]

@@ -1,0 +1,102 @@
+[
+  {
+    "id": "bacon",
+    "name": "Bacon",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "beef-strips",
+    "name": "Beef Strips",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "chicken-breast",
+    "name": "Chicken Breast",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "chicken-thighs",
+    "name": "Chicken Thighs",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "ground-beef",
+    "name": "Ground Beef",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "ground-chicken",
+    "name": "Ground Chicken",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "ground-turkey",
+    "name": "Ground Turkey",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "ham",
+    "name": "Ham",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "italian-sausage",
+    "name": "Italian Sausage",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "meatballs",
+    "name": "Meatballs",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "pork-chops",
+    "name": "Pork Chops",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "pork-tenderloin",
+    "name": "Pork Tenderloin",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "pot-roast",
+    "name": "Pot Roast",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "salmon",
+    "name": "Salmon",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "shrimp",
+    "name": "Shrimp",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "smoked-sausage",
+    "name": "Smoked Sausage",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "steak",
+    "name": "Steak",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "tilapia",
+    "name": "Tilapia",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "tuna",
+    "name": "Tuna",
+    "pantryUnit": "lb"
+  },
+  {
+    "id": "turkey",
+    "name": "Turkey",
+    "pantryUnit": "lb"
+  }
+]

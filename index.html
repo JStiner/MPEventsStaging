@@ -9,41 +9,74 @@
 <body class="page-shell soft-light">
   <main class="phone-shell home-shell wide-shell">
     <header class="hero-card home-hero">
-      <div class="hero-topline">
-        <p class="eyebrow">Community Events Demo</p>
-        <span class="pill">Static Demo Data</span>
-      </div>
-      <h1>Community Calendar</h1>
-      <p class="subtle">Month view now uses a proper calendar grid. You can also filter which event buckets are visible.</p>
+      <div class="hero-topline hero-topline-home">
+        <div class="header">
+          <div class="header-left">
+            <p class="eyebrow">Community Events Demo</p>
+            <h1>Community Calendar</h1>
+          </div>
 
-      <div id="calendar-filters" class="filter-chip-row"></div>
+          <div class="header-actions">
+            <span class="pill">Static Demo Data</span>
 
-      <div class="calendar-toolbar">
-        <div class="segmented-control" role="tablist" aria-label="Calendar view">
-          <button class="view-button active" data-view="month">Month</button>
-          <button class="view-button" data-view="week">Week</button>
-          <button class="view-button" data-view="day">Day</button>
+            <button
+              id="theme-toggle"
+              class="theme-toggle"
+              type="button"
+              aria-pressed="false"
+              aria-label="Toggle dark mode"
+            >
+              <span class="theme-toggle-label">Dark mode</span>
+              <span class="theme-toggle-track">
+                <span class="theme-toggle-thumb"></span>
+              </span>
+            </button>
+          </div>
         </div>
 
-        <div class="calendar-nav">
-          <button id="prev-period" class="nav-button" aria-label="Previous period">←</button>
-          <div id="calendar-title" class="calendar-title">Loading...</div>
-          <button id="next-period" class="nav-button" aria-label="Next period">→</button>
-        </div>
+        <p class="subtle">
+          This is a demo and is not intended to provide accurate or reliable information.
+        </p>
       </div>
     </header>
+		<div class="calendar-controls-row">
+		  <div class="calendar-controls-left">
+			<div class="segmented-control">
+			  <button class="view-button active" data-view="month">Month</button>
+			  <button class="view-button" data-view="week">Week</button>
+			  <button class="view-button" data-view="day">Day</button>
+			</div>
+		  </div>
 
-    <section class="calendar-shell proper-calendar-shell">
-      <div id="calendar-weekdays" class="calendar-weekdays month-only"></div>
-      <div id="calendar-grid" class="calendar-grid"></div>
-    </section>
+		  <div class="calendar-controls-center">
+			<div id="calendar-filters" class="filter-chip-row"></div>
+		  </div>
 
-    <section class="info-card">
-      <h3>Included Event Buckets</h3>
-      <div id="event-summary-cards" class="grid-cards"></div>
-    </section>
+		  <div class="calendar-controls-right">
+			<div class="calendar-nav">
+			  <button id="prev-period" class="nav-button" type="button" aria-label="Previous period">←</button>
+			  <div id="calendar-title" class="calendar-title"></div>
+			  <button id="next-period" class="nav-button" type="button" aria-label="Next period">→</button>
+			</div>
+		  </div>
+		</div>
+    </header>
+
+    <div class="home-content-grid">
+      <section class="calendar-shell proper-calendar-shell">
+        <div id="calendar-weekdays" class="calendar-weekdays month-only"></div>
+        <div id="calendar-grid" class="calendar-grid"></div>
+      </section>
+
+      <aside class="info-card bucket-rail">
+        <h3>Included Event Buckets</h3>
+        <div id="event-summary-cards" class="grid-cards bucket-stack"></div>
+      </aside>
+    </div>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/home.js"></script>
 </body>
 </html>

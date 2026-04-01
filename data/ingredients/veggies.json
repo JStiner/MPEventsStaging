@@ -1,0 +1,132 @@
+[
+  {
+    "id": "asparagus",
+    "name": "Asparagus",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "avocado",
+    "name": "Avocado",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "bell-pepper",
+    "name": "Bell Pepper",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "broccoli",
+    "name": "Broccoli",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "brussels-sprouts",
+    "name": "Brussels Sprouts",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "cabbage",
+    "name": "Cabbage",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "carrot",
+    "name": "Carrot",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "cauliflower",
+    "name": "Cauliflower",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "celery",
+    "name": "Celery",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "cherry-tomatoes",
+    "name": "Cherry Tomatoes",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "corn",
+    "name": "Corn",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "cucumber",
+    "name": "Cucumber",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "garlic",
+    "name": "Garlic",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "green-beans",
+    "name": "Green Beans",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "green-onion",
+    "name": "Green Onion",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "mushrooms",
+    "name": "Mushrooms",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "onion",
+    "name": "Onion",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "peas",
+    "name": "Peas",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "potato",
+    "name": "Potato",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "red-onion",
+    "name": "Red Onion",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "romaine",
+    "name": "Romaine",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "spinach",
+    "name": "Spinach",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "sweet-potato",
+    "name": "Sweet Potato",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "tomato",
+    "name": "Tomato",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "yellow-squash",
+    "name": "Yellow Squash",
+    "pantryUnit": "count"
+  },
+  {
+    "id": "zucchini",
+    "name": "Zucchini",
+    "pantryUnit": "count"
+  }
+]

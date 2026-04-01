@@ -1,18 +1,20 @@
 const eventSources = [
-  { file: 'data/fallfest/fall-fest-2026.json', page: 'fall-fest.html', slug: 'fall-fest', bucket: 'Fall Fest' },
-  { file: 'data/2ndfriday/second-fridays-2026.json', page: 'second-fridays.html', slug: 'second-fridays', bucket: '2nd Fridays' },
-  { file: 'data/covh/event.json', page: 'christmas-on-vinegar-hill.html', slug: 'christmas-on-vinegar-hill', bucket: 'COVH' },
-  { file: 'data/community-events/community-events-2026.json', page: 'community-events.html', slug: 'community-events', bucket: 'Community' },
-  { file: 'data/high-school-events/high-school-events-2026.json', page: 'high-school-events.html', slug: 'high-school-events', bucket: 'School' },
-  { file: 'data/town-services/town-services-2026.json', page: 'town-services.html', slug: 'town-services', bucket: 'Town Services' }
+  { page: 'fall-fest.html', slug: 'fall-fest', bucket: 'Fall Fest' },
+  { page: 'second-fridays.html', slug: 'second-fridays', bucket: '2nd Fridays' },
+  { page: 'christmas-on-vinegar-hill.html', slug: 'christmas-on-vinegar-hill', bucket: 'COVH' },
+  { page: 'community-events.html', slug: 'community-events', bucket: 'Community' },
+  { page: 'high-school-events.html', slug: 'high-school-events', bucket: 'School' },
+  { page: 'town-services.html', slug: 'town-services', bucket: 'Town Services' }
 ];
+const supabaseClient = window.supabaseClient;
 
 const homeState = {
   view: 'month',
   anchorDate: new Date(),
   events: [],
   datasets: [],
-  selectedFilters: new Set(['All'])
+  selectedFilters: new Set(['All']),
+  selectedDate: startOfDay(new Date())
 };
 
 const homeEl = {
@@ -23,14 +25,51 @@ const homeEl = {
   next: document.getElementById('next-period'),
   viewButtons: Array.from(document.querySelectorAll('.view-button')),
   summaryCards: document.getElementById('event-summary-cards'),
-  filters: document.getElementById('calendar-filters')
+  filters: document.getElementById('calendar-filters'),
+  themeToggle: document.getElementById('theme-toggle')
 };
+
+const THEME_STORAGE_KEY = 'mp-community-events-theme';
+
+
+function getStoredTheme() {
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+  } catch (error) {
+    return 'light';
+  }
+}
+
+function applyTheme(theme) {
+  const isDark = theme === 'dark';
+  document.body.classList.toggle('theme-dark', isDark);
+  if (homeEl.themeToggle) {
+    homeEl.themeToggle.setAttribute('aria-pressed', String(isDark));
+    const label = homeEl.themeToggle.querySelector('.theme-toggle-label');
+    if (label) label.textContent = isDark ? 'Light mode' : 'Dark mode';
+  }
+}
+
+function initThemeToggle() {
+  applyTheme(getStoredTheme());
+  if (!homeEl.themeToggle) return;
+  homeEl.themeToggle.addEventListener('click', () => {
+    const nextTheme = document.body.classList.contains('theme-dark') ? 'light' : 'dark';
+    applyTheme(nextTheme);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    } catch (error) {
+      console.warn('Theme preference could not be saved.', error);
+    }
+  });
+}
 
 function startOfDay(date) {
   const copy = new Date(date);
   copy.setHours(0, 0, 0, 0);
   return copy;
 }
+
 
 function parseEventDate(dateStr, timeStr) {
   const iso = `${dateStr}T${convertTimeTo24(timeStr)}:00`;
@@ -107,27 +146,81 @@ function showHomeLoadError(message) {
   }
 }
 
+function buildHomeData(pageRow, scheduleRows, locationRows, dayRows) {
+  const raw = pageRow.raw || {};
+  return {
+    ...raw,
+    eventName: pageRow.event_name,
+    eventType: pageRow.event_type,
+    summary: pageRow.summary,
+    dateLabel: pageRow.date_label,
+    areaLabel: pageRow.area_label,
+    days: (dayRows || []).map(day => ({ ...(day.raw || {}), id: day.external_id, label: day.label, date: day.event_date })),
+    locations: (locationRows || []).map(loc => ({ ...(loc.raw || {}), id: loc.external_id, name: loc.name })),
+    schedule: (scheduleRows || []).map(item => ({
+      ...(item.raw || {}),
+      id: item.external_id,
+      title: item.title,
+      category: item.category,
+      startTime: item.start_time,
+      endTime: item.end_time,
+      date: item.event_date,
+      dayId: item.day_external_id,
+      locationId: item.location_external_id,
+      description: item.description,
+      vendorIds: Array.isArray(item.vendor_ids) ? item.vendor_ids : []
+    }))
+  };
+}
+
 async function loadSourceData(source) {
-  const response = await fetch(source.file);
-  if (!response.ok) {
-    throw new Error(`Failed to load ${source.file} (${response.status})`);
+  if (!supabaseClient) {
+    throw new Error('Supabase client is not available.');
   }
 
-  const data = await response.json();
-  if (!data?._split) return data;
+  const [pageResult, scheduleResult, locationResult, dayResult] = await Promise.all([
+    supabaseClient.from('event_pages').select('*').eq('slug', source.slug).single(),
+    supabaseClient.from('event_schedule').select('*').eq('page_slug', source.slug).order('event_date', { ascending: true }).order('sort_order', { ascending: true }),
+    supabaseClient.from('event_locations').select('*').eq('page_slug', source.slug),
+    supabaseClient.from('event_days').select('*').eq('page_slug', source.slug).order('sort_order', { ascending: true })
+  ]);
 
-  const basePath = source.file.includes('/') ? source.file.slice(0, source.file.lastIndexOf('/') + 1) : '';
-  const entries = await Promise.all(
-    Object.entries(data._split).map(async ([key, relativePath]) => {
-      const partResponse = await fetch(`${basePath}${relativePath}`);
-      if (!partResponse.ok) {
-        throw new Error(`Failed to load ${basePath}${relativePath} (${partResponse.status})`);
-      }
-      return [key, await partResponse.json()];
-    })
-  );
+  const failed = [pageResult, scheduleResult, locationResult, dayResult].find(result => result.error);
+  if (failed) {
+    throw failed.error;
+  }
 
-  return Object.assign({}, data, Object.fromEntries(entries));
+  return buildHomeData(pageResult.data, scheduleResult.data || [], locationResult.data || [], dayResult.data || []);
+}
+
+function createExpandedDayRow(date, events) {
+  const wrapper = document.createElement('section');
+  wrapper.className = 'agenda-day-card expanded-day-row';
+
+  wrapper.innerHTML = `
+    <div class="agenda-day-header">
+      <div>
+        <div class="agenda-day-title">${date.toLocaleDateString(undefined, { weekday: 'long' })}</div>
+        <div class="agenda-day-subtitle">${date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+      </div>
+      <div class="agenda-day-count">${events.length} event${events.length === 1 ? '' : 's'}</div>
+    </div>
+  `;
+
+  const list = document.createElement('div');
+  list.className = 'agenda-events';
+
+  if (!events.length) {
+    const empty = document.createElement('div');
+    empty.className = 'calendar-empty';
+    empty.textContent = 'No events scheduled.';
+    list.appendChild(empty);
+  } else {
+    events.forEach(event => list.appendChild(createEventChip(event)));
+  }
+
+  wrapper.appendChild(list);
+  return wrapper;
 }
 
 async function loadData() {
@@ -141,7 +234,7 @@ async function loadData() {
     );
   } catch (error) {
     console.error(error);
-    showHomeLoadError('Calendar data failed to load. If you opened the site directly from a ZIP or local folder, serve it from a local web server or GitHub Pages.');
+    showHomeLoadError('Calendar data failed to load from Supabase. Check the browser console for the first query error.');
     return;
   }
 
@@ -165,7 +258,6 @@ async function loadData() {
         eventName: data.eventName,
         eventType: data.eventType,
         eventPage: source.page,
-        sourceFile: source.file,
         pageSlug: source.slug,
         description: item.description,
         bucket: source.bucket
@@ -255,6 +347,13 @@ function createEventChip(event) {
   return a;
 }
 
+function createMonthDot(event) {
+  const dot = document.createElement('span');
+  dot.className = `calendar-event-chip bucket-${event.bucket.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+  dot.setAttribute('aria-hidden', 'true');
+  return dot;
+}
+
 function renderMonthView() {
   homeEl.grid.className = 'calendar-grid month-grid';
   homeEl.grid.innerHTML = '';
@@ -266,40 +365,70 @@ function renderMonthView() {
   const end = getEndOfWeek(lastOfMonth);
 
   const events = periodEvents(start, end);
+  const selectedDate = homeState.selectedDate ? startOfDay(homeState.selectedDate) : null;
 
+  const dayCells = [];
   for (let cursor = new Date(start); cursor <= end; cursor = addDays(cursor, 1)) {
-    const currentDate = new Date(cursor);
-    const isMuted = currentDate.getMonth() !== anchor.getMonth();
-    const isToday = isSameDate(currentDate, new Date());
-    const dayCell = document.createElement('article');
-    dayCell.className = `calendar-day-card proper-grid ${isMuted ? 'muted' : ''} ${isToday ? 'today' : ''}`;
+    dayCells.push(new Date(cursor));
+  }
 
-    const header = document.createElement('div');
-    header.className = 'calendar-day-header';
-    header.innerHTML = `<span class="calendar-day-number">${currentDate.getDate()}</span>`;
-    dayCell.appendChild(header);
+  for (let i = 0; i < dayCells.length; i += 7) {
+    const weekDays = dayCells.slice(i, i + 7);
 
-    const list = document.createElement('div');
-    list.className = 'calendar-day-events';
+    weekDays.forEach(currentDate => {
+      const isMuted = currentDate.getMonth() !== anchor.getMonth();
+      const isToday = isSameDate(currentDate, new Date());
+      const isSelected = selectedDate && isSameDate(currentDate, selectedDate);
 
-    const dayEvents = events.filter(event => isSameDate(new Date(`${event.date}T12:00:00`), currentDate));
-    if (!dayEvents.length) {
-      const empty = document.createElement('div');
-      empty.className = 'calendar-empty';
-      empty.textContent = '';
-      list.appendChild(empty);
-    } else {
-      dayEvents.slice(0, 4).forEach(event => list.appendChild(createEventChip(event)));
-      if (dayEvents.length > 4) {
-        const more = document.createElement('div');
-        more.className = 'more-events-label';
-        more.textContent = `+${dayEvents.length - 4} more`;
-        list.appendChild(more);
+      const dayCell = document.createElement('article');
+      dayCell.className = `calendar-day-card proper-grid ${isMuted ? 'muted' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`;
+
+      const header = document.createElement('div');
+      header.className = 'calendar-day-header';
+      header.innerHTML = `<span class="calendar-day-number">${currentDate.getDate()}</span>`;
+      dayCell.appendChild(header);
+
+      const list = document.createElement('div');
+      list.className = 'calendar-day-events';
+
+      const dayEvents = events.filter(event =>
+        isSameDate(new Date(`${event.date}T12:00:00`), currentDate)
+      );
+
+      if (!dayEvents.length) {
+        const empty = document.createElement('div');
+        empty.className = 'calendar-empty';
+        empty.textContent = '';
+        list.appendChild(empty);
+      } else {
+        dayEvents.slice(0, 4).forEach(event => list.appendChild(createMonthDot(event)));
+        if (dayEvents.length > 4) {
+          const more = document.createElement('div');
+          more.className = 'more-events-label';
+          more.textContent = `+${dayEvents.length - 4} more`;
+          list.appendChild(more);
+        }
       }
-    }
 
-    dayCell.appendChild(list);
-    homeEl.grid.appendChild(dayCell);
+      dayCell.appendChild(list);
+
+      dayCell.addEventListener('click', () => {
+        homeState.selectedDate = startOfDay(currentDate);
+        renderHome();
+      });
+
+      homeEl.grid.appendChild(dayCell);
+    });
+
+    const weekHasSelectedDay = selectedDate && weekDays.some(day => isSameDate(day, selectedDate));
+    if (weekHasSelectedDay) {
+      const selectedEvents = events.filter(event =>
+        isSameDate(new Date(`${event.date}T12:00:00`), selectedDate)
+      );
+      const expandedRow = createExpandedDayRow(selectedDate, selectedEvents);
+      expandedRow.style.gridColumn = '1 / -1';
+      homeEl.grid.appendChild(expandedRow);
+    }
   }
 }
 
@@ -430,5 +559,6 @@ function initHomeControls() {
   });
 }
 
+initThemeToggle();
 initHomeControls();
 loadData();

@@ -1,0 +1,24 @@
+{
+  "name": "whatsfordinner",
+  "version": "1.0.0",
+  "description": "GitHub Pages demo for a tablet-friendly cooking app.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JStiner/WhatsForDinner.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/JStiner/WhatsForDinner/issues"
+  },
+  "homepage": "https://github.com/JStiner/WhatsForDinner#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.101.0"
+  }
+}

@@ -1,0 +1,720 @@
+{
+  "eventName": "Christmas on Vinegar Hill",
+  "eventType": "Holiday Walk",
+  "summary": "One-day holiday event organized by location, with shopping, food, photo stops, and community destinations across Mt. Pulaski and nearby partner locations.",
+  "dateLabel": "Saturday, November 21, 2026",
+  "areaLabel": "Mt. Pulaski, Chestnut, Elkhart, and Latham",
+  "days": [
+    {
+      "id": "holiday",
+      "label": "Saturday",
+      "date": "2026-11-21"
+    }
+  ],
+  "tabs": [
+    "schedule",
+    "map",
+    "vendors",
+    "locations",
+    "flyer"
+  ],
+  "locations": [
+    {
+      "id": "courthouse",
+      "name": "Mt. Pulaski Courthouse State Historic Site",
+      "address": "113 S. Washington St.",
+      "mapX": 46,
+      "mapY": 45,
+      "description": "Warm refreshments, festive treats, and Christmas d\u00e9cor.",
+      "notes": "Main square stop. Public restroom available.",
+      "directionsText": "Downtown Mt. Pulaski on the square.",
+      "pinIcon": "\ud83c\udfdb\ufe0f",
+      "hours": "8:00 AM\u20134:00 PM",
+      "tags": [
+        "Restroom",
+        "Food",
+        "Historic Site"
+      ],
+      "multiVendor": false,
+      "group": "Mt. Pulaski"
+    },
+    {
+      "id": "legion",
+      "name": "Salt Creek Crafters \u2013 American Legion Home",
+      "address": "103 E. Scroggin Ave.",
+      "mapX": 56,
+      "mapY": 46,
+      "description": "Crafts, antiques, florals, clothing, soaps, candles, jewelry, Pampered Chef, wood, and holiday items.",
+      "notes": "Multi-vendor indoor stop.",
+      "directionsText": "Near downtown Mt. Pulaski.",
+      "pinIcon": "\ud83c\udf81",
+      "hours": "8:00 AM\u20134:00 PM",
+      "tags": [
+        "Multi Vendor",
+        "Indoor"
+      ],
+      "multiVendor": true,
+      "group": "Mt. Pulaski"
+    },
+    {
+      "id": "boyscouts",
+      "name": "Boy Scout Troop 122",
+      "address": "103 E. Scroggin Ave. (Parking Lot)",
+      "mapX": 58,
+      "mapY": 42,
+      "description": "Fresh hot pork chop sandwiches.",
+      "notes": "Food stop in the American Legion parking lot.",
+      "directionsText": "Outdoor stop next to the Legion.",
+      "pinIcon": "\ud83e\udd6a",
+      "hours": "10:00 AM\u20132:00 PM",
+      "tags": [
+        "Food"
+      ],
+      "multiVendor": false,
+      "group": "Mt. Pulaski"
+    },
+    {
+      "id": "highschool",
+      "name": "Mt. Pulaski High School",
+      "address": "206 Spring St.",
+      "mapX": 65,
+      "mapY": 40,
+      "description": "60+ vendors, crafts, homemade goods, and direct market sales.",
+      "notes": "Large multi-vendor destination.",
+      "directionsText": "North/east of downtown.",
+      "pinIcon": "\ud83c\udfeb",
+      "hours": "8:00 AM\u20134:00 PM",
+      "tags": [
+        "Multi Vendor",
+        "Large Venue"
+      ],
+      "multiVendor": true,
+      "group": "Mt. Pulaski"
+    },
+    {
+      "id": "treasurechest",
+      "name": "Vinegar Hill Treasure Chest",
+      "address": "121 S. Lafayette St. \u2013 New Location",
+      "mapX": 52,
+      "mapY": 52,
+      "description": "Antiques, repurposed furniture, wood crafts, vintage, handmade, and miscellaneous goods.",
+      "notes": "Multi-vendor stop.",
+      "directionsText": "South of the square.",
+      "pinIcon": "\ud83e\ude91",
+      "hours": "8:00 AM\u20134:00 PM",
+      "tags": [
+        "Multi Vendor",
+        "Vintage"
+      ],
+      "multiVendor": true,
+      "group": "Mt. Pulaski"
+    },
+    {
+      "id": "toppers",
+      "name": "Topper\u2019s Storage \u2013 Complete Storage Solutions",
+      "address": "926 McDonald St.",
+      "mapX": 77,
+      "mapY": 54,
+      "description": "Large indoor shopping with Christmas d\u00e9cor, gifts, and multiple food trucks.",
+      "notes": "Large indoor shopping stop.",
+      "directionsText": "East side of town.",
+      "pinIcon": "\ud83d\ude9a",
+      "hours": "8:00 AM\u20134:00 PM",
+      "tags": [
+        "Multi Vendor",
+        "Food",
+        "Indoor"
+      ],
+      "multiVendor": true,
+      "group": "Mt. Pulaski"
+    },
+    {
+      "id": "library",
+      "name": "Mt. Pulaski Public Library",
+      "address": "320 N. Washington St.",
+      "mapX": 44,
+      "mapY": 30,
+      "description": "Annual book sale with free donuts and hot drinks.",
+      "notes": "Library stop.",
+      "directionsText": "North of the square.",
+      "pinIcon": "\ud83d\udcda",
+      "hours": "8:00 AM\u20134:00 PM",
+      "tags": [
+        "Food",
+        "Books"
+      ],
+      "multiVendor": false,
+      "group": "Mt. Pulaski"
+    },
+    {
+      "id": "gradeschool",
+      "name": "Mt. Pulaski Grade School",
+      "address": "119 N. Garden St.",
+      "mapX": 61,
+      "mapY": 34,
+      "description": "60+ vendors, cookie walk, walking tacos, sloppy joes, and hot dogs.",
+      "notes": "Large multi-vendor stop with food.",
+      "directionsText": "North/east of downtown.",
+      "pinIcon": "\ud83c\udf6a",
+      "hours": "8:00 AM\u20134:00 PM",
+      "tags": [
+        "Multi Vendor",
+        "Food",
+        "Family"
+      ],
+      "multiVendor": true,
+      "group": "Mt. Pulaski"
+    },
+    {
+      "id": "zion",
+      "name": "Zion Lutheran Church",
+      "address": "203 S. Vine St.",
+      "mapX": 39,
+      "mapY": 61,
+      "description": "Soup and sandwiches with vendors.",
+      "notes": "Lunch stop plus vendors.",
+      "directionsText": "South of downtown.",
+      "pinIcon": "\u26ea",
+      "hours": "11:00 AM\u20131:30 PM",
+      "tags": [
+        "Multi Vendor",
+        "Food"
+      ],
+      "multiVendor": true,
+      "group": "Mt. Pulaski"
+    },
+    {
+      "id": "gazebo",
+      "name": "Mt. Pulaski Courthouse Gazebo",
+      "address": "113 S. Washington",
+      "mapX": 48,
+      "mapY": 47,
+      "description": "Gazebo decorated for a Christmas photo opportunity.",
+      "notes": "Photo stop on the square.",
+      "directionsText": "On the square.",
+      "pinIcon": "\ud83d\udcf8",
+      "hours": "8:00 AM\u20134:00 PM",
+      "tags": [
+        "Photo Op"
+      ],
+      "multiVendor": false,
+      "group": "Mt. Pulaski"
+    },
+    {
+      "id": "truevalue",
+      "name": "Johnson\u2019s True Value Hardware",
+      "address": "501 E. Chestnut St.",
+      "mapX": 71,
+      "mapY": 49,
+      "description": "Full-line hardware store with Christmas d\u00e9cor and holiday lighting.",
+      "notes": "Retail stop with holiday inventory.",
+      "directionsText": "East side retail stop.",
+      "pinIcon": "\ud83d\udee0\ufe0f",
+      "hours": "8:00 AM\u20134:00 PM",
+      "tags": [
+        "Multi Vendor",
+        "Retail"
+      ],
+      "multiVendor": true,
+      "group": "Mt. Pulaski"
+    },
+    {
+      "id": "market",
+      "name": "Market on the Hill",
+      "address": "125 S. Lafayette St.",
+      "mapX": 54,
+      "mapY": 56,
+      "description": "Sandwiches, soup, baked treats, iced lattes, coffee, crafts, and more.",
+      "notes": "Coffee and food stop.",
+      "directionsText": "South of the square.",
+      "pinIcon": "\u2615",
+      "hours": "7:00 AM\u20137:00 PM",
+      "tags": [
+        "Food",
+        "Coffee"
+      ],
+      "multiVendor": false,
+      "group": "Mt. Pulaski"
+    },
+    {
+      "id": "chestnutfire",
+      "name": "Chestnut Fire Dept.",
+      "address": "110 E. Olive St., Chestnut",
+      "mapX": 20,
+      "mapY": 72,
+      "description": "Crafts, bake sale, jewelry, and more.",
+      "notes": "Chestnut satellite location.",
+      "directionsText": "Chestnut location.",
+      "pinIcon": "\ud83d\ude92",
+      "hours": "8:00 AM\u20134:00 PM",
+      "tags": [
+        "Multi Vendor",
+        "Satellite"
+      ],
+      "multiVendor": true,
+      "group": "Chestnut"
+    },
+    {
+      "id": "elkhartstore",
+      "name": "Elkhart Station General Store",
+      "address": "101 Governor Oglesby St., Elkhart",
+      "mapX": 12,
+      "mapY": 25,
+      "description": "General store featuring Illinois products and wine tastings.",
+      "notes": "Elkhart partner location.",
+      "directionsText": "Elkhart location.",
+      "pinIcon": "\ud83c\udf77",
+      "hours": "8:00 AM\u20134:00 PM",
+      "tags": [
+        "Satellite",
+        "Food"
+      ],
+      "multiVendor": false,
+      "group": "Elkhart"
+    },
+    {
+      "id": "talkoftown",
+      "name": "The Talk of the Town",
+      "address": "115 Governor Oglesby St., Elkhart",
+      "mapX": 15,
+      "mapY": 28,
+      "description": "Restaurant and bar with good food and drinks.",
+      "notes": "Elkhart food stop.",
+      "directionsText": "Near Elkhart Station.",
+      "pinIcon": "\ud83c\udf7d\ufe0f",
+      "hours": "8:00 AM\u20132:00 PM",
+      "tags": [
+        "Satellite",
+        "Food"
+      ],
+      "multiVendor": false,
+      "group": "Elkhart"
+    },
+    {
+      "id": "bbs",
+      "name": "BB\u2019s BFE Bar & Grill",
+      "address": "2371 N Rt. 121, Latham",
+      "mapX": 86,
+      "mapY": 17,
+      "description": "Restaurant and bar with hot food, cold drinks, and vendors.",
+      "notes": "Latham partner location.",
+      "directionsText": "Latham location.",
+      "pinIcon": "\ud83c\udf54",
+      "hours": "10:30 AM\u201312:00 AM",
+      "tags": [
+        "Multi Vendor",
+        "Satellite",
+        "Food"
+      ],
+      "multiVendor": true,
+      "group": "Latham"
+    }
+  ],
+  "schedule": [
+    {
+      "id": "cvh-open",
+      "dayId": "holiday",
+      "title": "Main Event Hours",
+      "startTime": "8:00 AM",
+      "endTime": "4:00 PM",
+      "locationId": "courthouse",
+      "category": "Event Window",
+      "description": "Core event hours for most Mt. Pulaski locations.",
+      "vendorIds": [],
+      "date": "2026-11-21"
+    },
+    {
+      "id": "cvh-food-1",
+      "dayId": "holiday",
+      "title": "Boy Scout Pork Chop Sandwiches",
+      "startTime": "10:00 AM",
+      "endTime": "2:00 PM",
+      "locationId": "boyscouts",
+      "category": "Food",
+      "description": "Fresh hot pork chop sandwiches.",
+      "vendorIds": [
+        "boyscouts-food"
+      ],
+      "date": "2026-11-21"
+    },
+    {
+      "id": "cvh-zion",
+      "dayId": "holiday",
+      "title": "Zion Lunch Service",
+      "startTime": "11:00 AM",
+      "endTime": "1:30 PM",
+      "locationId": "zion",
+      "category": "Food",
+      "description": "Soup, sandwiches, and vendors.",
+      "vendorIds": [],
+      "date": "2026-11-21"
+    },
+    {
+      "id": "cvh-market",
+      "dayId": "holiday",
+      "title": "Market on the Hill Extended Hours",
+      "startTime": "7:00 AM",
+      "endTime": "7:00 PM",
+      "locationId": "market",
+      "category": "Food & Coffee",
+      "description": "Extended hours for coffee, treats, and food.",
+      "vendorIds": [],
+      "date": "2026-11-21"
+    },
+    {
+      "id": "cvh-elkhart",
+      "dayId": "holiday",
+      "title": "Elkhart Stops Open",
+      "startTime": "8:00 AM",
+      "endTime": "4:00 PM",
+      "locationId": "elkhartstore",
+      "category": "Satellite",
+      "description": "Elkhart Station General Store and nearby food stop.",
+      "vendorIds": [],
+      "date": "2026-11-21"
+    },
+    {
+      "id": "cvh-latham",
+      "dayId": "holiday",
+      "title": "Latham Stop Open",
+      "startTime": "10:30 AM",
+      "endTime": "12:00 PM",
+      "locationId": "bbs",
+      "category": "Satellite",
+      "description": "Latham partner venue open with food and vendors.",
+      "vendorIds": [],
+      "date": "2026-11-21"
+    },
+    {
+      "id": "cvh-photo",
+      "dayId": "holiday",
+      "title": "Courthouse Gazebo Photo Op",
+      "startTime": "8:00 AM",
+      "endTime": "4:00 PM",
+      "locationId": "gazebo",
+      "category": "Photo Op",
+      "description": "Holiday-decorated gazebo for family photos.",
+      "vendorIds": [],
+      "date": "2026-11-21"
+    }
+  ],
+  "vendors": [
+    {
+      "id": "boyscouts-food",
+      "name": "Boy Scout Troop 122 Food Stand",
+      "locationId": "boyscouts",
+      "category": "Food",
+      "description": "Fresh hot pork chop sandwiches.",
+      "booth": "Parking Lot",
+      "hours": "10:00 AM\u20132:00 PM"
+    },
+    {
+      "id": "legion-31",
+      "name": "Lacy Wood \u2013 Thirty-One Gifts",
+      "locationId": "legion",
+      "category": "Vendor",
+      "description": "Totes, purses, wallets, and organizational items.",
+      "booth": "Inside Legion",
+      "hours": "8:00 AM\u20134:00 PM"
+    },
+    {
+      "id": "legion-soy",
+      "name": "Moneypenny's Soysations",
+      "locationId": "legion",
+      "category": "Vendor",
+      "description": "Candles, melts, soap, and more.",
+      "booth": "Inside Legion",
+      "hours": "8:00 AM\u20134:00 PM"
+    },
+    {
+      "id": "legion-pampered",
+      "name": "Pampered Chef",
+      "locationId": "legion",
+      "category": "Vendor",
+      "description": "Stoneware, kitchen tools, and pantry items.",
+      "booth": "Inside Legion",
+      "hours": "8:00 AM\u20134:00 PM"
+    },
+    {
+      "id": "treasure-chicco",
+      "name": "Chicco Creations",
+      "locationId": "treasurechest",
+      "category": "Vendor",
+      "description": "Signs, teacher gifts, tumblers, and wristlets.",
+      "booth": "Inside Treasure Chest",
+      "hours": "8:00 AM\u20134:00 PM"
+    },
+    {
+      "id": "treasure-tasteful",
+      "name": "Tastefully Simple",
+      "locationId": "treasurechest",
+      "category": "Vendor",
+      "description": "Packaged food and kitchen favorites.",
+      "booth": "Inside Treasure Chest",
+      "hours": "8:00 AM\u20134:00 PM"
+    },
+    {
+      "id": "highschool-generic",
+      "name": "High School Vendor Hall",
+      "locationId": "highschool",
+      "category": "Multi Vendor",
+      "description": "60+ vendors with crafts, homemade goods, and direct sales.",
+      "booth": "Gym / Hall",
+      "hours": "8:00 AM\u20134:00 PM"
+    },
+    {
+      "id": "gradeschool-generic",
+      "name": "Grade School Vendor Hall",
+      "locationId": "gradeschool",
+      "category": "Multi Vendor",
+      "description": "60+ vendors plus cookie walk and food.",
+      "booth": "School",
+      "hours": "8:00 AM\u20134:00 PM"
+    },
+    {
+      "id": "toppers-generic",
+      "name": "Topper\u2019s Indoor Market",
+      "locationId": "toppers",
+      "category": "Multi Vendor",
+      "description": "Large indoor shopping and food trucks.",
+      "booth": "Warehouse / Lot",
+      "hours": "8:00 AM\u20134:00 PM"
+    },
+    {
+      "id": "zion-generic",
+      "name": "Zion Vendors",
+      "locationId": "zion",
+      "category": "Multi Vendor",
+      "description": "Lunch service with local vendors.",
+      "booth": "Church",
+      "hours": "11:00 AM\u20131:30 PM"
+    },
+    {
+      "id": "chestnut-generic",
+      "name": "Chestnut Fire Dept. Vendors",
+      "locationId": "chestnutfire",
+      "category": "Multi Vendor",
+      "description": "Crafts, bake sale, jewelry, and more.",
+      "booth": "Fire Dept.",
+      "hours": "8:00 AM\u20134:00 PM"
+    },
+    {
+      "id": "bbs-generic",
+      "name": "BB\u2019s BFE Vendor Stop",
+      "locationId": "bbs",
+      "category": "Multi Vendor",
+      "description": "Food, drinks, and vendors.",
+      "booth": "Bar & Grill",
+      "hours": "10:30 AM\u201312:00 AM"
+    }
+  ],
+  "flyer": {
+    "title": "Christmas on Vinegar Hill",
+    "subtitle": "36th Annual \u2022 Saturday, November 21, 2026",
+    "iconLegend": [
+      {
+        "label": "MV",
+        "meaning": "Multiple Vendors"
+      },
+      {
+        "label": "\ud83d\udebb",
+        "meaning": "Bathroom Available"
+      },
+      {
+        "label": "\ud83c\udf74",
+        "meaning": "Food Available"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Mt. Pulaski",
+        "entries": [
+          {
+            "number": "1",
+            "name": "Mt. Pulaski Courthouse State Historic Site",
+            "address": "113 S. Washington St.",
+            "hours": "8 AM\u20134 PM",
+            "description": "Warm refreshments, festive treats, and Christmas d\u00e9cor.",
+            "badges": [
+              "\ud83d\udebb",
+              "\ud83c\udf74"
+            ]
+          },
+          {
+            "number": "2",
+            "name": "Salt Creek Crafters \u2013 American Legion Home",
+            "address": "103 E. Scroggin Ave.",
+            "hours": "8 AM\u20134 PM",
+            "description": "Crafts, antiques, florals, clothing, soaps, candles, jewelry, Pampered Chef, wood, and holiday goods.",
+            "badges": [
+              "MV"
+            ]
+          },
+          {
+            "number": "3",
+            "name": "Boy Scout Troop 122",
+            "address": "103 E. Scroggin Ave. (Parking Lot)",
+            "hours": "10 AM\u20132 PM",
+            "description": "Fresh hot pork chop sandwiches.",
+            "badges": [
+              "\ud83c\udf74"
+            ]
+          },
+          {
+            "number": "4",
+            "name": "Mt. Pulaski High School",
+            "address": "206 Spring St.",
+            "hours": "8 AM\u20134 PM",
+            "description": "60+ vendors, crafts, homemade goods, and direct market sales.",
+            "badges": [
+              "MV"
+            ]
+          },
+          {
+            "number": "5",
+            "name": "Vinegar Hill Treasure Chest",
+            "address": "121 S. Lafayette St.",
+            "hours": "8 AM\u20134 PM",
+            "description": "Antiques, repurposed furniture, wood crafts, vintage, handmade, and miscellaneous goods.",
+            "badges": [
+              "MV"
+            ]
+          },
+          {
+            "number": "6",
+            "name": "Topper\u2019s Storage \u2013 Complete Storage Solutions",
+            "address": "926 McDonald St.",
+            "hours": "8 AM\u20134 PM",
+            "description": "Large indoor shopping with Christmas d\u00e9cor, gifts, and multiple food trucks.",
+            "badges": [
+              "MV",
+              "\ud83c\udf74"
+            ]
+          },
+          {
+            "number": "8",
+            "name": "Mt. Pulaski Public Library",
+            "address": "320 N. Washington St.",
+            "hours": "8 AM\u20134 PM",
+            "description": "Annual book sale. Free donuts and hot drinks.",
+            "badges": [
+              "\ud83c\udf74"
+            ]
+          },
+          {
+            "number": "12",
+            "name": "Mt. Pulaski Grade School",
+            "address": "119 N. Garden St.",
+            "hours": "8 AM\u20134 PM",
+            "description": "60+ vendors, cookie walk, walking tacos, sloppy joes, and hot dogs.",
+            "badges": [
+              "MV",
+              "\ud83c\udf74"
+            ]
+          },
+          {
+            "number": "15",
+            "name": "Zion Lutheran Church",
+            "address": "203 S. Vine St.",
+            "hours": "11 AM\u20131:30 PM",
+            "description": "Soup and sandwiches and vendors.",
+            "badges": [
+              "MV",
+              "\ud83c\udf74"
+            ]
+          },
+          {
+            "number": "16",
+            "name": "Mt. Pulaski Courthouse Gazebo",
+            "address": "113 S. Washington",
+            "hours": "8 AM\u20134 PM",
+            "description": "Gazebo decorated for Christmas photo ops.",
+            "badges": []
+          }
+        ]
+      },
+      {
+        "title": "Chestnut",
+        "entries": [
+          {
+            "number": "C1",
+            "name": "Chestnut Fire Dept.",
+            "address": "110 E. Olive St.",
+            "hours": "8 AM\u20134 PM",
+            "description": "Crafts, bake sale, jewelry, and more.",
+            "badges": [
+              "MV"
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Elkhart",
+        "entries": [
+          {
+            "number": "E1",
+            "name": "Elkhart Station General Store",
+            "address": "101 Governor Oglesby St.",
+            "hours": "8 AM\u20134 PM",
+            "description": "Illinois products and wine tastings.",
+            "badges": [
+              "\ud83c\udf74"
+            ]
+          },
+          {
+            "number": "E2",
+            "name": "The Talk of the Town",
+            "address": "115 Governor Oglesby St.",
+            "hours": "8 AM\u20132 PM",
+            "description": "Restaurant and bar with good food and drinks.",
+            "badges": [
+              "\ud83c\udf74"
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Latham",
+        "entries": [
+          {
+            "number": "L1",
+            "name": "BB\u2019s BFE Bar & Grill",
+            "address": "2371 N Rt. 121",
+            "hours": "10:30 AM\u201312 AM",
+            "description": "Restaurant and bar with hot food, cold drinks, and vendors.",
+            "badges": [
+              "MV",
+              "\ud83c\udf74"
+            ]
+          }
+        ]
+      }
+    ],
+    "footerNotes": [
+      "Look for the tree sign for participating locations.",
+      "Visit a location with the bag symbol and receive a reusable shopping bag with any donation while supplies last.",
+      "Follow Facebook and cityofmtpulaski.com for updates and vendor listings."
+    ],
+    "sponsors": [
+      "Mt. Pulaski Economic Development & Planning Board",
+      "Tomlinson Trust",
+      "Community Foundation for the Land of Lincoln",
+      "Logan County Tourism Bureau",
+      "The City of Mt. Pulaski",
+      "Casey\u2019s General Store",
+      "Eaton Corp.",
+      "INB",
+      "Land & Home Real Estate & Property Management"
+    ]
+  },
+  "resources": [
+    {
+      "label": "Original 2026 Pamphlet (DOCX)",
+      "href": "assets/docs/christmas-on-vinegar-hill-2026-pamphlet.docx"
+    },
+    {
+      "label": "Vendor Reference Workbook (XLSX)",
+      "href": "assets/docs/christmas-on-vinegar-hill-vendor-reference.xlsx"
+    }
+  ]
+}
