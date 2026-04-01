@@ -1,4 +1,8 @@
-import { supabase } from './supabase-client.js';
+const supabase = window.supabaseClient;
+
+if (!supabase) {
+  console.error('Supabase client is not available for admin auth.');
+}
 
 async function getSession() {
   const { data, error } = await supabase.auth.getSession();
@@ -84,6 +88,11 @@ async function handleLogout() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+  if (!supabase) {
+    const errorEl = document.getElementById('adminError');
+    if (errorEl) errorEl.textContent = 'Admin auth is unavailable until Supabase loads.';
+    return;
+  }
   document.getElementById('adminLoginForm')?.addEventListener('submit', handleLoginSubmit);
   document.getElementById('adminLogoutBtn')?.addEventListener('click', handleLogout);
 
