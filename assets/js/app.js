@@ -1,4 +1,3 @@
-const eventFile = document.documentElement.dataset.eventFile;
 const supabaseClient = window.supabaseClient;
 const APP_BUILD_ID = '2026-04-01-covh-db-load-v2';
 
@@ -1518,7 +1517,7 @@ async function init() {
   try {
     console.info('[MPEvents] app.js build:', APP_BUILD_ID);
     initThemeToggle();
-    const data = await loadEventData(eventFile);
+    const data = await loadEventData();
 
     renderHeader(data);
     renderDayFilter(data);
