@@ -1688,23 +1688,66 @@ function buildEventData(pageRow, dayRows, locationRows, scheduleRows, vendorRows
     };
   }
 
-  const response = await fetch(filePath);
-  if (!response.ok) {
-    throw new Error(`Failed to load ${filePath} (${response.status})`);
+  const [pageResult, daysResult, locationsResult, scheduleResult, vendorsResult] = await Promise.all([
+    supabaseClient.from('event_pages').select('*').eq('slug', pageSlug).single(),
+    supabaseClient.from('event_days').select('*').eq('page_slug', pageSlug),
+    supabaseClient.from('event_locations').select('*').eq('page_slug', pageSlug),
+    supabaseClient.from('event_schedule').select('*').eq('page_slug', pageSlug),
+    supabaseClient.from('event_vendors').select('*').eq('page_slug', pageSlug)
+  ]);
+
+  const results = [pageResult, daysResult, locationsResult, scheduleResult];
+  const failed = results.find(result => result.error);
+  if (failed) {
+    throw failed.error;
   }
 
-  const data = await response.json();
-  if (!data?._split) return data;
+  const dayRows = (daysResult.data || []).slice().sort((a, b) => {
+    const aDate = String(a?.event_date || '');
+    const bDate = String(b?.event_date || '');
+    if (aDate && bDate && aDate !== bDate) return aDate.localeCompare(bDate);
+    const aSort = Number.isFinite(Number(a?.sort_order)) ? Number(a.sort_order) : null;
+    const bSort = Number.isFinite(Number(b?.sort_order)) ? Number(b.sort_order) : null;
+    if (aSort !== null && bSort !== null && aSort !== bSort) return aSort - bSort;
+    return String(a?.label || '').localeCompare(String(b?.label || ''));
+  });
 
-  const basePath = filePath.includes('/') ? filePath.slice(0, filePath.lastIndexOf('/') + 1) : '';
-  const entries = await Promise.all(
-    Object.entries(data._split).map(async ([key, relativePath]) => {
-      const partResponse = await fetch(`${basePath}${relativePath}`);
-      if (!partResponse.ok) {
-        throw new Error(`Failed to load ${basePath}${relativePath} (${partResponse.status})`);
-      }
-      return [key, await partResponse.json()];
-    })
+  const locationRows = (locationsResult.data || []).slice().sort((a, b) => {
+    const aSort = Number.isFinite(Number(a?.sort_order)) ? Number(a.sort_order) : null;
+    const bSort = Number.isFinite(Number(b?.sort_order)) ? Number(b.sort_order) : null;
+    if (aSort !== null && bSort !== null && aSort !== bSort) return aSort - bSort;
+    if (aSort !== null && bSort === null) return -1;
+    if (aSort === null && bSort !== null) return 1;
+    return String(a?.name || '').localeCompare(String(b?.name || ''));
+  });
+
+  const scheduleRows = (scheduleResult.data || []).slice().sort((a, b) => {
+    const aDate = String(a?.event_date || '');
+    const bDate = String(b?.event_date || '');
+    if (aDate && bDate && aDate !== bDate) return aDate.localeCompare(bDate);
+    const aSort = Number.isFinite(Number(a?.sort_order)) ? Number(a.sort_order) : null;
+    const bSort = Number.isFinite(Number(b?.sort_order)) ? Number(b.sort_order) : null;
+    if (aSort !== null && bSort !== null && aSort !== bSort) return aSort - bSort;
+    return String(a?.start_time || '').localeCompare(String(b?.start_time || ''));
+  });
+
+  const vendorRows = vendorsResult.error
+    ? (console.warn('Vendor query failed; continuing with empty vendors.', vendorsResult.error), [])
+    : (vendorsResult.data || []).slice().sort((a, b) => {
+      const aSort = Number.isFinite(Number(a?.sort_order)) ? Number(a.sort_order) : null;
+      const bSort = Number.isFinite(Number(b?.sort_order)) ? Number(b.sort_order) : null;
+      if (aSort !== null && bSort !== null && aSort !== bSort) return aSort - bSort;
+      if (aSort !== null && bSort === null) return -1;
+      if (aSort === null && bSort !== null) return 1;
+      return String(a?.name || a?.vendor_name || '').localeCompare(String(b?.name || b?.vendor_name || ''));
+    });
+
+  const eventData = buildEventData(
+    pageResult.data,
+    dayRows,
+    locationRows,
+    scheduleRows,
+    vendorRows
   );
 
   return Object.assign({}, data, Object.fromEntries(entries));
