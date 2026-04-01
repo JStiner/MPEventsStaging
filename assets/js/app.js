@@ -1211,8 +1211,19 @@ function setupFlyerActions() {
 
 function renderFlyer(data) {
   if (!el.flyerPanel) return;
+  const canShowDebug = typeof shouldShowFlyerDebug === 'function' && shouldShowFlyerDebug();
+  const sourceLabel = typeof getFlyerSourceLabel === 'function'
+    ? getFlyerSourceLabel(data && data._flyerSource)
+    : 'Unavailable';
+  const debugBanner = canShowDebug
+    ? `<div class="flyer-source-note">Flyer source: ${sourceLabel}</div>`
+    : '';
+
   if (!data.flyer) {
-    el.flyerPanel.innerHTML = '<div class="empty-state">Flyer content coming soon.</div>';
+    el.flyerPanel.innerHTML = `
+      ${debugBanner}
+      <div class="empty-state">Flyer content coming soon.</div>
+    `;
     return;
   }
 
@@ -1226,6 +1237,7 @@ function renderFlyer(data) {
     `;
 
   el.flyerPanel.innerHTML = `
+    ${debugBanner}
     ${flyerActionsMarkup()}
     ${flyerMarkup}
   `;
@@ -1400,6 +1412,56 @@ function buildEventData(pageRow, dayRows, locationRows, scheduleRows, vendorRows
   };
 }
 
+function resolveRelativeDataPath(baseFile, relativePath) {
+  if (!baseFile || !relativePath) return relativePath || '';
+  if (/^https?:\/\//i.test(relativePath) || relativePath.startsWith('/')) return relativePath;
+
+  const normalizedBase = String(baseFile).replace(/\\/g, '/');
+  const baseDir = normalizedBase.includes('/')
+    ? normalizedBase.slice(0, normalizedBase.lastIndexOf('/') + 1)
+    : '';
+
+  return `${baseDir}${relativePath}`;
+}
+
+function shouldShowFlyerDebug() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('flyerDebug') === '1' || params.get('debug') === '1';
+}
+
+function getFlyerSourceLabel(source) {
+  if (source === 'supabase') return 'Supabase';
+  if (source === 'static-fallback') return 'Static fallback';
+  return 'Unavailable';
+}
+
+async function loadFlyerFromStaticFallback(filePath) {
+  if (!filePath) return null;
+
+  try {
+    const eventRes = await fetch(filePath, { cache: 'no-store' });
+    if (!eventRes.ok) return null;
+
+    const eventJson = await eventRes.json();
+    if (eventJson?.flyer && typeof eventJson.flyer === 'object') {
+      return eventJson.flyer;
+    }
+
+    const splitFlyerPath = eventJson?._split?.flyer;
+    if (!splitFlyerPath) return null;
+
+    const flyerPath = resolveRelativeDataPath(filePath, splitFlyerPath);
+    const flyerRes = await fetch(flyerPath, { cache: 'no-store' });
+    if (!flyerRes.ok) return null;
+
+    const flyerJson = await flyerRes.json();
+    return flyerJson && typeof flyerJson === 'object' ? flyerJson : null;
+  } catch (error) {
+    console.warn('Static flyer fallback failed to load.', error);
+    return null;
+  }
+}
+
 async function loadEventData(filePath) {
   const pageSlug = getPageSlug();
   if (!supabaseClient || !pageSlug) {
@@ -1420,13 +1482,25 @@ async function loadEventData(filePath) {
     throw failed.error;
   }
 
-  return buildEventData(
+  const eventData = buildEventData(
     pageResult.data,
     daysResult.data || [],
     locationsResult.data || [],
     scheduleResult.data || [],
     vendorsResult.data || []
   );
+
+  eventData._flyerSource = eventData.flyer ? 'supabase' : 'missing';
+
+  if (!eventData.flyer) {
+    const fallbackFlyer = await loadFlyerFromStaticFallback(filePath);
+    if (fallbackFlyer) {
+      eventData.flyer = fallbackFlyer;
+      eventData._flyerSource = 'static-fallback';
+    }
+  }
+
+  return eventData;
 }
 
 async function init() {
