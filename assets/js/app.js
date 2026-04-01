@@ -1211,12 +1211,6 @@ function setupFlyerActions() {
 
 function renderFlyer(data) {
   if (!el.flyerPanel) return;
-  const canShowDebug = typeof shouldShowFlyerDebug === 'function' && shouldShowFlyerDebug();
-  const sourceLabel = typeof getFlyerSourceLabel === 'function'
-    ? getFlyerSourceLabel(data?._flyerSource)
-    : 'Unavailable';
-  const debugBanner = canShowDebug
-    ? `<div class="flyer-source-note">Flyer source: ${sourceLabel}</div>`
     : '';
 
   if (!data.flyer) {
@@ -1422,17 +1416,6 @@ function resolveRelativeDataPath(baseFile, relativePath) {
     : '';
 
   return `${baseDir}${relativePath}`;
-}
-
-function shouldShowFlyerDebug() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('flyerDebug') === '1' || params.get('debug') === '1';
-}
-
-function getFlyerSourceLabel(source) {
-  if (source === 'supabase') return 'Supabase';
-  if (source === 'static-fallback') return 'Static fallback';
-  return 'Unavailable';
 }
 
 async function loadFlyerFromStaticFallback(filePath) {
