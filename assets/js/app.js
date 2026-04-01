@@ -717,7 +717,18 @@ function escapeHtml(value = '') {
 }
 
 function isCovhFlyer(flyer = state.eventData?.flyer, data = state.eventData) {
-  return data?._meta?.code === 'COVH' || /christmas on vinegar hill/i.test(flyer?.document?.title || '');
+  const covhMatch =
+    data?._meta?.code === 'COVH' ||
+    /christmas on vinegar hill/i.test(flyer?.document?.title || '');
+
+  if (!covhMatch) return false;
+
+  const hasPamphletStructure =
+    flyer?.sections?.['mt-pulaski-a'] ||
+    flyer?.sections?.['regional'] ||
+    flyer?.assets?.maps;
+
+  return !!hasPamphletStructure;
 }
 
 function renderCovhBadgeKey(flyer) {
@@ -1465,46 +1476,190 @@ function openScheduleFromHash() {
   }, 60);
 }
 
-async function loadEventData(filePath) {
-  const supabaseClient = getSupabaseClient();
+function mapDayRow(row) {
+  const raw = row.raw || {};
+  return {
+    ...raw,
+    id: row.external_id,
+    label: row.label,
+    date: row.event_date
+  };
+}
 
-if (pageSlug && supabaseClient) {
-    const [
-      pageResult,
-      dayResult,
-      locationResult,
-      scheduleResult,
-      vendorResult,
-      flyerSectionResult,
-      flyerEntryResult,
-      flyerLegendResult,
-      flyerFooterResult,
-      flyerSponsorResult
-    ] = await Promise.all([
-      supabaseClient.from('event_pages').select('*').eq('slug', pageSlug).single(),
-      supabaseClient.from('event_days').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
-      supabaseClient.from('event_locations').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
-      supabaseClient.from('event_schedule').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
-      supabaseClient.from('event_vendors').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
-      supabaseClient.from('event_flyer_sections').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
-      supabaseClient.from('event_flyer_entries').select('*').order('sort_order', { ascending: true }),
-      supabaseClient.from('event_flyer_legend').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
-      supabaseClient.from('event_flyer_footer_notes').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
-      supabaseClient.from('event_flyer_sponsors').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true })
-    ]);
+function mapLocationRow(row) {
+  const raw = row.raw || {};
+  return {
+    ...raw,
+    id: row.external_id,
+    name: row.name,
+    address: row.address,
+    mapX: row.map_x,
+    mapY: row.map_y,
+    description: row.description,
+    notes: row.notes,
+    directionsText: row.directions_text,
+    pinIcon: row.pin_icon,
+    hours: row.hours,
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    multiVendor: !!row.multi_vendor,
+    group: row.location_group
+  };
+}
 
-    if (pageResult.error) throw pageResult.error;
-    if (dayResult.error) throw dayResult.error;
-    if (locationResult.error) throw locationResult.error;
-    if (scheduleResult.error) throw scheduleResult.error;
-    if (vendorResult.error) throw vendorResult.error;
-    if (flyerSectionResult.error) throw flyerSectionResult.error;
-    if (flyerEntryResult.error) throw flyerEntryResult.error;
-    if (flyerLegendResult.error) throw flyerLegendResult.error;
-    if (flyerFooterResult.error) throw flyerFooterResult.error;
-    if (flyerSponsorResult.error) throw flyerSponsorResult.error;
+function mapScheduleRow(row) {
+  const raw = row.raw || {};
+  return {
+    ...raw,
+    id: row.external_id,
+    dayId: row.day_external_id,
+    title: row.title,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    locationId: row.location_external_id,
+    category: row.category,
+    description: row.description,
+    vendorIds: Array.isArray(row.vendor_ids) ? row.vendor_ids : [],
+    date: row.event_date
+  };
+}
 
-    const flyerSectionIds = new Set((flyerSectionResult.data || []).map(section => section.id));
+function mapVendorRow(row) {
+  const raw = row.raw || {};
+  return {
+    ...raw,
+    id: row.external_id,
+    name: row.name,
+    locationId: row.location_external_id,
+    category: row.category,
+    description: row.description,
+    booth: row.booth,
+    hours: row.hours
+  };
+}
+
+function slugifyFlyerSectionKey(value = '') {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function normalizeFlyerSection(section, index) {
+  const title = section?.title || `Section ${index + 1}`;
+  const key = section?.key || slugifyFlyerSectionKey(title) || `section-${index + 1}`;
+
+  return {
+    key,
+    title,
+    entries: Array.isArray(section?.entries) ? section.entries : [],
+    blocks: Array.isArray(section?.blocks) ? section.blocks : []
+  };
+}
+
+function buildDefaultFlyerPageFlow(sectionKeys = []) {
+  if (!sectionKeys.length) return [];
+
+  const pages = [];
+  for (let i = 0; i < sectionKeys.length; i += 2) {
+    pages.push({
+      leftSection: sectionKeys[i],
+      rightSection: sectionKeys[i + 1] || null
+    });
+  }
+
+  return pages;
+}
+
+function normalizeFlyer(flyer, pageRow = {}, raw = {}) {
+  if (!flyer || typeof flyer !== 'object') return null;
+
+  const normalizedSections = {};
+  const sourceSections = Array.isArray(flyer.sections)
+    ? flyer.sections
+    : Object.values(flyer.sections || {});
+
+  sourceSections.forEach((section, index) => {
+    const normalized = normalizeFlyerSection(section, index);
+    normalizedSections[normalized.key] = normalized;
+  });
+
+  const sectionKeys = Object.keys(normalizedSections);
+
+  const title =
+    flyer?.document?.title ||
+    flyer?.title ||
+    pageRow?.event_name ||
+    raw?.eventName ||
+    'Event Flyer';
+
+  const subtitle =
+    flyer?.document?.subtitle ||
+    flyer?.subtitle ||
+    pageRow?.date_label ||
+    raw?.dateLabel ||
+    '';
+
+  const eyebrow =
+    flyer?.document?.eyebrow ||
+    flyer?.eyebrow ||
+    'Printable flyer';
+
+  return {
+    ...flyer,
+    document: {
+      eyebrow,
+      title,
+      subtitle
+    },
+    legend: Array.isArray(flyer.legend)
+      ? flyer.legend
+      : Array.isArray(flyer.iconLegend)
+        ? flyer.iconLegend
+        : [],
+    sections: normalizedSections,
+    pageFlow: Array.isArray(flyer.pageFlow) && flyer.pageFlow.length
+      ? flyer.pageFlow
+      : buildDefaultFlyerPageFlow(sectionKeys),
+    callouts: {
+      ...(flyer.callouts || {}),
+      footer: Array.isArray(flyer.callouts?.footer)
+        ? flyer.callouts.footer
+        : Array.isArray(flyer.footerNotes)
+          ? flyer.footerNotes
+          : [],
+      sponsors: Array.isArray(flyer.callouts?.sponsors)
+        ? flyer.callouts.sponsors
+        : Array.isArray(flyer.sponsors)
+          ? flyer.sponsors
+          : []
+    }
+  };
+}
+
+function buildEventData(pageRow, dayRows, locationRows, scheduleRows, vendorRows) {
+  const raw = pageRow.raw || {};
+  return {
+    ...raw,
+    eventName: pageRow.event_name,
+    eventType: pageRow.event_type,
+    summary: pageRow.summary,
+    dateLabel: pageRow.date_label,
+    areaLabel: pageRow.area_label,
+    category: pageRow.category,
+    tabs: Array.isArray(pageRow.tabs) ? pageRow.tabs : (raw.tabs || []),
+    dates: Array.isArray(pageRow.dates) ? pageRow.dates : (raw.dates || []),
+    theme: pageRow.theme ?? raw.theme,
+    featuredBranding: pageRow.featured_branding ?? raw.featuredBranding,
+    flyer: normalizeFlyer(pageRow.flyer ?? raw.flyer, pageRow, raw),
+    resources: Array.isArray(pageRow.resources) ? pageRow.resources : (raw.resources || []),
+    days: dayRows.map(mapDayRow),
+    locations: locationRows.map(mapLocationRow),
+    schedule: scheduleRows.map(mapScheduleRow),
+    vendors: vendorRows.map(mapVendorRow)
+  };
+}
 
     return {
       ...(pageResult.data?.raw || {}),
