@@ -1503,6 +1503,7 @@ async function loadEventData(filePath) {
   eventData._flyerSource = eventData.flyer ? 'supabase' : 'missing';
 
   if (!eventData.flyer && shouldUseStaticFlyerFallback()) {
+  if (!eventData.flyer) {
     const fallbackFlyer = await loadFlyerFromStaticFallback(filePath);
     if (fallbackFlyer) {
       eventData.flyer = fallbackFlyer;
