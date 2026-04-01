@@ -1,4 +1,5 @@
 const supabaseClient = window.supabaseClient;
+const APP_BUILD_ID = window.APP_BUILD_ID || 'dev';
 // Compatibility guard: older merged builds referenced a `debugBanner` token in renderFlyer.
 // Keep this defined so stale bundles do not hard-fail on ReferenceError.
 const debugBanner = '';
@@ -1385,84 +1386,6 @@ function mapVendorRow(row) {
   };
 }
 
-
-function slugifyFlyerKey(value) {
-  return String(value || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function mapFlyerEntryRow(row) {
-  return {
-    number: row.entry_code || '',
-    name: row.name || '',
-    address: row.address || '',
-    hours: row.hours || '',
-    description: row.description || '',
-    badges: Array.isArray(row.badges) ? row.badges : []
-  };
-}
-
-function mergeFlyerData(pageRow, legendRows = [], sectionRows = [], footerNoteRows = [], sponsorRows = []) {
-  const raw = pageRow.raw || {};
-  const baseFlyer = structuredClone(pageRow.flyer ?? raw.flyer ?? {}) || {};
-
-  if (legendRows.length) {
-    baseFlyer.legend = legendRows.map(row => ({
-      label: row.label || '',
-      meaning: row.meaning || ''
-    }));
-  }
-
-  if (footerNoteRows.length || sponsorRows.length) {
-    baseFlyer.callouts = baseFlyer.callouts || {};
-    if (footerNoteRows.length) {
-      baseFlyer.callouts.footer = footerNoteRows.map(row => row.note || '').filter(Boolean);
-    }
-    if (sponsorRows.length) {
-      baseFlyer.callouts.sponsors = sponsorRows.map(row => row.sponsor_name || '').filter(Boolean);
-    }
-  }
-
-  if (sectionRows.length) {
-    const dbSections = sectionRows.map(section => ({
-      key: slugifyFlyerKey(section.title),
-      title: section.title || '',
-      entries: Array.isArray(section.event_flyer_entries)
-        ? section.event_flyer_entries.map(mapFlyerEntryRow)
-        : []
-    }));
-
-    if (Array.isArray(baseFlyer.sections)) {
-      baseFlyer.sections = dbSections;
-    } else {
-      const existingSections = baseFlyer.sections && typeof baseFlyer.sections === 'object'
-        ? baseFlyer.sections
-        : {};
-      const existingKeys = Object.keys(existingSections);
-      const nextSections = { ...existingSections };
-
-      dbSections.forEach(section => {
-        const matchedKey = existingKeys.find(key => {
-          const existingTitle = existingSections[key]?.title || '';
-          return existingTitle.trim().toLowerCase() === section.title.trim().toLowerCase();
-        }) || section.key;
-
-        nextSections[matchedKey] = {
-          ...(existingSections[matchedKey] || {}),
-          title: section.title,
-          entries: section.entries
-        };
-      });
-
-      baseFlyer.sections = nextSections;
-    }
-  }
-
-  return Object.keys(baseFlyer).length ? baseFlyer : null;
-}
-
 function buildEventData(pageRow, dayRows, locationRows, scheduleRows, vendorRows) {
   const raw = pageRow.raw || {};
   return {
@@ -1492,16 +1415,12 @@ async function loadEventData() {
     throw new Error('Supabase client or page slug is missing.');
   }
 
-  const [pageResult, daysResult, locationsResult, scheduleResult, vendorsResult, flyerLegendResult, flyerSectionsResult, flyerFooterNotesResult, flyerSponsorsResult] = await Promise.all([
+  const [pageResult, daysResult, locationsResult, scheduleResult, vendorsResult] = await Promise.all([
     supabaseClient.from('event_pages').select('*').eq('slug', pageSlug).single(),
     supabaseClient.from('event_days').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
     supabaseClient.from('event_locations').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
     supabaseClient.from('event_schedule').select('*').eq('page_slug', pageSlug).order('event_date', { ascending: true }).order('sort_order', { ascending: true }),
-    supabaseClient.from('event_vendors').select('*').eq('page_slug', pageSlug).order('name', { ascending: true }),
-    supabaseClient.from('event_flyer_legend').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
-    supabaseClient.from('event_flyer_sections').select('id, title, sort_order, event_flyer_entries(entry_code, name, address, hours, description, badges, sort_order)').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
-    supabaseClient.from('event_flyer_footer_notes').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
-    supabaseClient.from('event_flyer_sponsors').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true })
+    supabaseClient.from('event_vendors').select('*').eq('page_slug', pageSlug).order('name', { ascending: true })
   ]);
 
   const results = [pageResult, daysResult, locationsResult, scheduleResult];
@@ -1522,22 +1441,6 @@ async function loadEventData() {
     vendorRows
   );
 
-  eventData.flyer = mergeFlyerData(
-    pageResult.data,
-    flyerLegendResult.error ? [] : (flyerLegendResult.data || []),
-    flyerSectionsResult.error ? [] : (flyerSectionsResult.data || []),
-    flyerFooterNotesResult.error ? [] : (flyerFooterNotesResult.data || []),
-    flyerSponsorsResult.error ? [] : (flyerSponsorsResult.data || [])
-  );
-
-  if (flyerLegendResult.error || flyerSectionsResult.error || flyerFooterNotesResult.error || flyerSponsorsResult.error) {
-    console.warn('One or more flyer queries failed; using base flyer payload where available.', {
-      flyerLegendError: flyerLegendResult.error,
-      flyerSectionsError: flyerSectionsResult.error,
-      flyerFooterNotesError: flyerFooterNotesResult.error,
-      flyerSponsorsError: flyerSponsorsResult.error
-    });
-  }
 
   return eventData;
 }
