@@ -1211,6 +1211,12 @@ function setupFlyerActions() {
 
 function renderFlyer(data) {
   if (!el.flyerPanel) return;
+  const canShowDebug = typeof shouldShowFlyerDebug === 'function' && shouldShowFlyerDebug();
+  const sourceLabel = typeof getFlyerSourceLabel === 'function'
+    ? getFlyerSourceLabel(data && data._flyerSource)
+    : 'Unavailable';
+  const debugBanner = canShowDebug
+    ? `<div class="flyer-source-note">Flyer source: ${sourceLabel}</div>`
     : '';
 
   if (!data.flyer) {
@@ -1418,6 +1424,22 @@ function resolveRelativeDataPath(baseFile, relativePath) {
   return `${baseDir}${relativePath}`;
 }
 
+function shouldShowFlyerDebug() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('flyerDebug') === '1' || params.get('debug') === '1';
+}
+
+function getFlyerSourceLabel(source) {
+  if (source === 'supabase') return 'Supabase';
+  if (source === 'static-fallback') return 'Static fallback';
+  return 'Unavailable';
+}
+
+function shouldUseStaticFlyerFallback() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('useStaticFlyerFallback') === '1';
+}
+
 async function loadFlyerFromStaticFallback(filePath) {
   if (!filePath) return null;
 
@@ -1459,22 +1481,27 @@ async function loadEventData(filePath) {
     supabaseClient.from('event_vendors').select('*').eq('page_slug', pageSlug).order('name', { ascending: true })
   ]);
 
-  const results = [pageResult, daysResult, locationsResult, scheduleResult, vendorsResult];
+  const results = [pageResult, daysResult, locationsResult, scheduleResult];
   const failed = results.find(result => result.error);
   if (failed) {
     throw failed.error;
   }
+
+  const vendorRows = vendorsResult.error
+    ? (console.warn('Vendor query failed; continuing with empty vendors.', vendorsResult.error), [])
+    : (vendorsResult.data || []);
 
   const eventData = buildEventData(
     pageResult.data,
     daysResult.data || [],
     locationsResult.data || [],
     scheduleResult.data || [],
-    vendorsResult.data || []
+    vendorRows
   );
 
   eventData._flyerSource = eventData.flyer ? 'supabase' : 'missing';
 
+  if (!eventData.flyer && shouldUseStaticFlyerFallback()) {
   if (!eventData.flyer) {
     const fallbackFlyer = await loadFlyerFromStaticFallback(filePath);
     if (fallbackFlyer) {
