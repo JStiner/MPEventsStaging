@@ -1,6 +1,8 @@
 const eventFile = document.documentElement.dataset.eventFile;
 const pageSlug = document.documentElement.dataset.pageSlug;
-const supabaseClient = window.supabaseClient;
+function getSupabaseClient() {
+  return window.supabaseClient;
+}
 
 const state = {
   eventData: null,
@@ -1464,7 +1466,9 @@ function openScheduleFromHash() {
 }
 
 async function loadEventData(filePath) {
-  if (pageSlug && supabaseClient) {
+  const supabaseClient = getSupabaseClient();
+
+if (pageSlug && supabaseClient) {
     const [
       pageResult,
       dayResult,
@@ -1568,5 +1572,22 @@ async function init() {
     renderFlyer(data);
     setupTabs();
     openFlyerFromHash();
+
+    el.closeModal?.addEventListener('click', closeModal);
+    el.modal?.addEventListener('click', (event) => {
+      if (event.target === el.modal) closeModal();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeModal();
+    });
+
+    openScheduleFromHash();
+  } catch (error) {
+    console.error(error);
+    showLoadError('Event data failed to load. If you opened the HTML directly from a ZIP or local folder, start a local web server or use GitHub Pages.');
+  }
+}
+
+init();
 
 init();
