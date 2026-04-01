@@ -4,7 +4,10 @@
   "description": "GitHub Pages demo for a tablet-friendly cooking app.",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "check:syntax": "node --check assets/js/app.js && node --check assets/js/home.js && node --check assets/js/admin-auth.js && node --check assets/js/admin-page.js",
+    "check:conflicts": "bash -lc '! rg -n \"^(<<<<<<<|=======|>>>>>>>)\" --glob \"*.html\" --glob \"assets/js/*.js\" --glob \"assets/css/*.css\" .'",
+    "check:premerge": "npm run check:syntax && npm run check:conflicts"
   },
   "repository": {
     "type": "git",
