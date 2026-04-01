@@ -1204,17 +1204,29 @@ function setupFlyerActions() {
 function buildFlyerFromDb(data) {
   if (!data) return null;
 
-  // fallback if DB not loaded yet
   if (!data.flyerSections || !data.flyerEntries) {
     return data.flyer || null;
   }
 
+  const fallbackFlyer = data.flyer || {};
+  const fallbackAssets = fallbackFlyer.assets || {};
+  const fallbackDocument = fallbackFlyer.document || {};
+  const fallbackCallouts = fallbackFlyer.callouts || {};
+
   const sections = {};
   const sectionMap = {};
 
-  // map sections
+  function normalizeSectionKey(value = '') {
+    return String(value)
+      .trim()
+      .toLowerCase()
+      .replace(/&/g, 'and')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
   (data.flyerSections || []).forEach(section => {
-    const key = section.section_key || section.section_title.toLowerCase().replace(/\s+/g, '-');
+    const key = section.section_key || normalizeSectionKey(section.section_title);
     sectionMap[section.id] = key;
 
     sections[key] = {
@@ -1224,7 +1236,6 @@ function buildFlyerFromDb(data) {
     };
   });
 
-  // map entries into sections
   (data.flyerEntries || []).forEach(entry => {
     const sectionKey = sectionMap[entry.section_id];
     if (!sectionKey || !sections[sectionKey]) return;
@@ -1235,53 +1246,74 @@ function buildFlyerFromDb(data) {
       address: entry.address,
       hours: entry.hours,
       description: entry.description,
-      badges: entry.badges || [],
-      bagLocation: entry.bag_location || false
+      badges: Array.isArray(entry.badges) ? entry.badges : [],
+      bagLocation: !!entry.bag_location
     });
   });
 
-  // sort entries
   Object.values(sections).forEach(section => {
     section.entries.sort((a, b) => {
-      const aNum = parseInt(a.number, 10) || 999;
-      const bNum = parseInt(b.number, 10) || 999;
+      const aNum = Number.parseInt(a.number, 10);
+      const bNum = Number.parseInt(b.number, 10);
+
+      if (Number.isNaN(aNum) && Number.isNaN(bNum)) {
+        return String(a.number).localeCompare(String(b.number));
+      }
+      if (Number.isNaN(aNum)) return 1;
+      if (Number.isNaN(bNum)) return -1;
       return aNum - bNum;
     });
   });
 
-  // build legend
-  const legend = (data.flyerLegend || []).map(l => ({
-    label: l.label,
-    meaning: l.meaning
+  const legend = (data.flyerLegend || []).map(item => ({
+    label: item.label,
+    meaning: item.meaning
   }));
 
-  // footer
   const footer = (data.flyerFooterNotes || [])
-    .sort((a, b) => a.sort_order - b.sort_order)
-    .map(f => f.note);
+    .slice()
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map(item => item.note);
 
-  // sponsors split (first 6 = benefactors)
-  const allSponsors = (data.flyerSponsors || []).map(s => s.sponsor_name);
+  const allSponsors = (data.flyerSponsors || [])
+    .slice()
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map(item => item.sponsor_name);
 
   const benefactors = allSponsors.slice(0, 6);
   const sponsors = allSponsors.slice(6);
 
+  const mtPulaski = sections['mt-pulaski'] || { key: 'mt-pulaski', title: 'Mt. Pulaski', entries: [] };
+
   return {
-    document: data.flyer?.document || {
-      title: data.eventName,
-      subtitle: data.dateLabel,
-      eyebrow: 'Printable flyer'
+    document: {
+      title: fallbackDocument.title || data.eventName || 'Event Flyer',
+      subtitle: fallbackDocument.subtitle || data.dateLabel || '',
+      eyebrow: fallbackDocument.eyebrow || 'Printable flyer'
     },
 
-    assets: data.flyer?.assets || {},
+    assets: fallbackAssets,
 
     legend,
 
     sections: {
-      'mt-pulaski-a': { ...sections['mt-pulaski'], entries: sections['mt-pulaski']?.entries.slice(0, 8) || [] },
-      'mt-pulaski-b': { ...sections['mt-pulaski'], entries: sections['mt-pulaski']?.entries.slice(8, 16) || [] },
-      'mt-pulaski-c': { ...sections['mt-pulaski'], entries: sections['mt-pulaski']?.entries.slice(16) || [] },
+      'mt-pulaski-a': {
+        key: 'mt-pulaski-a',
+        title: mtPulaski.title,
+        entries: mtPulaski.entries.slice(0, 8)
+      },
+      'mt-pulaski-b': {
+        key: 'mt-pulaski-b',
+        title: mtPulaski.title,
+        entries: mtPulaski.entries.slice(8, 16)
+      },
+      'mt-pulaski-c': {
+        key: 'mt-pulaski-c',
+        title: mtPulaski.title,
+        entries: mtPulaski.entries.slice(16)
+      },
       regional: {
+        key: 'regional',
         title: 'Regional Stops',
         blocks: [
           {
@@ -1304,26 +1336,32 @@ function buildFlyerFromDb(data) {
     },
 
     pageFlow: [
-      { leftSection: 'mt-pulaski-a', rightSection: 'mt-pulaski-b' },
-      { leftSection: 'mt-pulaski-c', rightSection: 'regional' }
+      { pageId: 'page-1', leftSection: 'mt-pulaski-a', rightSection: 'mt-pulaski-b' },
+      { pageId: 'page-2', leftSection: 'mt-pulaski-c', rightSection: 'regional' }
     ],
 
     callouts: {
-      footer,
+      treeSign: fallbackCallouts.treeSign || 'Look for the tree sign for participating locations.',
+      bagNotice: fallbackCallouts.bagNotice || '',
+      scanText: fallbackCallouts.scanText || 'Scan for Google Map of Event',
+      thankYouTitle: fallbackCallouts.thankYouTitle || 'Thank You',
+      thankYouText: fallbackCallouts.thankYouText || '',
+      benefactors,
+      sponsorsTitle: fallbackCallouts.sponsorsTitle || 'Sponsors',
       sponsors,
-      benefactors
+      footer
     }
   };
 }
 
 function renderFlyer(data) {
   if (!el.flyerPanel) return;
-  if (!data.flyer) {
-    el.flyerPanel.innerHTML = '<div class="empty-state">Flyer content coming soon.</div>';
-    return;
-  }
+const flyer = buildFlyerFromDb(data);
 
-  const flyer = buildFlyerFromDb(data);
+if (!flyer) {
+  el.flyerPanel.innerHTML = '<div class="empty-state">Flyer content coming soon.</div>';
+  return;
+}
   const flyerMarkup = isCovhFlyer(flyer, data)
     ? renderCovhPamphlet(flyer)
     : `
