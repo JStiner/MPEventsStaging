@@ -1,14 +1,7 @@
-const supabaseClient = window.supabaseClient;
-const APP_BUILD_ID = window.APP_BUILD_ID || 'dev';
-// Compatibility guard: older merged builds referenced a `debugBanner` token in renderFlyer.
-// Keep this defined so stale bundles do not hard-fail on ReferenceError.
-const debugBanner = '';
-
-function getPageSlug() {
-  const explicit = document.documentElement.dataset.pageSlug;
-  if (explicit) return explicit;
-  const fileName = window.location.pathname.split('/').pop() || '';
-  return fileName.replace(/\.html$/i, '') || null;
+const eventFile = document.documentElement.dataset.eventFile;
+const pageSlug = document.documentElement.dataset.pageSlug;
+function getSupabaseClient() {
+  return window.supabaseClient;
 }
 
 const state = {
@@ -399,7 +392,6 @@ function renderDayFilter(data) {
   if (!data.days?.length && !(data.schedule || []).length) return;
 
   state.filterMode = getFilterMode(data);
-  el.dayFilter.style.display = '';
 
   if (state.filterMode === 'month') {
 	const monthOptions = getMonthOptions(data);
@@ -1224,18 +1216,167 @@ function setupFlyerActions() {
   });
 }
 
-function renderFlyer(data) {
-  if (!el.flyerPanel) return;
+function buildFlyerFromDb(data) {
+  if (!data) return null;
 
-  if (!data.flyer) {
-    el.flyerPanel.innerHTML = `
-      ${debugBanner}
-      <div class="empty-state">Flyer content coming soon.</div>
-    `;
-    return;
+  if (!data.flyerSections || !data.flyerEntries) {
+    return data.flyer || null;
   }
 
-  const flyer = data.flyer;
+  const fallbackFlyer = data.flyer || {};
+  const fallbackAssets = fallbackFlyer.assets || {};
+  const fallbackDocument = fallbackFlyer.document || {};
+  const fallbackCallouts = fallbackFlyer.callouts || {};
+
+  const sections = {};
+  const sectionMap = {};
+
+  function normalizeSectionKey(value = '') {
+    return String(value)
+      .trim()
+      .toLowerCase()
+      .replace(/&/g, 'and')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  (data.flyerSections || []).forEach(section => {
+    const key = section.section_key || normalizeSectionKey(section.section_title);
+    sectionMap[section.id] = key;
+
+    sections[key] = {
+      key,
+      title: section.section_title,
+      entries: []
+    };
+  });
+
+  (data.flyerEntries || []).forEach(entry => {
+    const sectionKey = sectionMap[entry.section_id];
+    if (!sectionKey || !sections[sectionKey]) return;
+
+    sections[sectionKey].entries.push({
+      number: entry.entry_code,
+      name: entry.name,
+      address: entry.address,
+      hours: entry.hours,
+      description: entry.description,
+      badges: Array.isArray(entry.badges) ? entry.badges : [],
+      bagLocation: !!entry.bag_location
+    });
+  });
+
+  Object.values(sections).forEach(section => {
+    section.entries.sort((a, b) => {
+      const aNum = Number.parseInt(a.number, 10);
+      const bNum = Number.parseInt(b.number, 10);
+
+      if (Number.isNaN(aNum) && Number.isNaN(bNum)) {
+        return String(a.number).localeCompare(String(b.number));
+      }
+      if (Number.isNaN(aNum)) return 1;
+      if (Number.isNaN(bNum)) return -1;
+      return aNum - bNum;
+    });
+  });
+
+  const legend = (data.flyerLegend || []).map(item => ({
+    label: item.label,
+    meaning: item.meaning
+  }));
+
+  const footer = (data.flyerFooterNotes || [])
+    .slice()
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map(item => item.note);
+
+  const allSponsors = (data.flyerSponsors || [])
+    .slice()
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map(item => item.sponsor_name);
+
+  const benefactors = allSponsors.slice(0, 6);
+  const sponsors = allSponsors.slice(6);
+
+  const mtPulaski = sections['mt-pulaski'] || { key: 'mt-pulaski', title: 'Mt. Pulaski', entries: [] };
+
+  return {
+    document: {
+      title: fallbackDocument.title || data.eventName || 'Event Flyer',
+      subtitle: fallbackDocument.subtitle || data.dateLabel || '',
+      eyebrow: fallbackDocument.eyebrow || 'Printable flyer'
+    },
+
+    assets: fallbackAssets,
+
+    legend,
+
+    sections: {
+      'mt-pulaski-a': {
+        key: 'mt-pulaski-a',
+        title: mtPulaski.title,
+        entries: mtPulaski.entries.slice(0, 8)
+      },
+      'mt-pulaski-b': {
+        key: 'mt-pulaski-b',
+        title: mtPulaski.title,
+        entries: mtPulaski.entries.slice(8, 16)
+      },
+      'mt-pulaski-c': {
+        key: 'mt-pulaski-c',
+        title: mtPulaski.title,
+        entries: mtPulaski.entries.slice(16)
+      },
+      regional: {
+        key: 'regional',
+        title: 'Regional Stops',
+        blocks: [
+          {
+            title: 'Chestnut',
+            mapKey: 'chestnut',
+            entries: sections['chestnut']?.entries || []
+          },
+          {
+            title: 'Elkhart',
+            mapKey: 'elkhart',
+            entries: sections['elkhart']?.entries || []
+          },
+          {
+            title: 'Latham',
+            mapKey: 'latham',
+            entries: sections['latham']?.entries || []
+          }
+        ]
+      }
+    },
+
+    pageFlow: [
+      { pageId: 'page-1', leftSection: 'mt-pulaski-a', rightSection: 'mt-pulaski-b' },
+      { pageId: 'page-2', leftSection: 'mt-pulaski-c', rightSection: 'regional' }
+    ],
+
+    callouts: {
+      treeSign: fallbackCallouts.treeSign || 'Look for the tree sign for participating locations.',
+      bagNotice: fallbackCallouts.bagNotice || '',
+      scanText: fallbackCallouts.scanText || 'Scan for Google Map of Event',
+      thankYouTitle: fallbackCallouts.thankYouTitle || 'Thank You',
+      thankYouText: fallbackCallouts.thankYouText || '',
+      benefactors,
+      sponsorsTitle: fallbackCallouts.sponsorsTitle || 'Sponsors',
+      sponsors,
+      footer
+    }
+  };
+}
+
+function renderFlyer(data) {
+  if (!el.flyerPanel) return;
+const flyer = buildFlyerFromDb(data);
+
+if (!flyer) {
+  el.flyerPanel.innerHTML = '<div class="empty-state">Flyer content coming soon.</div>';
+  return;
+}
   const flyerMarkup = isCovhFlyer(flyer, data)
     ? renderCovhPamphlet(flyer)
     : `
@@ -1245,7 +1386,6 @@ function renderFlyer(data) {
     `;
 
   el.flyerPanel.innerHTML = `
-    ${debugBanner}
     ${flyerActionsMarkup()}
     ${flyerMarkup}
   `;
@@ -1521,10 +1661,31 @@ function buildEventData(pageRow, dayRows, locationRows, scheduleRows, vendorRows
   };
 }
 
-async function loadEventData() {
-  const pageSlug = getPageSlug();
-  if (!supabaseClient || !pageSlug) {
-    throw new Error('Supabase client or page slug is missing.');
+    return {
+      ...(pageResult.data?.raw || {}),
+      _meta: pageResult.data?.raw?._meta || {},
+      eventName: pageResult.data?.event_name,
+      eventType: pageResult.data?.event_type,
+      summary: pageResult.data?.summary,
+      dateLabel: pageResult.data?.date_label,
+      areaLabel: pageResult.data?.area_label,
+      category: pageResult.data?.category,
+      tabs: Array.isArray(pageResult.data?.tabs) ? pageResult.data.tabs : [],
+      dates: Array.isArray(pageResult.data?.dates) ? pageResult.data.dates : [],
+      theme: pageResult.data?.theme,
+      featuredBranding: pageResult.data?.featured_branding,
+      resources: Array.isArray(pageResult.data?.resources) ? pageResult.data.resources : [],
+      flyer: pageResult.data?.flyer || pageResult.data?.raw?.flyer || null,
+      days: dayResult.data || [],
+      locations: locationResult.data || [],
+      schedule: scheduleResult.data || [],
+      vendors: vendorResult.data || [],
+      flyerSections: flyerSectionResult.data || [],
+      flyerEntries: (flyerEntryResult.data || []).filter(entry => flyerSectionIds.has(entry.section_id)),
+      flyerLegend: flyerLegendResult.data || [],
+      flyerFooterNotes: flyerFooterResult.data || [],
+      flyerSponsors: flyerSponsorResult.data || []
+    };
   }
 
   const [pageResult, daysResult, locationsResult, scheduleResult, vendorsResult] = await Promise.all([
@@ -1589,16 +1750,17 @@ async function loadEventData() {
     vendorRows
   );
 
-
-  return eventData;
+  return Object.assign({}, data, Object.fromEntries(entries));
 }
 
 async function init() {
-  try {
-    console.info('[MPEvents] app.js build:', APP_BUILD_ID);
-    initThemeToggle();
-    const data = await loadEventData();
+  if (!eventFile && !pageSlug) return;
 
+  try {
+    initThemeToggle();
+    const data = await loadEventData(eventFile);
+
+    state.eventData = data;
     renderHeader(data);
     renderDayFilter(data);
     renderSchedule(data);
@@ -1607,7 +1769,7 @@ async function init() {
     renderLocations(data);
     renderFlyer(data);
     setupTabs();
-	openFlyerFromHash();
+    openFlyerFromHash();
 
     el.closeModal?.addEventListener('click', closeModal);
     el.modal?.addEventListener('click', (event) => {
@@ -1623,5 +1785,7 @@ async function init() {
     showLoadError('Event data failed to load. If you opened the HTML directly from a ZIP or local folder, start a local web server or use GitHub Pages.');
   }
 }
+
+init();
 
 init();
