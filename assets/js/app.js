@@ -1,5 +1,7 @@
 const supabaseClient = window.supabaseClient;
-const APP_BUILD_ID = '2026-04-01-covh-db-load-v2';
+// Compatibility guard: older merged builds referenced a `debugBanner` token in renderFlyer.
+// Keep this defined so stale bundles do not hard-fail on ReferenceError.
+const debugBanner = '';
 
 function getPageSlug() {
   const explicit = document.documentElement.dataset.pageSlug;
@@ -396,6 +398,17 @@ function renderDayFilter(data) {
   if (!data.days?.length && !(data.schedule || []).length) return;
 
   state.filterMode = getFilterMode(data);
+  const eventCode = getEventCode(data);
+
+  // COVH is a single-day event each year; skip requiring chip selection.
+  if (eventCode === 'COVH' && (data.days || []).length === 1) {
+    state.filterMode = 'day';
+    state.selectedDate = data.days[0]?.id || null;
+    el.dayFilter.style.display = 'none';
+    return;
+  }
+
+  el.dayFilter.style.display = '';
 
   if (state.filterMode === 'month') {
 	const monthOptions = getMonthOptions(data);
