@@ -1211,8 +1211,6 @@ function setupFlyerActions() {
 
 function renderFlyer(data) {
   if (!el.flyerPanel) return;
-  const debugBanner = shouldShowFlyerDebug()
-    ? `<div class="flyer-source-note">Flyer source: ${getFlyerSourceLabel(data?._flyerSource)}</div>`
     : '';
 
   if (!data.flyer) {
