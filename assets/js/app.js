@@ -1,4 +1,5 @@
 const supabaseClient = window.supabaseClient;
+const APP_BUILD_ID = window.APP_BUILD_ID || 'dev';
 // Compatibility guard: older merged builds referenced a `debugBanner` token in renderFlyer.
 // Keep this defined so stale bundles do not hard-fail on ReferenceError.
 const debugBanner = '';
