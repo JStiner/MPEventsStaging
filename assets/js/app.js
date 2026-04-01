@@ -1211,8 +1211,12 @@ function setupFlyerActions() {
 
 function renderFlyer(data) {
   if (!el.flyerPanel) return;
-  const debugBanner = shouldShowFlyerDebug()
-    ? `<div class="flyer-source-note">Flyer source: ${getFlyerSourceLabel(data?._flyerSource)}</div>`
+  const canShowDebug = typeof shouldShowFlyerDebug === 'function' && shouldShowFlyerDebug();
+  const sourceLabel = typeof getFlyerSourceLabel === 'function'
+    ? getFlyerSourceLabel(data?._flyerSource)
+    : 'Unavailable';
+  const debugBanner = canShowDebug
+    ? `<div class="flyer-source-note">Flyer source: ${sourceLabel}</div>`
     : '';
 
   if (!data.flyer) {
