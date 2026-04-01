@@ -1,6 +1,4 @@
 const supabaseClient = window.supabaseClient;
-// Compatibility guard: stale merged builds may still log APP_BUILD_ID in init().
-const APP_BUILD_ID = 'compat';
 // Compatibility guard: older merged builds referenced a `debugBanner` token in renderFlyer.
 // Keep this defined so stale bundles do not hard-fail on ReferenceError.
 const debugBanner = '';
@@ -1218,7 +1216,10 @@ function renderFlyer(data) {
   if (!el.flyerPanel) return;
 
   if (!data.flyer) {
-    el.flyerPanel.innerHTML = '<div class="empty-state">Flyer content coming soon.</div>';
+    el.flyerPanel.innerHTML = `
+      ${debugBanner}
+      <div class="empty-state">Flyer content coming soon.</div>
+    `;
     return;
   }
 
@@ -1232,6 +1233,7 @@ function renderFlyer(data) {
     `;
 
   el.flyerPanel.innerHTML = `
+    ${debugBanner}
     ${flyerActionsMarkup()}
     ${flyerMarkup}
   `;
@@ -1444,6 +1446,7 @@ async function loadEventData() {
 
 async function init() {
   try {
+    console.info('[MPEvents] app.js build:', APP_BUILD_ID);
     initThemeToggle();
     const data = await loadEventData();
 
