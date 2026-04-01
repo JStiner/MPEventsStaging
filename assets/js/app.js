@@ -1,4 +1,6 @@
 const eventFile = document.documentElement.dataset.eventFile;
+const pageSlug = document.documentElement.dataset.pageSlug;
+const supabaseClient = window.supabaseClient;
 
 const state = {
   eventData: null,
@@ -1462,6 +1464,71 @@ function openScheduleFromHash() {
 }
 
 async function loadEventData(filePath) {
+  if (pageSlug && supabaseClient) {
+    const [
+      pageResult,
+      dayResult,
+      locationResult,
+      scheduleResult,
+      vendorResult,
+      flyerSectionResult,
+      flyerEntryResult,
+      flyerLegendResult,
+      flyerFooterResult,
+      flyerSponsorResult
+    ] = await Promise.all([
+      supabaseClient.from('event_pages').select('*').eq('slug', pageSlug).single(),
+      supabaseClient.from('event_days').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
+      supabaseClient.from('event_locations').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
+      supabaseClient.from('event_schedule').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
+      supabaseClient.from('event_vendors').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
+      supabaseClient.from('event_flyer_sections').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
+      supabaseClient.from('event_flyer_entries').select('*').order('sort_order', { ascending: true }),
+      supabaseClient.from('event_flyer_legend').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
+      supabaseClient.from('event_flyer_footer_notes').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true }),
+      supabaseClient.from('event_flyer_sponsors').select('*').eq('page_slug', pageSlug).order('sort_order', { ascending: true })
+    ]);
+
+    if (pageResult.error) throw pageResult.error;
+    if (dayResult.error) throw dayResult.error;
+    if (locationResult.error) throw locationResult.error;
+    if (scheduleResult.error) throw scheduleResult.error;
+    if (vendorResult.error) throw vendorResult.error;
+    if (flyerSectionResult.error) throw flyerSectionResult.error;
+    if (flyerEntryResult.error) throw flyerEntryResult.error;
+    if (flyerLegendResult.error) throw flyerLegendResult.error;
+    if (flyerFooterResult.error) throw flyerFooterResult.error;
+    if (flyerSponsorResult.error) throw flyerSponsorResult.error;
+
+    const flyerSectionIds = new Set((flyerSectionResult.data || []).map(section => section.id));
+
+    return {
+      ...(pageResult.data?.raw || {}),
+      _meta: pageResult.data?.raw?._meta || {},
+      eventName: pageResult.data?.event_name,
+      eventType: pageResult.data?.event_type,
+      summary: pageResult.data?.summary,
+      dateLabel: pageResult.data?.date_label,
+      areaLabel: pageResult.data?.area_label,
+      category: pageResult.data?.category,
+      tabs: Array.isArray(pageResult.data?.tabs) ? pageResult.data.tabs : [],
+      dates: Array.isArray(pageResult.data?.dates) ? pageResult.data.dates : [],
+      theme: pageResult.data?.theme,
+      featuredBranding: pageResult.data?.featured_branding,
+      resources: Array.isArray(pageResult.data?.resources) ? pageResult.data.resources : [],
+      flyer: pageResult.data?.flyer || pageResult.data?.raw?.flyer || null,
+      days: dayResult.data || [],
+      locations: locationResult.data || [],
+      schedule: scheduleResult.data || [],
+      vendors: vendorResult.data || [],
+      flyerSections: flyerSectionResult.data || [],
+      flyerEntries: (flyerEntryResult.data || []).filter(entry => flyerSectionIds.has(entry.section_id)),
+      flyerLegend: flyerLegendResult.data || [],
+      flyerFooterNotes: flyerFooterResult.data || [],
+      flyerSponsors: flyerSponsorResult.data || []
+    };
+  }
+
   const response = await fetch(filePath);
   if (!response.ok) {
     throw new Error(`Failed to load ${filePath} (${response.status})`);
@@ -1485,12 +1552,13 @@ async function loadEventData(filePath) {
 }
 
 async function init() {
-  if (!eventFile) return;
+  if (!eventFile && !pageSlug) return;
 
   try {
     initThemeToggle();
     const data = await loadEventData(eventFile);
 
+    state.eventData = data;
     renderHeader(data);
     renderDayFilter(data);
     renderSchedule(data);
@@ -1499,21 +1567,6 @@ async function init() {
     renderLocations(data);
     renderFlyer(data);
     setupTabs();
-	openFlyerFromHash();
-
-    el.closeModal?.addEventListener('click', closeModal);
-    el.modal?.addEventListener('click', (event) => {
-      if (event.target === el.modal) closeModal();
-    });
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') closeModal();
-    });
-
-    openScheduleFromHash();
-  } catch (error) {
-    console.error(error);
-    showLoadError('Event data failed to load. If you opened the HTML directly from a ZIP or local folder, start a local web server or use GitHub Pages.');
-  }
-}
+    openFlyerFromHash();
 
 init();
