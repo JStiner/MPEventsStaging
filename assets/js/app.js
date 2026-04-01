@@ -398,16 +398,6 @@ function renderDayFilter(data) {
   if (!data.days?.length && !(data.schedule || []).length) return;
 
   state.filterMode = getFilterMode(data);
-  const eventCode = getEventCode(data);
-
-  // COVH is a single-day event each year; skip requiring chip selection.
-  if (eventCode === 'COVH' && (data.days || []).length === 1) {
-    state.filterMode = 'day';
-    state.selectedDate = data.days[0]?.id || null;
-    el.dayFilter.style.display = 'none';
-    return;
-  }
-
   el.dayFilter.style.display = '';
 
   if (state.filterMode === 'month') {
