@@ -1,4 +1,8 @@
-import { supabase } from './supabase-client.js';
+const supabase = window.supabaseClient;
+
+if (!supabase) {
+  console.error('Supabase client is not available for admin page.');
+}
 
 const params = new URLSearchParams(window.location.search);
 const groupSlug = params.get('group');
@@ -180,6 +184,11 @@ async function initPage() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+  if (!supabase) {
+    const errorEl = document.getElementById('formError');
+    if (errorEl) errorEl.textContent = 'Admin editor is unavailable until Supabase loads.';
+    return;
+  }
   document.getElementById('eventForm')?.addEventListener('submit', saveEvent);
   document.getElementById('newEventBtn')?.addEventListener('click', resetForm);
   document.getElementById('deleteEventBtn')?.addEventListener('click', deleteEvent);

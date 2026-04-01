@@ -1,4 +1,3 @@
-const eventFile = document.documentElement.dataset.eventFile;
 const supabaseClient = window.supabaseClient;
 
 function getPageSlug() {
@@ -1211,6 +1210,7 @@ function setupFlyerActions() {
 
 function renderFlyer(data) {
   if (!el.flyerPanel) return;
+
   if (!data.flyer) {
     el.flyerPanel.innerHTML = '<div class="empty-state">Flyer content coming soon.</div>';
     return;
@@ -1400,7 +1400,7 @@ function buildEventData(pageRow, dayRows, locationRows, scheduleRows, vendorRows
   };
 }
 
-async function loadEventData(filePath) {
+async function loadEventData() {
   const pageSlug = getPageSlug();
   if (!supabaseClient || !pageSlug) {
     throw new Error('Supabase client or page slug is missing.');
@@ -1414,25 +1414,32 @@ async function loadEventData(filePath) {
     supabaseClient.from('event_vendors').select('*').eq('page_slug', pageSlug).order('name', { ascending: true })
   ]);
 
-  const results = [pageResult, daysResult, locationsResult, scheduleResult, vendorsResult];
+  const results = [pageResult, daysResult, locationsResult, scheduleResult];
   const failed = results.find(result => result.error);
   if (failed) {
     throw failed.error;
   }
 
-  return buildEventData(
+  const vendorRows = vendorsResult.error
+    ? (console.warn('Vendor query failed; continuing with empty vendors.', vendorsResult.error), [])
+    : (vendorsResult.data || []);
+
+  const eventData = buildEventData(
     pageResult.data,
     daysResult.data || [],
     locationsResult.data || [],
     scheduleResult.data || [],
-    vendorsResult.data || []
+    vendorRows
   );
+
+
+  return eventData;
 }
 
 async function init() {
   try {
     initThemeToggle();
-    const data = await loadEventData(eventFile);
+    const data = await loadEventData();
 
     renderHeader(data);
     renderDayFilter(data);
