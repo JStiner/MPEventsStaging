@@ -1226,7 +1226,10 @@ function renderFlyer(data) {
   if (!el.flyerPanel) return;
 
   if (!data.flyer) {
-    el.flyerPanel.innerHTML = '<div class="empty-state">Flyer content coming soon.</div>';
+    el.flyerPanel.innerHTML = `
+      ${debugBanner}
+      <div class="empty-state">Flyer content coming soon.</div>
+    `;
     return;
   }
 
@@ -1240,6 +1243,7 @@ function renderFlyer(data) {
     `;
 
   el.flyerPanel.innerHTML = `
+    ${debugBanner}
     ${flyerActionsMarkup()}
     ${flyerMarkup}
   `;
@@ -1452,6 +1456,7 @@ async function loadEventData() {
 
 async function init() {
   try {
+    console.info('[MPEvents] app.js build:', APP_BUILD_ID);
     initThemeToggle();
     const data = await loadEventData();
 
