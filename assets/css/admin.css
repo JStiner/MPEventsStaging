@@ -38,9 +38,18 @@
 .admin-form select {
   padding: 0.7rem 0.8rem;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.45);
   background: rgba(255,255,255,0.04);
   color: inherit;
+}
+
+.admin-login-form input:focus,
+.admin-form input:focus,
+.admin-form textarea:focus,
+.admin-form select:focus {
+  outline: 2px solid rgba(140, 198, 255, 0.9);
+  outline-offset: 1px;
+  border-color: rgba(140, 198, 255, 0.9);
 }
 
 .admin-links {
@@ -146,7 +155,8 @@ button.danger {
   .admin-grid,
   .admin-columns-2,
   .admin-columns-3,
-  .admin-header {
+  .admin-header,
+  .page-sections-grid {
     grid-template-columns: 1fr;
     display: grid;
   }
@@ -238,9 +248,73 @@ button.danger {
   word-break: break-word;
 }
 
+.admin-meta.compact {
+  margin-bottom: 0;
+}
+
 .admin-list {
   margin: 0;
   padding-left: 1.1rem;
+}
+
+.page-details-card {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.page-sections-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.admin-subcard {
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 12px;
+  padding: 0.85rem;
+  background: rgba(255,255,255,0.03);
+}
+
+.admin-subcard h4 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.admin-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-chip {
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+.admin-subcard details {
+  margin-top: 0.75rem;
+}
+
+.admin-subcard summary {
+  cursor: pointer;
+}
+
+.json-block {
+  margin: 0.6rem 0 0;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(0,0,0,0.2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  max-height: 240px;
+  overflow: auto;
 }
 
 .audit-table {
