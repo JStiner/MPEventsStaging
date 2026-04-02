@@ -282,43 +282,167 @@ function getFieldValue(entry, keys = [], fallback = '—') {
   return fallback;
 }
 
-function mapExistingPageDataToCalendarItems(groupSlug, pages) {
-  const items = [];
+function normalizeCalendarItem(item, context = {}) {
+  const date = toDateKey(item?.date || item?.event_date || item?.day || item?.start_date);
+  if (!date) return null;
 
-  pages.forEach((page) => {
-    const dateEntries = Array.isArray(page.dates) ? page.dates : [];
-    dateEntries.forEach((entry, index) => {
-      const isString = typeof entry === 'string';
-      const dateKey = toDateKey(isString ? entry : (entry?.date || entry?.event_date || entry?.day || entry?.start_date));
-      if (!dateKey) return;
+  const title = String(getFieldValue(item, ['title', 'name', 'event_name'], context.pageName || context.pageSlug || 'Untitled'));
+  const startTime = String(getFieldValue(item, ['start_time', 'startTime', 'time', 'begin_time'], ''));
+  const endTime = String(getFieldValue(item, ['end_time', 'endTime'], ''));
+  const location = String(getFieldValue(item, ['location', 'locationName', 'place', 'venue'], ''));
+  const description = String(getFieldValue(item, ['description', 'summary', 'details'], ''));
+  const category = String(getFieldValue(item, ['category', 'type'], context.pageCategory || ''));
 
-      const title = isString
-        ? (page.event_name || page.slug || `Item ${index + 1}`)
-        : String(getFieldValue(entry, ['title', 'name', 'event_name'], page.event_name || page.slug || 'Untitled'));
+  return {
+    id: String(context.id || item?.id || `${context.pageSlug || 'event'}:${date}:${title}`),
+    title,
+    date,
+    startTime,
+    endTime,
+    location,
+    description,
+    category,
+    sourcePageSlug: context.pageSlug || '',
+    groupSlug: context.groupSlug || '',
+    pageSlug: context.pageSlug || '',
+    pageName: context.pageName || context.pageSlug || '',
+    entryIndex: Number.isInteger(context.entryIndex) ? context.entryIndex : null,
+    sourceEntry: item,
+    sourceType: context.sourceType || 'unknown',
+  };
+}
 
-      items.push({
-        id: `${page.slug}:${index}`,
-        groupSlug,
-        pageSlug: page.slug,
-        pageName: page.event_name || page.slug,
-        entryIndex: index,
-        date: dateKey,
-        title,
-        startTime: String(getFieldValue(entry, ['start_time', 'startTime', 'time', 'begin_time'], '')),
-        endTime: String(getFieldValue(entry, ['end_time', 'endTime'], '')),
-        location: String(getFieldValue(entry, ['location', 'place', 'venue'], '')),
-        description: String(getFieldValue(entry, ['description', 'summary', 'details'], '')),
-        category: String(getFieldValue(entry, ['category', 'type'], page.category || '')),
-        sourceEntry: entry,
-      });
+function extractPageCalendarItems(page, groupSlug) {
+  const pageName = page.event_name || page.slug;
+  const pageCategory = page.category || '';
+  const normalized = [];
+  const rawMatchesByDate = new Map();
+  const pushRawMatch = (dateKey, sourceType, rawItem) => {
+    if (!dateKey) return;
+    const list = rawMatchesByDate.get(dateKey) || [];
+    list.push({ sourceType, rawItem });
+    rawMatchesByDate.set(dateKey, list);
+  };
+
+  const dateEntries = Array.isArray(page.dates) ? page.dates : [];
+  dateEntries.forEach((entry, index) => {
+    const rawEntry = typeof entry === 'string' ? { date: entry } : (entry || {});
+    const normalizedEntry = normalizeCalendarItem(rawEntry, {
+      id: `${page.slug}:dates:${index}`,
+      groupSlug,
+      pageSlug: page.slug,
+      pageName,
+      pageCategory,
+      entryIndex: index,
+      sourceType: 'dates',
     });
+    if (!normalizedEntry) return;
+    normalized.push(normalizedEntry);
+    pushRawMatch(normalizedEntry.date, 'dates', entry);
   });
 
+  const raw = page.raw && typeof page.raw === 'object' ? page.raw : {};
+  const rawDays = Array.isArray(raw.days) ? raw.days : [];
+  const rawLocations = Array.isArray(raw.locations) ? raw.locations : [];
+  const dayDateById = new Map();
+  rawDays.forEach((day) => {
+    const dayDate = toDateKey(day?.date || day?.event_date || day?.day || day?.start_date);
+    if (!dayDate) return;
+    [day?.id, day?.external_id, day?.key].filter(Boolean).forEach((key) => dayDateById.set(String(key), dayDate));
+  });
+  const locationById = new Map();
+  rawLocations.forEach((loc) => {
+    const locName = String(getFieldValue(loc, ['name', 'location', 'title'], '') || '');
+    [loc?.id, loc?.external_id, loc?.key].filter(Boolean).forEach((key) => locationById.set(String(key), locName));
+  });
+
+  const rawSchedules = Array.isArray(raw.schedule) ? raw.schedule : [];
+  rawSchedules.forEach((entry, index) => {
+    const dayId = String(entry?.dayId || entry?.day_id || entry?.day_external_id || '');
+    const locationId = String(entry?.locationId || entry?.location_id || entry?.location_external_id || '');
+    const resolvedDate = toDateKey(entry?.date || entry?.event_date || entry?.day || dayDateById.get(dayId));
+    const resolvedLocation = String(getFieldValue(entry, ['location', 'locationName', 'place', 'venue'], locationById.get(locationId) || ''));
+    const normalizedEntry = normalizeCalendarItem(
+      { ...entry, date: resolvedDate, location: resolvedLocation },
+      {
+        id: `${page.slug}:raw.schedule:${index}`,
+        groupSlug,
+        pageSlug: page.slug,
+        pageName,
+        pageCategory,
+        sourceType: 'raw.schedule',
+      },
+    );
+    if (!normalizedEntry) return;
+    normalized.push(normalizedEntry);
+    pushRawMatch(normalizedEntry.date, 'raw.schedule', entry);
+  });
+
+  const rawEvents = Array.isArray(raw.events) ? raw.events : [];
+  rawEvents.forEach((entry, index) => {
+    const normalizedEntry = normalizeCalendarItem(entry, {
+      id: `${page.slug}:raw.events:${index}`,
+      groupSlug,
+      pageSlug: page.slug,
+      pageName,
+      pageCategory,
+      sourceType: 'raw.events',
+    });
+    if (!normalizedEntry) return;
+    normalized.push(normalizedEntry);
+    pushRawMatch(normalizedEntry.date, 'raw.events', entry);
+  });
+
+  return { normalized, rawMatchesByDate };
+}
+
+function mapExistingPageDataToCalendarItems(groupSlug, pages) {
+  const items = [];
+  pages.forEach((page) => {
+    const pageItems = extractPageCalendarItems(page, groupSlug);
+    items.push(...pageItems.normalized);
+  });
   return items.sort((a, b) => {
     if (a.date !== b.date) return a.date.localeCompare(b.date);
     if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime);
     return a.title.localeCompare(b.title);
   });
+}
+
+function buildCalendarDayCounts(items) {
+  const countsByDate = new Map();
+  items.forEach((item) => {
+    if (!item?.date) return;
+    countsByDate.set(item.date, (countsByDate.get(item.date) || 0) + 1);
+  });
+  return countsByDate;
+}
+
+function extractCalendarItemsForDate(groupSlug, pages, selectedDate) {
+  const dateKey = toDateKey(selectedDate);
+  const normalizedItems = [];
+  const rawMatches = [];
+  if (!dateKey) return { dateKey: null, normalizedItems, rawMatches };
+
+  pages.forEach((page) => {
+    const pageItems = extractPageCalendarItems(page, groupSlug);
+    normalizedItems.push(...pageItems.normalized.filter((item) => item.date === dateKey));
+    const rawForDate = pageItems.rawMatchesByDate.get(dateKey) || [];
+    rawMatches.push(...rawForDate.map((entry) => ({ pageSlug: page.slug, ...entry })));
+  });
+
+  normalizedItems.sort((a, b) => {
+    if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime);
+    return a.title.localeCompare(b.title);
+  });
+
+  console.groupCollapsed(`[admin calendar] selected date ${dateKey}`);
+  console.log('selected date:', dateKey);
+  console.log('raw matched items for selected date:', rawMatches);
+  console.log('normalized items for renderer:', normalizedItems);
+  console.groupEnd();
+
+  return { dateKey, normalizedItems, rawMatches };
 }
 
 function getGroupCalendarBehavior(groupSlug) {
@@ -895,12 +1019,7 @@ function renderGroupCalendar(group, pages) {
   state.groupCalendarAnchorBySlug[group.slug] = anchor;
   const behavior = getGroupCalendarBehavior(group.slug);
   const calendarItems = mapExistingPageDataToCalendarItems(group.slug, pages);
-  const itemsByDate = new Map();
-  calendarItems.forEach((item) => {
-    const list = itemsByDate.get(item.date) || [];
-    list.push(item);
-    itemsByDate.set(item.date, list);
-  });
+  const countsByDate = buildCalendarDayCounts(calendarItems);
 
   const dayCells = buildCalendarMatrix(anchor);
   const selectedDate = state.groupSelectedDateBySlug[group.slug];
@@ -918,15 +1037,15 @@ function renderGroupCalendar(group, pages) {
 
     const cells = weekDates.map((date) => {
       const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-      const dayItems = itemsByDate.get(dateKey) || [];
+      const dayCount = countsByDate.get(dateKey) || 0;
       const muted = date.getMonth() !== anchor.getMonth() ? 'muted' : '';
-      const hasItems = dayItems.length ? 'has-items' : '';
+      const hasItems = dayCount ? 'has-items' : '';
       const selected = selectedDate === dateKey ? 'selected' : '';
       return `
         <td class="group-calendar-day-cell">
           <button type="button" class="group-calendar-cell ${muted} ${hasItems} ${selected}" data-calendar-date="${escapeHtml(dateKey)}">
             <span class="group-calendar-day-number">${date.getDate()}</span>
-            <span class="group-calendar-item-count">${escapeHtml(formatEventCountLabel(dayItems.length, behavior))}</span>
+            <span class="group-calendar-item-count">${escapeHtml(formatEventCountLabel(dayCount, behavior))}</span>
           </button>
         </td>
       `;
@@ -939,7 +1058,8 @@ function renderGroupCalendar(group, pages) {
     `);
 
     if (selectedWeekKey && weekKey === selectedWeekKey && selectedDate) {
-      const selectedItems = itemsByDate.get(selectedDate) || [];
+      const selectedItemsResult = extractCalendarItemsForDate(group.slug, pages, selectedDate);
+      const selectedItems = selectedItemsResult.normalizedItems;
       const editorState = state.groupCalendarEditorBySlug[group.slug] || { mode: null, itemId: null };
       weekRows.push(renderCalendarExpandedRow(group, pages, selectedDate, selectedItems, editorState));
     }
