@@ -2586,3 +2586,22 @@ body.large-text .calendar-day-card {
     margin: 0;
   }
 }
+.public-footer {
+  margin: 8px auto 20px;
+  width: 100%;
+  max-width: 1060px;
+  text-align: center;
+}
+
+.public-footer-link {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-decoration: none;
+  opacity: 0.9;
+}
+
+.public-footer-link:hover,
+.public-footer-link:focus {
+  text-decoration: underline;
+  opacity: 1;
+}
