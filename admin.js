@@ -200,6 +200,79 @@ function renderListRows(value, emptyLabel) {
   return `<ul class="admin-list">${rows}</ul>`;
 }
 
+function normalizeStringList(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => String(item ?? '').trim())
+    .filter(Boolean);
+}
+
+function normalizeDatesForEditor(value) {
+  if (!Array.isArray(value)) return [];
+  const entries = value.map((entry) => {
+    if (typeof entry === 'string') {
+      return { date: toDateKey(entry) || '' };
+    }
+    if (entry && typeof entry === 'object') {
+      return { date: toDateKey(entry.date || entry.event_date || entry.day || entry.start_date) || '' };
+    }
+    return { date: '' };
+  }).filter((entry) => entry.date);
+
+  return entries.length ? entries : [{ date: '' }];
+}
+
+function buildGeneralFormModel(page) {
+  return {
+    slug: page.slug || '',
+    event_name: page.event_name || '',
+    event_type: page.event_type || '',
+    category: page.category || '',
+    summary: page.summary || '',
+    date_label: page.date_label || '',
+    area_label: page.area_label || '',
+    tabs: normalizeStringList(page.tabs),
+    dates: normalizeDatesForEditor(page.dates),
+    resources: normalizeStringList(page.resources),
+    theme: page.theme || {},
+    featured_branding: page.featured_branding || {},
+    raw: page.raw || {},
+    flyer: page.flyer || {},
+  };
+}
+
+function renderStringListEditor(fieldName, values, addLabel) {
+  const rows = (values.length ? values : ['']).map((item, index) => `
+    <div class="list-editor-row">
+      <input type="text" name="${fieldName}" value="${escapeHtml(item)}" placeholder="Enter value">
+      <button type="button" class="list-row-remove" data-remove-row="${fieldName}" data-row-index="${index}">Remove</button>
+    </div>
+  `).join('');
+
+  return `
+    <div class="list-editor" data-list-editor="${fieldName}">
+      ${rows}
+    </div>
+    <button type="button" class="secondary-action" data-add-row="${fieldName}">${escapeHtml(addLabel)}</button>
+  `;
+}
+
+function renderDateListEditor(values) {
+  const rows = (values.length ? values : [{ date: '' }]).map((item, index) => `
+    <div class="list-editor-row date-row">
+      <input type="date" name="dates" value="${escapeHtml(item.date || '')}">
+      <button type="button" class="list-row-remove" data-remove-row="dates" data-row-index="${index}">Remove</button>
+    </div>
+  `).join('');
+
+  return `
+    <div class="list-editor" data-list-editor="dates">
+      ${rows}
+    </div>
+    <button type="button" class="secondary-action" data-add-row="dates">Add Date</button>
+  `;
+}
+
 function getFieldValue(entry, keys = [], fallback = '—') {
   if (!entry || typeof entry !== 'object') return fallback;
   for (const key of keys) {
@@ -527,6 +600,8 @@ function renderGroupPanel(tabKey) {
 
   const calendarSection = activeGroupView === 'calendar' ? renderGroupCalendar(group, pages) : '';
 
+  const formPage = buildGeneralFormModel(selectedPage);
+
   const pageDetailsSection = activeGroupView === 'pages'
     ? `
       <div class="group-general-layout ${isSinglePageGroup ? 'single-page' : 'multi-page'}">
@@ -544,77 +619,85 @@ function renderGroupPanel(tabKey) {
             </div>
           ` : ''}
 
-          <div class="general-sections-grid">
-            <section class="admin-subcard">
-              <h4>Basic Info</h4>
-              ${renderMetaRows([
-                { label: 'Slug', value: selectedPage.slug || '—' },
-                { label: 'Event Name', value: selectedPage.event_name || '—' },
-                { label: 'Event Type', value: selectedPage.event_type || '—' },
-                { label: 'Category', value: selectedPage.category || '—' },
-                { label: 'Group Slug', value: selectedPage.group_slug || '—' },
-              ])}
-            </section>
+          <form class="admin-form general-edit-form" data-page-edit-form="${escapeHtml(selectedPage.slug)}">
+            <div class="general-sections-grid">
+              <section class="admin-subcard">
+                <h4>Basic Info</h4>
+                <label>
+                  Event Name
+                  <input type="text" name="event_name" value="${escapeHtml(formPage.event_name)}" required>
+                </label>
+                <label>
+                  Slug
+                  <input type="text" name="slug" value="${escapeHtml(formPage.slug)}">
+                </label>
+                <p class="subtle-text compact-note">Changing the slug can break existing links and integrations.</p>
+                <label>
+                  Event Type
+                  <input type="text" name="event_type" value="${escapeHtml(formPage.event_type)}">
+                </label>
+                <label>
+                  Category
+                  <input type="text" name="category" value="${escapeHtml(formPage.category)}">
+                </label>
+                <label>
+                  Group Slug
+                  <input type="text" value="${escapeHtml(selectedPage.group_slug || '')}" disabled>
+                </label>
+              </section>
 
-            <section class="admin-subcard section-wide">
-              <h4>Summary</h4>
-              <p class="summary-copy">${escapeHtml(selectedPage.summary || '—')}</p>
-            </section>
+              <section class="admin-subcard section-wide">
+                <h4>Summary</h4>
+                <label>
+                  Summary
+                  <textarea name="summary" rows="5">${escapeHtml(formPage.summary)}</textarea>
+                </label>
+              </section>
 
-            <section class="admin-subcard">
-              <h4>Labels</h4>
-              ${renderMetaRows([
-                { label: 'Date Label', value: selectedPage.date_label || '—' },
-                { label: 'Area Label', value: selectedPage.area_label || '—' },
-              ])}
-            </section>
+              <section class="admin-subcard">
+                <h4>Labels</h4>
+                <label>
+                  Date Label
+                  <input type="text" name="date_label" value="${escapeHtml(formPage.date_label)}">
+                </label>
+                <label>
+                  Area Label
+                  <textarea name="area_label" rows="4">${escapeHtml(formPage.area_label)}</textarea>
+                </label>
+              </section>
 
-            <section class="admin-subcard">
-              <h4>Tabs</h4>
-              ${renderChipList(Array.isArray(selectedPage.tabs) ? selectedPage.tabs.map((tab) => String(tab)) : [], 'No tabs available.')}
-              <details>
-                <summary>Tabs JSON</summary>
-                <pre class="json-block">${escapeHtml(formatJson(selectedPage.tabs))}</pre>
-              </details>
-            </section>
+              <section class="admin-subcard">
+                <h4>Tabs</h4>
+                ${renderStringListEditor('tabs', formPage.tabs, 'Add Tab')}
+              </section>
 
-            <section class="admin-subcard">
-              <h4>Dates</h4>
-              ${renderListRows(selectedPage.dates, 'No dates available.')}
-              <details>
-                <summary>Dates JSON</summary>
-                <pre class="json-block">${escapeHtml(formatJson(selectedPage.dates))}</pre>
-              </details>
-            </section>
+              <section class="admin-subcard">
+                <h4>Dates</h4>
+                ${renderDateListEditor(formPage.dates)}
+              </section>
 
-            <section class="admin-subcard">
-              <h4>Theme / Branding</h4>
-              ${renderObjectRows(selectedPage.theme, 'No theme data.')}
-              ${renderObjectRows(selectedPage.featured_branding, 'No branding data.')}
-              <details>
-                <summary>Theme / Branding JSON</summary>
-                <pre class="json-block">${escapeHtml(formatJson({ theme: selectedPage.theme, featured_branding: selectedPage.featured_branding }))}</pre>
-              </details>
-            </section>
+              <section class="admin-subcard">
+                <h4>Resources</h4>
+                ${renderStringListEditor('resources', formPage.resources, 'Add Resource')}
+              </section>
 
-            <section class="admin-subcard">
-              <h4>Resources</h4>
-              ${renderListRows(selectedPage.resources, 'No resources available.')}
-              ${renderObjectRows(selectedPage.flyer, 'No flyer data.')}
-              <details>
-                <summary>Resources JSON</summary>
-                <pre class="json-block">${escapeHtml(formatJson({ resources: selectedPage.resources, flyer: selectedPage.flyer }))}</pre>
-              </details>
-            </section>
-
-            <section class="admin-subcard section-wide">
-              <h4>Raw / Advanced</h4>
-              <details>
-                <summary>Show full raw payload</summary>
-                <pre class="json-block">${escapeHtml(formatJson(selectedPage.raw))}</pre>
-              </details>
-            </section>
-          </div>
+              <section class="admin-subcard section-wide">
+                <h4>Advanced</h4>
+                <details>
+                  <summary>Theme / Branding</summary>
+                  <pre class="json-block">${escapeHtml(formatJson({ theme: formPage.theme, featured_branding: formPage.featured_branding }))}</pre>
+                </details>
+                <details>
+                  <summary>Raw JSON</summary>
+                  <pre class="json-block">${escapeHtml(formatJson(formPage.raw))}</pre>
+                </details>
+              </section>
+            </div>
+            <div class="form-submit-row">
+              <p class="subtle-text save-message" data-page-save-message></p>
+              <button type="submit">Save</button>
+            </div>
+          </form>
         </section>
       </div>
     `
@@ -668,6 +751,98 @@ function renderGroupPanel(tabKey) {
       renderGroupPanel(tabKey);
     });
   });
+
+  panel.querySelectorAll('[data-add-row]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const fieldName = button.dataset.addRow;
+      const listRoot = panel.querySelector(`[data-list-editor="${fieldName}"]`);
+      if (!fieldName || !listRoot) return;
+      const row = document.createElement('div');
+      row.className = fieldName === 'dates' ? 'list-editor-row date-row' : 'list-editor-row';
+      if (fieldName === 'dates') {
+        row.innerHTML = `
+          <input type="date" name="dates" value="">
+          <button type="button" class="list-row-remove" data-remove-row="dates">Remove</button>
+        `;
+      } else {
+        row.innerHTML = `
+          <input type="text" name="${fieldName}" value="" placeholder="Enter value">
+          <button type="button" class="list-row-remove" data-remove-row="${fieldName}">Remove</button>
+        `;
+      }
+      listRoot.appendChild(row);
+    });
+  });
+
+  panel.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-remove-row]');
+    if (!button) return;
+    const row = button.closest('.list-editor-row');
+    if (!row) return;
+    const listRoot = row.parentElement;
+    if (!listRoot) return;
+    if (listRoot.querySelectorAll('.list-editor-row').length <= 1) {
+      const input = row.querySelector('input');
+      if (input) input.value = '';
+      return;
+    }
+    row.remove();
+  });
+
+  panel.querySelector('[data-page-edit-form]')?.addEventListener('submit', (event) => saveGeneralPage(event, group));
+}
+
+async function saveGeneralPage(event, group) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (!form) return;
+  const selectedSlug = state.selectedPageByGroup[group.slug];
+  const pages = state.groupPagesBySlug[group.slug] || [];
+  const page = pages.find((entry) => entry.slug === selectedSlug);
+  const messageEl = form.querySelector('[data-page-save-message]');
+  if (!page) {
+    if (messageEl) messageEl.textContent = 'Unable to resolve selected page.';
+    return;
+  }
+
+  const readValues = (name) => Array.from(form.querySelectorAll(`[name="${name}"]`))
+    .map((input) => String(input.value || '').trim())
+    .filter(Boolean);
+
+  const nextSlug = String(form.querySelector('[name="slug"]')?.value || '').trim() || page.slug;
+  const payload = {
+    slug: nextSlug,
+    event_name: String(form.querySelector('[name="event_name"]')?.value || '').trim(),
+    event_type: String(form.querySelector('[name="event_type"]')?.value || '').trim() || null,
+    category: String(form.querySelector('[name="category"]')?.value || '').trim() || null,
+    summary: String(form.querySelector('[name="summary"]')?.value || '').trim() || null,
+    date_label: String(form.querySelector('[name="date_label"]')?.value || '').trim() || null,
+    area_label: String(form.querySelector('[name="area_label"]')?.value || '').trim() || null,
+    tabs: readValues('tabs'),
+    dates: readValues('dates').map((date) => ({ date })),
+    resources: readValues('resources'),
+  };
+
+  const { error } = await supabaseClient
+    .from('event_pages')
+    .update(payload)
+    .eq('group_slug', group.slug)
+    .eq('slug', page.slug);
+
+  if (error) {
+    if (messageEl) messageEl.textContent = `Save failed: ${error.message || 'Unknown error'}`;
+    return;
+  }
+
+  if (messageEl) messageEl.textContent = 'Saved.';
+
+  state.groupPagesBySlug[group.slug] = pages.map((entry) => (
+    entry.slug === page.slug
+      ? { ...entry, ...payload, group_slug: group.slug }
+      : entry
+  ));
+  state.selectedPageByGroup[group.slug] = nextSlug;
+  renderGroupPanel(`group:${group.slug}`);
 }
 
 function renderGroupCalendar(group, pages) {
