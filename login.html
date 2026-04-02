@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log In | Community Events Admin</title>
+  <link rel="stylesheet" href="./assets/css/admin.css">
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-card">
+      <h1>Admin Login</h1>
+      <p class="subtle-text">Sign in with your email and password.</p>
+
+      <form id="loginForm" class="admin-form" autocomplete="on">
+        <label for="email">Email</label>
+        <input id="email" type="email" required autocomplete="email">
+
+        <label for="password">Password</label>
+        <input id="password" type="password" required autocomplete="current-password">
+
+        <button id="loginButton" type="submit">Log In</button>
+      </form>
+
+      <p id="loginError" class="error-text" role="alert"></p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./assets/js/supabase-client.js"></script>
+  <script>
+    const supabase = window.supabaseClient;
+
+    async function redirectIfAuthed() {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        document.getElementById('loginError').textContent = error.message;
+        return;
+      }
+      if (data.session?.user) {
+        window.location.href = './admin.html';
+      }
+    }
+
+    async function handleSubmit(event) {
+      event.preventDefault();
+      const errorEl = document.getElementById('loginError');
+      const button = document.getElementById('loginButton');
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        errorEl.textContent = '';
+        button.disabled = true;
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        window.location.href = './admin.html';
+      } catch (error) {
+        errorEl.textContent = error.message || 'Unable to sign in.';
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (!supabase) {
+        document.getElementById('loginError').textContent = 'Supabase is unavailable.';
+        return;
+      }
+      document.getElementById('loginForm').addEventListener('submit', handleSubmit);
+      await redirectIfAuthed();
+    });
+  </script>
+</body>
+</html>
