@@ -37,6 +37,68 @@ function formatJson(value) {
   }
 }
 
+function toTitleCase(value) {
+  return String(value ?? '')
+    .replaceAll('_', ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part[0]?.toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function renderMetaRows(rows) {
+  const content = rows.map(({ label, value }) => `
+    <div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value ?? '—')}</dd></div>
+  `).join('');
+
+  return `<dl class="admin-meta compact">${content || '<div><dt>Status</dt><dd>—</dd></div>'}</dl>`;
+}
+
+function renderChipList(items, emptyLabel) {
+  if (!items.length) {
+    return `<p class="subtle-text">${escapeHtml(emptyLabel)}</p>`;
+  }
+
+  const chips = items.map((item) => `<li class="admin-chip">${escapeHtml(item)}</li>`).join('');
+  return `<ul class="admin-chip-list">${chips}</ul>`;
+}
+
+function renderObjectRows(value, emptyLabel) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return `<p class="subtle-text">${escapeHtml(emptyLabel)}</p>`;
+  }
+
+  const entries = Object.entries(value);
+  if (!entries.length) {
+    return `<p class="subtle-text">${escapeHtml(emptyLabel)}</p>`;
+  }
+
+  const rows = entries.map(([key, entryValue]) => ({
+    label: toTitleCase(key),
+    value: entryValue === null || entryValue === undefined || entryValue === '' ? '—' : String(entryValue),
+  }));
+  return renderMetaRows(rows);
+}
+
+function renderListRows(value, emptyLabel) {
+  if (!Array.isArray(value) || !value.length) {
+    return `<p class="subtle-text">${escapeHtml(emptyLabel)}</p>`;
+  }
+
+  const rows = value.map((entry, index) => {
+    if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
+      const objectRows = Object.entries(entry).map(([key, objectValue]) => `
+        <li><strong>${escapeHtml(toTitleCase(key))}:</strong> ${escapeHtml(objectValue === null || objectValue === undefined || objectValue === '' ? '—' : String(objectValue))}</li>
+      `).join('');
+      return `<li><span class="subtle-text">Item ${index + 1}</span><ul class="admin-list">${objectRows}</ul></li>`;
+    }
+
+    return `<li>${escapeHtml(String(entry))}</li>`;
+  }).join('');
+
+  return `<ul class="admin-list">${rows}</ul>`;
+}
+
 async function requireUser() {
   const { data, error } = await supabaseClient.auth.getSession();
   if (error) throw error;
@@ -157,12 +219,6 @@ function renderAdminPanel() {
   });
 }
 
-function formatFieldValue(value) {
-  if (value === null || value === undefined || value === '') return '—';
-  if (typeof value === 'object') return `<pre>${escapeHtml(formatJson(value))}</pre>`;
-  return escapeHtml(String(value));
-}
-
 function renderGroupPanel(tabKey) {
   const group = state.tabs.find((tab) => tab.key === tabKey)?.group;
   const panel = document.getElementById('groupTabPanel');
@@ -239,24 +295,83 @@ function renderGroupPanel(tabKey) {
         <div class="admin-tabs">${pageList}</div>
       </section>
 
-      <section class="admin-card">
+      <section class="admin-card page-details-card">
         <h3>Page Details</h3>
-        <dl class="admin-meta">
-          <div><dt>slug</dt><dd>${formatFieldValue(selectedPage.slug)}</dd></div>
-          <div><dt>event_name</dt><dd>${formatFieldValue(selectedPage.event_name)}</dd></div>
-          <div><dt>event_type</dt><dd>${formatFieldValue(selectedPage.event_type)}</dd></div>
-          <div><dt>summary</dt><dd>${formatFieldValue(selectedPage.summary)}</dd></div>
-          <div><dt>date_label</dt><dd>${formatFieldValue(selectedPage.date_label)}</dd></div>
-          <div><dt>area_label</dt><dd>${formatFieldValue(selectedPage.area_label)}</dd></div>
-          <div><dt>category</dt><dd>${formatFieldValue(selectedPage.category)}</dd></div>
-          <div><dt>tabs</dt><dd>${formatFieldValue(selectedPage.tabs)}</dd></div>
-          <div><dt>dates</dt><dd>${formatFieldValue(selectedPage.dates)}</dd></div>
-          <div><dt>theme</dt><dd>${formatFieldValue(selectedPage.theme)}</dd></div>
-          <div><dt>featured_branding</dt><dd>${formatFieldValue(selectedPage.featured_branding)}</dd></div>
-          <div><dt>flyer</dt><dd>${formatFieldValue(selectedPage.flyer)}</dd></div>
-          <div><dt>resources</dt><dd>${formatFieldValue(selectedPage.resources)}</dd></div>
-          <div><dt>raw</dt><dd>${formatFieldValue(selectedPage.raw)}</dd></div>
-        </dl>
+        <div class="page-sections-grid">
+          <section class="admin-subcard">
+            <h4>Page Info</h4>
+            ${renderMetaRows([
+              { label: 'Slug', value: selectedPage.slug || '—' },
+              { label: 'Event Name', value: selectedPage.event_name || '—' },
+              { label: 'Event Type', value: selectedPage.event_type || '—' },
+              { label: 'Summary', value: selectedPage.summary || '—' },
+              { label: 'Category', value: selectedPage.category || '—' },
+              { label: 'Group Slug', value: selectedPage.group_slug || '—' },
+            ])}
+          </section>
+
+          <section class="admin-subcard">
+            <h4>Labels</h4>
+            ${renderMetaRows([
+              { label: 'Date Label', value: selectedPage.date_label || '—' },
+              { label: 'Area Label', value: selectedPage.area_label || '—' },
+            ])}
+          </section>
+
+          <section class="admin-subcard">
+            <h4>Tabs</h4>
+            ${renderChipList(Array.isArray(selectedPage.tabs) ? selectedPage.tabs.map((tab) => String(tab)) : [], 'No tabs available.')}
+            <details>
+              <summary>Tabs JSON</summary>
+              <pre class="json-block">${escapeHtml(formatJson(selectedPage.tabs))}</pre>
+            </details>
+          </section>
+
+          <section class="admin-subcard">
+            <h4>Dates</h4>
+            ${renderListRows(selectedPage.dates, 'No dates available.')}
+            <details>
+              <summary>Dates JSON</summary>
+              <pre class="json-block">${escapeHtml(formatJson(selectedPage.dates))}</pre>
+            </details>
+          </section>
+
+          <section class="admin-subcard">
+            <h4>Theme / Branding</h4>
+            ${renderObjectRows(selectedPage.theme, 'No theme data.')}
+            ${renderObjectRows(selectedPage.featured_branding, 'No branding data.')}
+            <details>
+              <summary>Theme / Branding JSON</summary>
+              <pre class="json-block">${escapeHtml(formatJson({ theme: selectedPage.theme, featured_branding: selectedPage.featured_branding }))}</pre>
+            </details>
+          </section>
+
+          <section class="admin-subcard">
+            <h4>Flyer</h4>
+            ${renderObjectRows(selectedPage.flyer, 'No flyer data.')}
+            <details>
+              <summary>Flyer JSON</summary>
+              <pre class="json-block">${escapeHtml(formatJson(selectedPage.flyer))}</pre>
+            </details>
+          </section>
+
+          <section class="admin-subcard">
+            <h4>Resources</h4>
+            ${renderListRows(selectedPage.resources, 'No resources available.')}
+            <details>
+              <summary>Resources JSON</summary>
+              <pre class="json-block">${escapeHtml(formatJson(selectedPage.resources))}</pre>
+            </details>
+          </section>
+
+          <section class="admin-subcard">
+            <h4>Raw JSON</h4>
+            <details>
+              <summary>Show full raw payload</summary>
+              <pre class="json-block">${escapeHtml(formatJson(selectedPage.raw))}</pre>
+            </details>
+          </section>
+        </div>
       </section>
     </div>
   `;
