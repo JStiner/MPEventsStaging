@@ -21,7 +21,7 @@ const state = {
 const GROUP_SUBVIEW_KEYS = ['calendar', 'pages', 'schedule', 'vendors', 'locations', 'flyer', 'resources', 'settings'];
 const GROUP_SUBVIEW_LABELS = {
   calendar: 'Calendar',
-  pages: 'Pages',
+  pages: 'General',
   schedule: 'Schedule',
   vendors: 'Vendors',
   locations: 'Locations',
@@ -504,6 +504,8 @@ function renderGroupPanel(tabKey) {
   const selectedPage = pages.find((page) => page.slug === selectedSlug) || pages[0];
   state.selectedPageByGroup[group.slug] = selectedPage.slug;
 
+  const isSinglePageGroup = pages.length === 1;
+
   const pageList = pages.map((page) => {
     const activeClass = page.slug === selectedPage.slug ? 'active' : '';
     return `
@@ -527,25 +529,36 @@ function renderGroupPanel(tabKey) {
 
   const pageDetailsSection = activeGroupView === 'pages'
     ? `
-      <div class="admin-grid">
-        <section class="admin-card">
-          <h3>Pages</h3>
-          <div class="admin-tabs">${pageList}</div>
-        </section>
+      <div class="group-general-layout ${isSinglePageGroup ? 'single-page' : 'multi-page'}">
+        ${isSinglePageGroup ? '' : `
+          <aside class="admin-card group-page-rail">
+            <h3>Pages</h3>
+            <div class="admin-tabs rail-tabs">${pageList}</div>
+          </aside>
+        `}
 
-        <section class="admin-card page-details-card">
-          <h3>Page Details</h3>
-          <div class="page-sections-grid">
+        <section class="group-general-main">
+          ${isSinglePageGroup ? `
+            <div class="page-identifier">
+              <strong>Page:</strong> ${escapeHtml(selectedPage.event_name || selectedPage.slug)} <span class="subtle-text">(${escapeHtml(selectedPage.slug)})</span>
+            </div>
+          ` : ''}
+
+          <div class="general-sections-grid">
             <section class="admin-subcard">
-              <h4>Page Info</h4>
+              <h4>Basic Info</h4>
               ${renderMetaRows([
                 { label: 'Slug', value: selectedPage.slug || '—' },
                 { label: 'Event Name', value: selectedPage.event_name || '—' },
                 { label: 'Event Type', value: selectedPage.event_type || '—' },
-                { label: 'Summary', value: selectedPage.summary || '—' },
                 { label: 'Category', value: selectedPage.category || '—' },
                 { label: 'Group Slug', value: selectedPage.group_slug || '—' },
               ])}
+            </section>
+
+            <section class="admin-subcard section-wide">
+              <h4>Summary</h4>
+              <p class="summary-copy">${escapeHtml(selectedPage.summary || '—')}</p>
             </section>
 
             <section class="admin-subcard">
@@ -585,25 +598,17 @@ function renderGroupPanel(tabKey) {
             </section>
 
             <section class="admin-subcard">
-              <h4>Flyer</h4>
-              ${renderObjectRows(selectedPage.flyer, 'No flyer data.')}
-              <details>
-                <summary>Flyer JSON</summary>
-                <pre class="json-block">${escapeHtml(formatJson(selectedPage.flyer))}</pre>
-              </details>
-            </section>
-
-            <section class="admin-subcard">
               <h4>Resources</h4>
               ${renderListRows(selectedPage.resources, 'No resources available.')}
+              ${renderObjectRows(selectedPage.flyer, 'No flyer data.')}
               <details>
                 <summary>Resources JSON</summary>
-                <pre class="json-block">${escapeHtml(formatJson(selectedPage.resources))}</pre>
+                <pre class="json-block">${escapeHtml(formatJson({ resources: selectedPage.resources, flyer: selectedPage.flyer }))}</pre>
               </details>
             </section>
 
-            <section class="admin-subcard">
-              <h4>Raw JSON</h4>
+            <section class="admin-subcard section-wide">
+              <h4>Raw / Advanced</h4>
               <details>
                 <summary>Show full raw payload</summary>
                 <pre class="json-block">${escapeHtml(formatJson(selectedPage.raw))}</pre>
