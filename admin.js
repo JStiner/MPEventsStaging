@@ -11,9 +11,47 @@ const state = {
   groupPagesBySlug: {},
   selectedPageByGroup: {},
   selectedGroupViewBySlug: {},
+  groupSelectedDateBySlug: {},
+  groupSubviewConfigBySlug: {},
   groupCalendarAnchorBySlug: {},
   groupLoadErrors: {},
   dateModalContext: null,
+};
+
+const GROUP_SUBVIEW_KEYS = ['calendar', 'pages', 'schedule', 'vendors', 'locations', 'flyer', 'resources', 'settings'];
+const GROUP_SUBVIEW_LABELS = {
+  calendar: 'Calendar',
+  pages: 'Pages',
+  schedule: 'Schedule',
+  vendors: 'Vendors',
+  locations: 'Locations',
+  flyer: 'Flyer',
+  resources: 'Resources',
+  settings: 'Settings',
+};
+const SUPPORTED_GROUP_VIEWS = new Set(['calendar', 'pages']);
+const GROUP_SUBVIEW_STORAGE_KEY = 'admin.groupSubviewConfig.v1';
+const DEFAULT_GROUP_SUBVIEW_CONFIG = {
+  '*': {
+    calendar: true,
+    pages: true,
+    schedule: false,
+    vendors: false,
+    locations: false,
+    flyer: false,
+    resources: false,
+    settings: false,
+  },
+  'christmas-on-vinegar-hill': {
+    calendar: false,
+    pages: true,
+    schedule: false,
+    vendors: false,
+    locations: false,
+    flyer: false,
+    resources: false,
+    settings: false,
+  },
 };
 
 function escapeHtml(value) {
@@ -71,6 +109,42 @@ function toTitleCase(value) {
     .filter(Boolean)
     .map((part) => part[0]?.toUpperCase() + part.slice(1))
     .join(' ');
+}
+
+function getDefaultSubviewConfigForGroup(groupSlug) {
+  return {
+    ...DEFAULT_GROUP_SUBVIEW_CONFIG['*'],
+    ...(DEFAULT_GROUP_SUBVIEW_CONFIG[groupSlug] || {}),
+  };
+}
+
+function hydrateGroupSubviewConfig(groups) {
+  let stored = {};
+  try {
+    stored = JSON.parse(window.localStorage.getItem(GROUP_SUBVIEW_STORAGE_KEY) || '{}');
+  } catch {
+    stored = {};
+  }
+
+  state.groupSubviewConfigBySlug = {};
+  groups.forEach((group) => {
+    const defaultConfig = getDefaultSubviewConfigForGroup(group.slug);
+    const savedConfig = stored?.[group.slug] && typeof stored[group.slug] === 'object' ? stored[group.slug] : {};
+    state.groupSubviewConfigBySlug[group.slug] = { ...defaultConfig, ...savedConfig };
+  });
+}
+
+function persistGroupSubviewConfig() {
+  try {
+    window.localStorage.setItem(GROUP_SUBVIEW_STORAGE_KEY, JSON.stringify(state.groupSubviewConfigBySlug));
+  } catch (error) {
+    console.warn('Unable to persist group subview config', error);
+  }
+}
+
+function getEnabledGroupViews(groupSlug) {
+  const config = state.groupSubviewConfigBySlug[groupSlug] || getDefaultSubviewConfigForGroup(groupSlug);
+  return GROUP_SUBVIEW_KEYS.filter((key) => config[key]);
 }
 
 function renderMetaRows(rows) {
@@ -285,6 +359,30 @@ function renderTabs() {
 function renderAdminPanel() {
   const panel = document.getElementById('adminTabPanel');
   const list = state.groups.map((group) => `<li>${escapeHtml(group.name)} <span class="subtle-text">(${escapeHtml(group.slug)})</span></li>`).join('');
+  const groupSubviewRows = state.groups.map((group) => {
+    const config = state.groupSubviewConfigBySlug[group.slug] || getDefaultSubviewConfigForGroup(group.slug);
+    const cells = GROUP_SUBVIEW_KEYS.map((key) => `
+      <label class="subview-toggle">
+        <input
+          type="checkbox"
+          data-group-subview-toggle="true"
+          data-group-slug="${escapeHtml(group.slug)}"
+          data-subview-key="${escapeHtml(key)}"
+          ${config[key] ? 'checked' : ''}
+        >
+        <span>${escapeHtml(GROUP_SUBVIEW_LABELS[key])}</span>
+      </label>
+    `).join('');
+
+    return `
+      <tr>
+        <th scope="row">${escapeHtml(group.name)}<br><span class="subtle-text">${escapeHtml(group.slug)}</span></th>
+        <td>
+          <div class="subview-toggle-grid">${cells}</div>
+        </td>
+      </tr>
+    `;
+  }).join('');
 
   panel.innerHTML = `
     <h2>Admin</h2>
@@ -298,13 +396,49 @@ function renderAdminPanel() {
       <button id="signOutButton" type="button">Sign Out</button>
     </div>
 
-    <h3>Event Groups</h3>
-    <ul class="admin-list">${list || '<li>No event groups found.</li>'}</ul>
+    <section class="admin-card">
+      <h3>Event Groups</h3>
+      <ul class="admin-list">${list || '<li>No event groups found.</li>'}</ul>
+    </section>
+
+    <section class="admin-card">
+      <h3>Group Subview Management</h3>
+      <p class="subtle-text">Enable or disable which subviews are available inside each group tab.</p>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr><th>Group</th><th>Enabled subviews</th></tr>
+          </thead>
+          <tbody>${groupSubviewRows || '<tr><td colspan="2">No groups found.</td></tr>'}</tbody>
+        </table>
+      </div>
+    </section>
   `;
 
   panel.querySelector('#signOutButton')?.addEventListener('click', async () => {
     await supabaseClient.auth.signOut();
     window.location.href = './login.html';
+  });
+
+  panel.querySelectorAll('[data-group-subview-toggle]').forEach((input) => {
+    input.addEventListener('change', () => {
+      const groupSlug = input.dataset.groupSlug;
+      const subviewKey = input.dataset.subviewKey;
+      if (!groupSlug || !subviewKey) return;
+      const config = state.groupSubviewConfigBySlug[groupSlug] || getDefaultSubviewConfigForGroup(groupSlug);
+      config[subviewKey] = input.checked;
+      state.groupSubviewConfigBySlug[groupSlug] = config;
+      persistGroupSubviewConfig();
+
+      const activeGroupKey = `group:${groupSlug}`;
+      if (state.activeTab === activeGroupKey) {
+        const enabledViews = getEnabledGroupViews(groupSlug);
+        if (!enabledViews.includes(state.selectedGroupViewBySlug[groupSlug])) {
+          state.selectedGroupViewBySlug[groupSlug] = enabledViews[0] || 'pages';
+        }
+        renderGroupPanel(activeGroupKey);
+      }
+    });
   });
 }
 
@@ -359,7 +493,9 @@ function renderGroupPanel(tabKey) {
     return;
   }
 
-  const activeGroupView = state.selectedGroupViewBySlug[group.slug] || 'calendar';
+  const enabledViews = getEnabledGroupViews(group.slug);
+  const preferredView = state.selectedGroupViewBySlug[group.slug] || enabledViews[0] || 'pages';
+  const activeGroupView = enabledViews.includes(preferredView) ? preferredView : (enabledViews[0] || 'pages');
   state.selectedGroupViewBySlug[group.slug] = activeGroupView;
 
   const selectedSlug = state.selectedPageByGroup[group.slug] || pages[0].slug;
@@ -379,14 +515,15 @@ function renderGroupPanel(tabKey) {
 
   const viewNav = `
     <div class="admin-tabs group-subnav">
-      <button type="button" class="admin-tab ${activeGroupView === 'calendar' ? 'active' : ''}" data-group-view="calendar">Calendar</button>
-      <button type="button" class="admin-tab ${activeGroupView === 'pages' ? 'active' : ''}" data-group-view="pages">Page Data</button>
+      ${enabledViews.map((view) => `
+        <button type="button" class="admin-tab ${activeGroupView === view ? 'active' : ''}" data-group-view="${escapeHtml(view)}">
+          ${escapeHtml(GROUP_SUBVIEW_LABELS[view] || toTitleCase(view))}
+        </button>
+      `).join('')}
     </div>
   `;
 
-  const calendarSection = activeGroupView === 'calendar'
-    ? renderGroupCalendar(group, pages)
-    : '';
+  const calendarSection = activeGroupView === 'calendar' ? renderGroupCalendar(group, pages) : '';
 
   const pageDetailsSection = activeGroupView === 'pages'
     ? `
@@ -477,6 +614,9 @@ function renderGroupPanel(tabKey) {
       </div>
     `
     : '';
+  const placeholderSection = !SUPPORTED_GROUP_VIEWS.has(activeGroupView)
+    ? renderGroupSubviewScaffold(group, activeGroupView)
+    : '';
 
   panel.innerHTML = `
     <h2>${escapeHtml(group.name)}</h2>
@@ -484,6 +624,7 @@ function renderGroupPanel(tabKey) {
     ${viewNav}
     ${calendarSection}
     ${pageDetailsSection}
+    ${placeholderSection}
   `;
 
   panel.querySelectorAll('[data-group-view]').forEach((button) => {
@@ -509,8 +650,10 @@ function renderGroupPanel(tabKey) {
     button.addEventListener('click', () => {
       const date = button.dataset.calendarDate;
       if (!date) return;
+      state.groupSelectedDateBySlug[group.slug] = date;
       const items = mapExistingPageDataToCalendarItems(group.slug, pages).filter((item) => item.date === date);
       openDateModal(group, pages, date, items);
+      renderGroupPanel(tabKey);
     });
   });
 
@@ -534,6 +677,7 @@ function renderGroupCalendar(group, pages) {
   });
 
   const dayCells = buildCalendarMatrix(anchor);
+  const selectedDate = state.groupSelectedDateBySlug[group.slug];
   const monthLabel = anchor.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
   const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     .map((day) => `<div class="group-calendar-weekday">${day}</div>`)
@@ -544,8 +688,9 @@ function renderGroupCalendar(group, pages) {
     const dayItems = itemsByDate.get(dateKey) || [];
     const muted = date.getMonth() !== anchor.getMonth() ? 'muted' : '';
     const hasItems = dayItems.length ? 'has-items' : '';
+    const selected = selectedDate === dateKey ? 'selected' : '';
     return `
-      <button type="button" class="group-calendar-cell ${muted} ${hasItems}" data-calendar-date="${escapeHtml(dateKey)}">
+      <button type="button" class="group-calendar-cell ${muted} ${hasItems} ${selected}" data-calendar-date="${escapeHtml(dateKey)}">
         <span class="group-calendar-day-number">${date.getDate()}</span>
         <span class="group-calendar-item-count">${dayItems.length ? `${dayItems.length} item${dayItems.length === 1 ? '' : 's'}` : 'No items'}</span>
       </button>
@@ -571,7 +716,20 @@ function renderGroupCalendar(group, pages) {
   `;
 }
 
+function renderGroupSubviewScaffold(group, viewKey) {
+  return `
+    <section class="admin-card">
+      <h3>${escapeHtml(GROUP_SUBVIEW_LABELS[viewKey] || toTitleCase(viewKey))}</h3>
+      <p class="subtle-text">
+        This subview is enabled for <strong>${escapeHtml(group.slug)}</strong> but does not yet have editor controls.
+      </p>
+      <p class="subtle-text">Use the Admin tab to enable or disable subviews per group.</p>
+    </section>
+  `;
+}
+
 function openDateModal(group, pages, date, items) {
+  state.groupSelectedDateBySlug[group.slug] = date;
   state.dateModalContext = { group, pages, date, editItemId: null };
   renderDateModal(items);
 }
@@ -751,7 +909,7 @@ function ensureDateModal() {
   const modal = document.createElement('div');
   modal.id = 'dateItemModal';
   modal.className = 'admin-modal hidden';
-  modal.innerHTML = '<div class="admin-modal-card" id="dateItemModalContent"></div>';
+  modal.innerHTML = '<div class="admin-modal-card" role="dialog" aria-modal="true" aria-label="Date items editor" id="dateItemModalContent"></div>';
   document.body.appendChild(modal);
   modal.addEventListener('click', (event) => {
     if (event.target === modal) closeDateModal();
@@ -892,6 +1050,7 @@ async function initAdmin() {
   state.groups = state.profile?.is_admin
     ? await fetchAllGroups()
     : state.memberships.map((membership) => membership.event_groups).filter(Boolean);
+  hydrateGroupSubviewConfig(state.groups);
 
   if (state.profile?.is_admin) {
     state.auditRows = await fetchAuditRows();
