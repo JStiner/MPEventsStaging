@@ -10,7 +10,10 @@ const state = {
   auditRows: [],
   groupPagesBySlug: {},
   selectedPageByGroup: {},
+  selectedGroupViewBySlug: {},
+  groupCalendarAnchorBySlug: {},
   groupLoadErrors: {},
+  dateModalContext: null,
 };
 
 function escapeHtml(value) {
@@ -27,6 +30,30 @@ function formatDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
   return date.toLocaleString();
+}
+
+function formatDateOnly(value) {
+  if (!value) return '';
+  const date = value instanceof Date ? value : new Date(`${value}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+function toDateKey(value) {
+  if (!value) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, '0');
+  const day = String(parsed.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getDateRangeStart(date) {
+  const copy = new Date(date);
+  copy.setDate(copy.getDate() - copy.getDay());
+  return copy;
 }
 
 function formatJson(value) {
@@ -97,6 +124,68 @@ function renderListRows(value, emptyLabel) {
   }).join('');
 
   return `<ul class="admin-list">${rows}</ul>`;
+}
+
+function getFieldValue(entry, keys = [], fallback = '—') {
+  if (!entry || typeof entry !== 'object') return fallback;
+  for (const key of keys) {
+    const value = entry[key];
+    if (value !== null && value !== undefined && value !== '') return value;
+  }
+  return fallback;
+}
+
+function mapExistingPageDataToCalendarItems(groupSlug, pages) {
+  const items = [];
+
+  pages.forEach((page) => {
+    const dateEntries = Array.isArray(page.dates) ? page.dates : [];
+    dateEntries.forEach((entry, index) => {
+      const isString = typeof entry === 'string';
+      const dateKey = toDateKey(isString ? entry : (entry?.date || entry?.event_date || entry?.day || entry?.start_date));
+      if (!dateKey) return;
+
+      const title = isString
+        ? (page.event_name || page.slug || `Item ${index + 1}`)
+        : String(getFieldValue(entry, ['title', 'name', 'event_name'], page.event_name || page.slug || 'Untitled'));
+
+      items.push({
+        id: `${page.slug}:${index}`,
+        groupSlug,
+        pageSlug: page.slug,
+        pageName: page.event_name || page.slug,
+        entryIndex: index,
+        date: dateKey,
+        title,
+        startTime: String(getFieldValue(entry, ['start_time', 'startTime', 'time', 'begin_time'], '')),
+        endTime: String(getFieldValue(entry, ['end_time', 'endTime'], '')),
+        location: String(getFieldValue(entry, ['location', 'place', 'venue'], '')),
+        description: String(getFieldValue(entry, ['description', 'summary', 'details'], '')),
+        category: String(getFieldValue(entry, ['category', 'type'], page.category || '')),
+        sourceEntry: entry,
+      });
+    });
+  });
+
+  return items.sort((a, b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date);
+    if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime);
+    return a.title.localeCompare(b.title);
+  });
+}
+
+function buildCalendarMatrix(anchorDate) {
+  const firstOfMonth = new Date(anchorDate.getFullYear(), anchorDate.getMonth(), 1);
+  const start = getDateRangeStart(firstOfMonth);
+  const lastOfMonth = new Date(anchorDate.getFullYear(), anchorDate.getMonth() + 1, 0);
+  const end = new Date(lastOfMonth);
+  end.setDate(lastOfMonth.getDate() + (6 - lastOfMonth.getDay()));
+
+  const days = [];
+  for (let cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
+    days.push(new Date(cursor));
+  }
+  return days;
 }
 
 async function requireUser() {
@@ -270,6 +359,9 @@ function renderGroupPanel(tabKey) {
     return;
   }
 
+  const activeGroupView = state.selectedGroupViewBySlug[group.slug] || 'calendar';
+  state.selectedGroupViewBySlug[group.slug] = activeGroupView;
+
   const selectedSlug = state.selectedPageByGroup[group.slug] || pages[0].slug;
   state.selectedPageByGroup[group.slug] = selectedSlug;
 
@@ -285,102 +377,387 @@ function renderGroupPanel(tabKey) {
     `;
   }).join('');
 
+  const viewNav = `
+    <div class="admin-tabs group-subnav">
+      <button type="button" class="admin-tab ${activeGroupView === 'calendar' ? 'active' : ''}" data-group-view="calendar">Calendar</button>
+      <button type="button" class="admin-tab ${activeGroupView === 'pages' ? 'active' : ''}" data-group-view="pages">Page Data</button>
+    </div>
+  `;
+
+  const calendarSection = activeGroupView === 'calendar'
+    ? renderGroupCalendar(group, pages)
+    : '';
+
+  const pageDetailsSection = activeGroupView === 'pages'
+    ? `
+      <div class="admin-grid">
+        <section class="admin-card">
+          <h3>Pages</h3>
+          <div class="admin-tabs">${pageList}</div>
+        </section>
+
+        <section class="admin-card page-details-card">
+          <h3>Page Details</h3>
+          <div class="page-sections-grid">
+            <section class="admin-subcard">
+              <h4>Page Info</h4>
+              ${renderMetaRows([
+                { label: 'Slug', value: selectedPage.slug || '—' },
+                { label: 'Event Name', value: selectedPage.event_name || '—' },
+                { label: 'Event Type', value: selectedPage.event_type || '—' },
+                { label: 'Summary', value: selectedPage.summary || '—' },
+                { label: 'Category', value: selectedPage.category || '—' },
+                { label: 'Group Slug', value: selectedPage.group_slug || '—' },
+              ])}
+            </section>
+
+            <section class="admin-subcard">
+              <h4>Labels</h4>
+              ${renderMetaRows([
+                { label: 'Date Label', value: selectedPage.date_label || '—' },
+                { label: 'Area Label', value: selectedPage.area_label || '—' },
+              ])}
+            </section>
+
+            <section class="admin-subcard">
+              <h4>Tabs</h4>
+              ${renderChipList(Array.isArray(selectedPage.tabs) ? selectedPage.tabs.map((tab) => String(tab)) : [], 'No tabs available.')}
+              <details>
+                <summary>Tabs JSON</summary>
+                <pre class="json-block">${escapeHtml(formatJson(selectedPage.tabs))}</pre>
+              </details>
+            </section>
+
+            <section class="admin-subcard">
+              <h4>Dates</h4>
+              ${renderListRows(selectedPage.dates, 'No dates available.')}
+              <details>
+                <summary>Dates JSON</summary>
+                <pre class="json-block">${escapeHtml(formatJson(selectedPage.dates))}</pre>
+              </details>
+            </section>
+
+            <section class="admin-subcard">
+              <h4>Theme / Branding</h4>
+              ${renderObjectRows(selectedPage.theme, 'No theme data.')}
+              ${renderObjectRows(selectedPage.featured_branding, 'No branding data.')}
+              <details>
+                <summary>Theme / Branding JSON</summary>
+                <pre class="json-block">${escapeHtml(formatJson({ theme: selectedPage.theme, featured_branding: selectedPage.featured_branding }))}</pre>
+              </details>
+            </section>
+
+            <section class="admin-subcard">
+              <h4>Flyer</h4>
+              ${renderObjectRows(selectedPage.flyer, 'No flyer data.')}
+              <details>
+                <summary>Flyer JSON</summary>
+                <pre class="json-block">${escapeHtml(formatJson(selectedPage.flyer))}</pre>
+              </details>
+            </section>
+
+            <section class="admin-subcard">
+              <h4>Resources</h4>
+              ${renderListRows(selectedPage.resources, 'No resources available.')}
+              <details>
+                <summary>Resources JSON</summary>
+                <pre class="json-block">${escapeHtml(formatJson(selectedPage.resources))}</pre>
+              </details>
+            </section>
+
+            <section class="admin-subcard">
+              <h4>Raw JSON</h4>
+              <details>
+                <summary>Show full raw payload</summary>
+                <pre class="json-block">${escapeHtml(formatJson(selectedPage.raw))}</pre>
+              </details>
+            </section>
+          </div>
+        </section>
+      </div>
+    `
+    : '';
+
   panel.innerHTML = `
     <h2>${escapeHtml(group.name)}</h2>
     <p class="subtle-text">${pages.length} page${pages.length === 1 ? '' : 's'} in <strong>${escapeHtml(group.slug)}</strong>.</p>
-
-    <div class="admin-grid">
-      <section class="admin-card">
-        <h3>Pages</h3>
-        <div class="admin-tabs">${pageList}</div>
-      </section>
-
-      <section class="admin-card page-details-card">
-        <h3>Page Details</h3>
-        <div class="page-sections-grid">
-          <section class="admin-subcard">
-            <h4>Page Info</h4>
-            ${renderMetaRows([
-              { label: 'Slug', value: selectedPage.slug || '—' },
-              { label: 'Event Name', value: selectedPage.event_name || '—' },
-              { label: 'Event Type', value: selectedPage.event_type || '—' },
-              { label: 'Summary', value: selectedPage.summary || '—' },
-              { label: 'Category', value: selectedPage.category || '—' },
-              { label: 'Group Slug', value: selectedPage.group_slug || '—' },
-            ])}
-          </section>
-
-          <section class="admin-subcard">
-            <h4>Labels</h4>
-            ${renderMetaRows([
-              { label: 'Date Label', value: selectedPage.date_label || '—' },
-              { label: 'Area Label', value: selectedPage.area_label || '—' },
-            ])}
-          </section>
-
-          <section class="admin-subcard">
-            <h4>Tabs</h4>
-            ${renderChipList(Array.isArray(selectedPage.tabs) ? selectedPage.tabs.map((tab) => String(tab)) : [], 'No tabs available.')}
-            <details>
-              <summary>Tabs JSON</summary>
-              <pre class="json-block">${escapeHtml(formatJson(selectedPage.tabs))}</pre>
-            </details>
-          </section>
-
-          <section class="admin-subcard">
-            <h4>Dates</h4>
-            ${renderListRows(selectedPage.dates, 'No dates available.')}
-            <details>
-              <summary>Dates JSON</summary>
-              <pre class="json-block">${escapeHtml(formatJson(selectedPage.dates))}</pre>
-            </details>
-          </section>
-
-          <section class="admin-subcard">
-            <h4>Theme / Branding</h4>
-            ${renderObjectRows(selectedPage.theme, 'No theme data.')}
-            ${renderObjectRows(selectedPage.featured_branding, 'No branding data.')}
-            <details>
-              <summary>Theme / Branding JSON</summary>
-              <pre class="json-block">${escapeHtml(formatJson({ theme: selectedPage.theme, featured_branding: selectedPage.featured_branding }))}</pre>
-            </details>
-          </section>
-
-          <section class="admin-subcard">
-            <h4>Flyer</h4>
-            ${renderObjectRows(selectedPage.flyer, 'No flyer data.')}
-            <details>
-              <summary>Flyer JSON</summary>
-              <pre class="json-block">${escapeHtml(formatJson(selectedPage.flyer))}</pre>
-            </details>
-          </section>
-
-          <section class="admin-subcard">
-            <h4>Resources</h4>
-            ${renderListRows(selectedPage.resources, 'No resources available.')}
-            <details>
-              <summary>Resources JSON</summary>
-              <pre class="json-block">${escapeHtml(formatJson(selectedPage.resources))}</pre>
-            </details>
-          </section>
-
-          <section class="admin-subcard">
-            <h4>Raw JSON</h4>
-            <details>
-              <summary>Show full raw payload</summary>
-              <pre class="json-block">${escapeHtml(formatJson(selectedPage.raw))}</pre>
-            </details>
-          </section>
-        </div>
-      </section>
-    </div>
+    ${viewNav}
+    ${calendarSection}
+    ${pageDetailsSection}
   `;
+
+  panel.querySelectorAll('[data-group-view]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.selectedGroupViewBySlug[group.slug] = button.dataset.groupView;
+      renderGroupPanel(tabKey);
+    });
+  });
+
+  panel.querySelector('[data-calendar-prev]')?.addEventListener('click', () => {
+    const anchor = state.groupCalendarAnchorBySlug[group.slug] || new Date();
+    state.groupCalendarAnchorBySlug[group.slug] = new Date(anchor.getFullYear(), anchor.getMonth() - 1, 1);
+    renderGroupPanel(tabKey);
+  });
+
+  panel.querySelector('[data-calendar-next]')?.addEventListener('click', () => {
+    const anchor = state.groupCalendarAnchorBySlug[group.slug] || new Date();
+    state.groupCalendarAnchorBySlug[group.slug] = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 1);
+    renderGroupPanel(tabKey);
+  });
+
+  panel.querySelectorAll('[data-calendar-date]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const date = button.dataset.calendarDate;
+      if (!date) return;
+      const items = mapExistingPageDataToCalendarItems(group.slug, pages).filter((item) => item.date === date);
+      openDateModal(group, pages, date, items);
+    });
+  });
 
   panel.querySelectorAll('[data-page-slug]').forEach((button) => {
     button.addEventListener('click', () => {
       state.selectedPageByGroup[group.slug] = button.dataset.pageSlug;
       renderGroupPanel(tabKey);
     });
+  });
+}
+
+function renderGroupCalendar(group, pages) {
+  const anchor = state.groupCalendarAnchorBySlug[group.slug] || new Date();
+  state.groupCalendarAnchorBySlug[group.slug] = anchor;
+  const calendarItems = mapExistingPageDataToCalendarItems(group.slug, pages);
+  const itemsByDate = new Map();
+  calendarItems.forEach((item) => {
+    const list = itemsByDate.get(item.date) || [];
+    list.push(item);
+    itemsByDate.set(item.date, list);
+  });
+
+  const dayCells = buildCalendarMatrix(anchor);
+  const monthLabel = anchor.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    .map((day) => `<div class="group-calendar-weekday">${day}</div>`)
+    .join('');
+
+  const cells = dayCells.map((date) => {
+    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const dayItems = itemsByDate.get(dateKey) || [];
+    const muted = date.getMonth() !== anchor.getMonth() ? 'muted' : '';
+    const hasItems = dayItems.length ? 'has-items' : '';
+    return `
+      <button type="button" class="group-calendar-cell ${muted} ${hasItems}" data-calendar-date="${escapeHtml(dateKey)}">
+        <span class="group-calendar-day-number">${date.getDate()}</span>
+        <span class="group-calendar-item-count">${dayItems.length ? `${dayItems.length} item${dayItems.length === 1 ? '' : 's'}` : 'No items'}</span>
+      </button>
+    `;
+  }).join('');
+
+  return `
+    <section class="admin-card">
+      <div class="calendar-header-row">
+        <h3>Calendar</h3>
+        <div class="button-row">
+          <button type="button" data-calendar-prev>&larr;</button>
+          <strong>${escapeHtml(monthLabel)}</strong>
+          <button type="button" data-calendar-next>&rarr;</button>
+        </div>
+      </div>
+      <p class="subtle-text">Click a date to view, add, or edit items.</p>
+      <div class="group-calendar-grid">
+        ${weekdayLabels}
+        ${cells}
+      </div>
+    </section>
+  `;
+}
+
+function openDateModal(group, pages, date, items) {
+  state.dateModalContext = { group, pages, date, editItemId: null };
+  renderDateModal(items);
+}
+
+function closeDateModal() {
+  state.dateModalContext = null;
+  const modal = document.getElementById('dateItemModal');
+  modal?.classList.add('hidden');
+}
+
+function buildEditableDateEntry(formData) {
+  return {
+    date: formData.date,
+    title: formData.title,
+    start_time: formData.start_time,
+    end_time: formData.end_time,
+    location: formData.location,
+    description: formData.description,
+    category: formData.category,
+  };
+}
+
+async function saveDateItem(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (!state.dateModalContext) return;
+  const { group, pages, editItemId } = state.dateModalContext;
+  const formData = Object.fromEntries(new FormData(form).entries());
+  const targetPageSlug = String(formData.page_slug || '');
+  const targetPage = pages.find((page) => page.slug === targetPageSlug);
+  if (!targetPage) return;
+  const sourceItem = editItemId
+    ? mapExistingPageDataToCalendarItems(group.slug, pages).find((item) => item.id === editItemId)
+    : null;
+
+  const dates = Array.isArray(targetPage.dates) ? [...targetPage.dates] : [];
+  const nextEntry = buildEditableDateEntry(formData);
+
+  if (editItemId) {
+    if (sourceItem && sourceItem.pageSlug === targetPage.slug && Number.isInteger(sourceItem.entryIndex)) {
+      dates[sourceItem.entryIndex] = nextEntry;
+    } else {
+      dates.push(nextEntry);
+    }
+  } else {
+    dates.push(nextEntry);
+  }
+
+  const { error } = await supabaseClient
+    .from('event_pages')
+    .update({ dates })
+    .eq('group_slug', group.slug)
+    .eq('slug', targetPage.slug);
+
+  const messageEl = form.querySelector('[data-modal-message]');
+  if (error) {
+    if (messageEl) messageEl.textContent = `Failed to save item: ${error.message || 'Unknown error'}`;
+    return;
+  }
+
+  let nextPages = pages.map((page) => (
+    page.slug === targetPage.slug
+      ? { ...page, dates }
+      : page
+  ));
+
+  if (sourceItem && sourceItem.pageSlug !== targetPage.slug && Number.isInteger(sourceItem.entryIndex)) {
+    nextPages = nextPages.map((page) => {
+      if (page.slug !== sourceItem.pageSlug) return page;
+      const sourceDates = Array.isArray(page.dates) ? [...page.dates] : [];
+      sourceDates.splice(sourceItem.entryIndex, 1);
+      return { ...page, dates: sourceDates };
+    });
+
+    const sourcePage = nextPages.find((page) => page.slug === sourceItem.pageSlug);
+    const sourceUpdate = await supabaseClient
+      .from('event_pages')
+      .update({ dates: sourcePage?.dates || [] })
+      .eq('group_slug', group.slug)
+      .eq('slug', sourceItem.pageSlug);
+
+    if (sourceUpdate.error && messageEl) {
+      messageEl.textContent = `Saved target page, but failed to remove old item: ${sourceUpdate.error.message || 'Unknown error'}`;
+    }
+  }
+
+  state.groupPagesBySlug[group.slug] = nextPages;
+
+  const dateItems = mapExistingPageDataToCalendarItems(group.slug, state.groupPagesBySlug[group.slug])
+    .filter((item) => item.date === state.dateModalContext.date);
+  state.dateModalContext.editItemId = null;
+  renderDateModal(dateItems);
+  if (state.activeTab === `group:${group.slug}`) {
+    renderGroupPanel(state.activeTab);
+  }
+}
+
+function renderDateModal(items) {
+  const modal = document.getElementById('dateItemModal');
+  const content = document.getElementById('dateItemModalContent');
+  if (!modal || !content || !state.dateModalContext) return;
+  const { group, pages, date, editItemId } = state.dateModalContext;
+  const editingItem = editItemId ? items.find((item) => item.id === editItemId) : null;
+
+  const itemRows = items.map((item) => `
+    <li class="date-item-row">
+      <div>
+        <strong>${escapeHtml(item.title || 'Untitled')}</strong>
+        <p class="subtle-text">${escapeHtml(item.startTime || '—')} - ${escapeHtml(item.endTime || '—')} • ${escapeHtml(item.location || 'No location')}</p>
+      </div>
+      <button type="button" class="admin-tab" data-edit-item-id="${escapeHtml(item.id)}">Edit</button>
+    </li>
+  `).join('');
+
+  const selectedPageForForm = editingItem?.pageSlug || pages[0]?.slug || '';
+
+  content.innerHTML = `
+    <div class="calendar-modal-header">
+      <h3>${escapeHtml(formatDateOnly(date))}</h3>
+      <button type="button" class="admin-tab" data-close-date-modal>Close</button>
+    </div>
+    <p class="subtle-text">${escapeHtml(group.name)} (${escapeHtml(group.slug)})</p>
+
+    <section class="admin-subcard">
+      <h4>Items for selected date</h4>
+      ${items.length ? `<ul class="admin-list date-item-list">${itemRows}</ul>` : '<p class="subtle-text">No items exist for this date yet.</p>'}
+      <div class="button-row">
+        <button type="button" data-add-item>+ Add New Item</button>
+      </div>
+    </section>
+
+    <section class="admin-subcard">
+      <h4>${editingItem ? 'Edit Item' : 'New Item'}</h4>
+      <form id="dateItemEditorForm" class="admin-form">
+        <label>Page
+          <select name="page_slug" required>
+            ${pages.map((page) => `<option value="${escapeHtml(page.slug)}" ${page.slug === selectedPageForForm ? 'selected' : ''}>${escapeHtml(page.event_name || page.slug)}</option>`).join('')}
+          </select>
+        </label>
+        <div class="admin-columns-2">
+          <label>Title<input type="text" name="title" value="${escapeHtml(editingItem?.title || '')}" required></label>
+          <label>Category/Type<input type="text" name="category" value="${escapeHtml(editingItem?.category || '')}"></label>
+        </div>
+        <div class="admin-columns-2">
+          <label>Start Time<input type="text" name="start_time" placeholder="6:00 PM" value="${escapeHtml(editingItem?.startTime || '')}"></label>
+          <label>End Time<input type="text" name="end_time" placeholder="8:00 PM" value="${escapeHtml(editingItem?.endTime || '')}"></label>
+        </div>
+        <label>Location<input type="text" name="location" value="${escapeHtml(editingItem?.location || '')}"></label>
+        <label>Description<textarea name="description" rows="3">${escapeHtml(editingItem?.description || '')}</textarea></label>
+        <input type="hidden" name="date" value="${escapeHtml(date)}">
+        <p class="error-text" data-modal-message></p>
+        <div class="button-row">
+          <button type="submit">${editingItem ? 'Save Changes' : 'Save Item'}</button>
+        </div>
+      </form>
+    </section>
+  `;
+
+  content.querySelector('[data-close-date-modal]')?.addEventListener('click', closeDateModal);
+  content.querySelector('[data-add-item]')?.addEventListener('click', () => {
+    state.dateModalContext.editItemId = null;
+    renderDateModal(items);
+  });
+  content.querySelectorAll('[data-edit-item-id]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.dateModalContext.editItemId = button.dataset.editItemId;
+      renderDateModal(items);
+    });
+  });
+  content.querySelector('#dateItemEditorForm')?.addEventListener('submit', saveDateItem);
+
+  modal.classList.remove('hidden');
+}
+
+function ensureDateModal() {
+  if (document.getElementById('dateItemModal')) return;
+  const modal = document.createElement('div');
+  modal.id = 'dateItemModal';
+  modal.className = 'admin-modal hidden';
+  modal.innerHTML = '<div class="admin-modal-card" id="dateItemModalContent"></div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) closeDateModal();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeDateModal();
   });
 }
 
@@ -522,6 +899,7 @@ async function initAdmin() {
 
   state.tabs = buildTabs();
   state.activeTab = state.tabs[0]?.key || 'admin';
+  ensureDateModal();
 
   renderTabs();
   renderPanels();
