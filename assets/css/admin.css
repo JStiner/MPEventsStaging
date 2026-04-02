@@ -1,3 +1,10 @@
+body {
+  margin: 0;
+  background: #f3f5f9;
+  color: #1f2937;
+  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
 .admin-footer-panel {
   margin-top: 2rem;
   padding: 1rem;
@@ -38,9 +45,9 @@
 .admin-form select {
   padding: 0.7rem 0.8rem;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.45);
-  background: rgba(255,255,255,0.04);
-  color: inherit;
+  border: 1px solid #7b8798;
+  background: #ffffff;
+  color: #111827;
 }
 
 .admin-login-form input:focus,
@@ -75,7 +82,7 @@
 }
 
 .error-text {
-  color: #ff8f8f;
+  color: #b42318;
   min-height: 1.2rem;
 }
 
@@ -110,8 +117,9 @@
 .admin-card {
   padding: 1rem;
   border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.04);
+  border: 1px solid #d0d7e2;
+  background: #ffffff;
+  box-shadow: 0 3px 14px rgba(15, 23, 42, 0.05);
 }
 
 .admin-columns-2,
@@ -135,16 +143,18 @@
 .admin-table th,
 .admin-table td {
   padding: 0.65rem;
-  border-bottom: 1px solid rgba(255,255,255,0.12);
+  border-bottom: 1px solid #e5e7eb;
   text-align: left;
   vertical-align: top;
 }
 
 button {
   padding: 0.7rem 0.95rem;
-  border: 0;
+  border: 1px solid #94a3b8;
   border-radius: 10px;
   cursor: pointer;
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 button.danger {
@@ -180,8 +190,9 @@ button.danger {
   margin: 0 auto;
   padding: 1rem;
   border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.04);
+  border: 1px solid #d0d7e2;
+  background: #ffffff;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
 }
 
 .auth-card {
@@ -189,7 +200,7 @@ button.danger {
 }
 
 .subtle-text {
-  color: rgba(255,255,255,0.75);
+  color: #475467;
 }
 
 .admin-header-v2 {
@@ -206,20 +217,21 @@ button.danger {
 .admin-tab {
   padding: 0.55rem 0.85rem;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.04);
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
   color: inherit;
 }
 
 .admin-tab.active {
-  background: rgba(255,255,255,0.18);
+  background: #dbeafe;
+  border-color: #93c5fd;
 }
 
 .admin-panel {
   padding: 1rem;
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid #d0d7e2;
   border-radius: 14px;
-  background: rgba(255,255,255,0.03);
+  background: #f9fafb;
 }
 
 .admin-meta {
@@ -269,10 +281,10 @@ button.danger {
 }
 
 .admin-subcard {
-  border: 1px solid rgba(255,255,255,0.16);
+  border: 1px solid #d0d7e2;
   border-radius: 12px;
   padding: 0.85rem;
-  background: rgba(255,255,255,0.03);
+  background: #ffffff;
 }
 
 .admin-subcard h4 {
@@ -290,10 +302,11 @@ button.danger {
 }
 
 .admin-chip {
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid #cbd5e1;
   border-radius: 999px;
   padding: 0.2rem 0.6rem;
   font-size: 0.9rem;
+  background: #f8fafc;
 }
 
 .admin-subcard details {
@@ -308,8 +321,8 @@ button.danger {
   margin: 0.6rem 0 0;
   padding: 0.75rem;
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.16);
-  background: rgba(0,0,0,0.2);
+  border: 1px solid #d1d5db;
+  background: #f8fafc;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 0.85rem;
   line-height: 1.4;
@@ -327,7 +340,7 @@ button.danger {
   text-align: left;
   vertical-align: top;
   padding: 0.55rem;
-  border-bottom: 1px solid rgba(255,255,255,0.12);
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .audit-row {
@@ -339,25 +352,6 @@ button.danger {
   gap: 0.85rem;
 }
 
-.audit-json-grid pre {
-  margin: 0;
-  padding: 0.75rem;
-  border-radius: 8px;
-  background: rgba(0,0,0,0.2);
-  overflow: auto;
-}
-
-.group-subnav {
-  margin-top: 1rem;
-}
-
-.calendar-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.85rem;
-}
-
 .group-calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -365,82 +359,124 @@ button.danger {
 }
 
 .group-calendar-weekday {
+  font-weight: 700;
+  color: #334155;
   text-align: center;
-  font-size: 0.85rem;
-  color: rgba(255,255,255,0.72);
 }
 
 .group-calendar-cell {
-  min-height: 95px;
-  border: 1px solid rgba(255,255,255,0.16);
-  background: rgba(255,255,255,0.04);
-  border-radius: 10px;
-  color: inherit;
-  padding: 0.6rem;
+  min-height: 92px;
   display: grid;
   align-content: space-between;
+  justify-items: start;
+  width: 100%;
   text-align: left;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+}
+
+.group-calendar-cell:hover {
+  background: #eff6ff;
+  border-color: #60a5fa;
+}
+
+.group-calendar-cell.selected {
+  background: #dbeafe;
+  border-color: #3b82f6;
+  box-shadow: inset 0 0 0 1px #60a5fa;
 }
 
 .group-calendar-cell.muted {
   opacity: 0.6;
 }
 
-.group-calendar-cell.has-items {
-  border-color: rgba(140, 198, 255, 0.8);
-  background: rgba(140, 198, 255, 0.14);
+.group-calendar-cell.has-items .group-calendar-item-count {
+  color: #0f172a;
+  font-weight: 700;
 }
 
 .group-calendar-day-number {
+  font-size: 1rem;
   font-weight: 700;
 }
 
 .group-calendar-item-count {
   font-size: 0.85rem;
-  color: rgba(255,255,255,0.72);
+  color: #475467;
+}
+
+.calendar-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
 }
 
 .admin-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.65);
-  padding: 1rem;
+  background: rgba(15, 23, 42, 0.55);
   display: grid;
   place-items: center;
-  z-index: 50;
+  z-index: 1000;
+  padding: 1.2rem;
 }
 
 .admin-modal-card {
   width: min(840px, 100%);
-  max-height: 90vh;
+  max-height: calc(100vh - 3rem);
   overflow: auto;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: #1f1f1f;
+  border-radius: 16px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.28);
   padding: 1rem;
-  display: grid;
-  gap: 0.85rem;
 }
 
 .calendar-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.75rem;
-}
-
-.date-item-list {
-  list-style: none;
-  padding: 0;
+  gap: 1rem;
 }
 
 .date-item-row {
   display: flex;
   justify-content: space-between;
-  align-items: start;
-  gap: 0.75rem;
-  padding: 0.6rem;
-  border: 1px solid rgba(255,255,255,0.16);
-  border-radius: 10px;
-  margin-bottom: 0.5rem;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.date-item-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.subview-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem 0.85rem;
+}
+
+.subview-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.92rem;
+}
+
+.audit-json-grid pre {
+  margin: 0;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #f8fafc;
+  overflow: auto;
+}
+
+.group-subnav {
+  margin-top: 1rem;
 }
