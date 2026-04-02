@@ -232,6 +232,12 @@ button.danger {
   margin: 0;
 }
 
+.admin-meta pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .admin-list {
   margin: 0;
   padding-left: 1.1rem;
