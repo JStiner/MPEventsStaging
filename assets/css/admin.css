@@ -280,6 +280,59 @@ button.danger {
   gap: 0.85rem;
 }
 
+.group-general-layout {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+
+.group-general-layout.multi-page {
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+}
+
+.group-general-layout.single-page {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.group-page-rail {
+  position: sticky;
+  top: 0.75rem;
+}
+
+.rail-tabs {
+  margin-bottom: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.rail-tabs .admin-tab {
+  border-radius: 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.group-general-main {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.page-identifier {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #eff6ff;
+  padding: 0.55rem 0.75rem;
+}
+
+.general-sections-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.general-sections-grid .section-wide {
+  grid-column: 1 / -1;
+}
+
 .admin-subcard {
   border: 1px solid #d0d7e2;
   border-radius: 12px;
@@ -290,6 +343,14 @@ button.danger {
 .admin-subcard h4 {
   margin-top: 0;
   margin-bottom: 0.75rem;
+}
+
+.summary-copy {
+  margin: 0;
+  color: #334155;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .admin-chip-list {
@@ -479,4 +540,11 @@ button.danger {
 
 .group-subnav {
   margin-top: 1rem;
+}
+
+@media (max-width: 900px) {
+  .group-general-layout.multi-page,
+  .general-sections-grid {
+    grid-template-columns: 1fr;
+  }
 }
