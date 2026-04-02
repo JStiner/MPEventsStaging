@@ -11,7 +11,7 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
   process.exit(1);
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const FILE_TO_SLUG = {
   'community-events-2026.json': 'community-events',
@@ -36,7 +36,7 @@ function readJson(filePath) {
 }
 
 async function ensureGroupExists(groupSlug) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('groups')
     .select('slug')
     .eq('slug', groupSlug)
@@ -70,7 +70,7 @@ async function upsertEventPage(pageSlug, raw) {
     raw
   };
 
-  const { error } = await supabase
+  const { error } = await supabaseClient
     .from('event_pages')
     .upsert(payload, { onConflict: 'slug' });
 
@@ -80,7 +80,7 @@ async function upsertEventPage(pageSlug, raw) {
 }
 
 async function replaceChildRows(pageSlug, raw) {
-  const { error: deleteVendorsError } = await supabase
+  const { error: deleteVendorsError } = await supabaseClient
     .from('event_vendors')
     .delete()
     .eq('page_slug', pageSlug);
@@ -88,7 +88,7 @@ async function replaceChildRows(pageSlug, raw) {
     throw new Error(`event_vendors delete failed for "${pageSlug}": ${deleteVendorsError.message}`);
   }
 
-  const { error: deleteScheduleError } = await supabase
+  const { error: deleteScheduleError } = await supabaseClient
     .from('event_schedule')
     .delete()
     .eq('page_slug', pageSlug);
@@ -96,7 +96,7 @@ async function replaceChildRows(pageSlug, raw) {
     throw new Error(`event_schedule delete failed for "${pageSlug}": ${deleteScheduleError.message}`);
   }
 
-  const { error: deleteLocationsError } = await supabase
+  const { error: deleteLocationsError } = await supabaseClient
     .from('event_locations')
     .delete()
     .eq('page_slug', pageSlug);
@@ -104,7 +104,7 @@ async function replaceChildRows(pageSlug, raw) {
     throw new Error(`event_locations delete failed for "${pageSlug}": ${deleteLocationsError.message}`);
   }
 
-  const { error: deleteDaysError } = await supabase
+  const { error: deleteDaysError } = await supabaseClient
     .from('event_days')
     .delete()
     .eq('page_slug', pageSlug);
@@ -122,7 +122,7 @@ async function replaceChildRows(pageSlug, raw) {
   }));
 
   if (dayRows.length) {
-    const { error } = await supabase.from('event_days').insert(dayRows);
+    const { error } = await supabaseClient.from('event_days').insert(dayRows);
     if (error) {
       throw new Error(`event_days insert failed for "${pageSlug}": ${error.message}`);
     }
@@ -148,7 +148,7 @@ async function replaceChildRows(pageSlug, raw) {
   }));
 
   if (locationRows.length) {
-    const { error } = await supabase.from('event_locations').insert(locationRows);
+    const { error } = await supabaseClient.from('event_locations').insert(locationRows);
     if (error) {
       throw new Error(`event_locations insert failed for "${pageSlug}": ${error.message}`);
     }
@@ -171,7 +171,7 @@ async function replaceChildRows(pageSlug, raw) {
   }));
 
   if (scheduleRows.length) {
-    const { error } = await supabase.from('event_schedule').insert(scheduleRows);
+    const { error } = await supabaseClient.from('event_schedule').insert(scheduleRows);
     if (error) {
       throw new Error(`event_schedule insert failed for "${pageSlug}": ${error.message}`);
     }
@@ -190,7 +190,7 @@ async function replaceChildRows(pageSlug, raw) {
   }));
 
   if (vendorRows.length) {
-    const { error } = await supabase.from('event_vendors').insert(vendorRows);
+    const { error } = await supabaseClient.from('event_vendors').insert(vendorRows);
     if (error) {
       throw new Error(`event_vendors insert failed for "${pageSlug}": ${error.message}`);
     }
@@ -207,7 +207,7 @@ async function replaceChildRows(pageSlug, raw) {
 async function replaceFlyerRows(pageSlug, raw) {
   const flyer = raw.flyer || {};
 
-  const { data: existingSections, error: existingSectionsError } = await supabase
+  const { data: existingSections, error: existingSectionsError } = await supabaseClient
     .from('event_flyer_sections')
     .select('id')
     .eq('page_slug', pageSlug);
@@ -219,7 +219,7 @@ async function replaceFlyerRows(pageSlug, raw) {
   const sectionIds = (existingSections || []).map(x => x.id);
 
   if (sectionIds.length) {
-    const { error: deleteEntriesError } = await supabase
+    const { error: deleteEntriesError } = await supabaseClient
       .from('event_flyer_entries')
       .delete()
       .in('section_id', sectionIds);
@@ -229,7 +229,7 @@ async function replaceFlyerRows(pageSlug, raw) {
     }
   }
 
-  const { error: deleteSectionsError } = await supabase
+  const { error: deleteSectionsError } = await supabaseClient
     .from('event_flyer_sections')
     .delete()
     .eq('page_slug', pageSlug);
@@ -238,7 +238,7 @@ async function replaceFlyerRows(pageSlug, raw) {
     throw new Error(`event_flyer_sections delete failed for "${pageSlug}": ${deleteSectionsError.message}`);
   }
 
-  const { error: deleteLegendError } = await supabase
+  const { error: deleteLegendError } = await supabaseClient
     .from('event_flyer_legend')
     .delete()
     .eq('page_slug', pageSlug);
@@ -247,7 +247,7 @@ async function replaceFlyerRows(pageSlug, raw) {
     throw new Error(`event_flyer_legend delete failed for "${pageSlug}": ${deleteLegendError.message}`);
   }
 
-  const { error: deleteNotesError } = await supabase
+  const { error: deleteNotesError } = await supabaseClient
     .from('event_flyer_footer_notes')
     .delete()
     .eq('page_slug', pageSlug);
@@ -256,7 +256,7 @@ async function replaceFlyerRows(pageSlug, raw) {
     throw new Error(`event_flyer_footer_notes delete failed for "${pageSlug}": ${deleteNotesError.message}`);
   }
 
-  const { error: deleteSponsorsError } = await supabase
+  const { error: deleteSponsorsError } = await supabaseClient
     .from('event_flyer_sponsors')
     .delete()
     .eq('page_slug', pageSlug);
@@ -273,7 +273,7 @@ async function replaceFlyerRows(pageSlug, raw) {
   }));
 
   if (legendRows.length) {
-    const { error } = await supabase.from('event_flyer_legend').insert(legendRows);
+    const { error } = await supabaseClient.from('event_flyer_legend').insert(legendRows);
     if (error) {
       throw new Error(`event_flyer_legend insert failed for "${pageSlug}": ${error.message}`);
     }
@@ -285,7 +285,7 @@ async function replaceFlyerRows(pageSlug, raw) {
   for (let i = 0; i < (flyer.sections || []).length; i++) {
     const section = flyer.sections[i];
 
-  const { data: insertedSection, error: sectionError } = await supabase
+  const { data: insertedSection, error: sectionError } = await supabaseClient
   .from('event_flyer_sections')
   .insert({
     page_slug: pageSlug,
@@ -313,7 +313,7 @@ async function replaceFlyerRows(pageSlug, raw) {
     }));
 
     if (entryRows.length) {
-      const { error: entryError } = await supabase
+      const { error: entryError } = await supabaseClient
         .from('event_flyer_entries')
         .insert(entryRows);
 
@@ -332,7 +332,7 @@ async function replaceFlyerRows(pageSlug, raw) {
   }));
 
   if (noteRows.length) {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('event_flyer_footer_notes')
       .insert(noteRows);
 
@@ -348,7 +348,7 @@ async function replaceFlyerRows(pageSlug, raw) {
   }));
 
   if (sponsorRows.length) {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('event_flyer_sponsors')
       .insert(sponsorRows);
 

@@ -29,10 +29,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./assets/js/supabase-client.js"></script>
   <script>
-    const supabase = window.supabaseClient;
+    const supabaseClient = window.supabaseClient;
 
     async function redirectIfAuthed() {
-      const { data, error } = await supabase.auth.getSession();
+      const { data, error } = await supabaseClient.auth.getSession();
       if (error) {
         document.getElementById('loginError').textContent = error.message;
         return;
@@ -52,7 +52,7 @@
       try {
         errorEl.textContent = '';
         button.disabled = true;
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
         window.location.href = './admin.html';
       } catch (error) {
@@ -63,7 +63,8 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-      if (!supabase) {
+      if (!supabaseClient) {
+        console.error('Supabase client not initialized');
         document.getElementById('loginError').textContent = 'Supabase is unavailable.';
         return;
       }
