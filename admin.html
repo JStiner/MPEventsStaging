@@ -3,101 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Community Events Admin</title>
+  <title>Admin | Community Events</title>
   <link rel="stylesheet" href="./assets/css/admin.css">
 </head>
 <body>
-  <main class="admin-page">
-    <header class="admin-header">
+  <main class="admin-shell">
+    <header class="admin-header-v2">
       <div>
         <h1>Community Events Admin</h1>
-        <p>Editing group: <strong id="groupSlugLabel"></strong></p>
-      </div>
-      <div class="admin-header-actions">
-        <button id="newEventBtn" type="button">New Event</button>
-        <button id="logoutBtn" type="button">Log Out</button>
+        <p class="subtle-text">Manage your groups and review audit activity.</p>
       </div>
     </header>
 
-    <section class="admin-grid">
-      <section class="admin-card">
-        <h2>Events</h2>
-        <div class="table-wrap">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Start</th>
-                <th>Location</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="eventsTableBody"></tbody>
-          </table>
-        </div>
-      </section>
+    <nav id="adminTabs" class="admin-tabs" aria-label="Admin sections"></nav>
 
-      <section class="admin-card">
-        <h2>Event Editor</h2>
-        <form id="eventForm" class="admin-form">
-          <input id="eventId" type="hidden">
-
-          <label>Title<input id="title" required></label>
-          <label>Summary<input id="summary"></label>
-          <label>Description<textarea id="description" rows="4"></textarea></label>
-          <label>Location<input id="location_name"></label>
-          <label>Address<input id="address_line_1"></label>
-
-          <div class="admin-columns-3">
-            <label>City<input id="city"></label>
-            <label>State<input id="state"></label>
-            <label>ZIP<input id="postal_code"></label>
-          </div>
-
-          <label class="checkbox-row"><input id="all_day" type="checkbox"> All day event</label>
-
-          <div class="admin-columns-2">
-            <label>Start<input id="start_at" type="datetime-local" required></label>
-            <label>End<input id="end_at" type="datetime-local"></label>
-          </div>
-
-          <div class="admin-columns-3">
-            <label>Timezone<input id="timezone_name" value="America/Chicago"></label>
-            <label>Status
-              <select id="status">
-                <option value="draft">draft</option>
-                <option value="published">published</option>
-                <option value="archived">archived</option>
-              </select>
-            </label>
-            <label>Visibility
-              <select id="visibility">
-                <option value="public">public</option>
-                <option value="private">private</option>
-              </select>
-            </label>
-          </div>
-
-          <div class="admin-columns-2">
-            <label>Source Page Slug<input id="source_page_slug"></label>
-            <label>External ID<input id="external_id"></label>
-          </div>
-
-          <label>Metadata (JSON)<textarea id="metadata" rows="8">{}</textarea></label>
-
-          <div class="button-row">
-            <button type="submit">Save Event</button>
-            <button id="deleteEventBtn" type="button" class="danger">Delete Event</button>
-          </div>
-          <p id="formError" class="error-text"></p>
-        </form>
-      </section>
-    </section>
+    <section id="adminTabPanel" class="admin-panel"></section>
+    <section id="auditTabPanel" class="admin-panel hidden"></section>
+    <section id="groupTabPanel" class="admin-panel hidden"></section>
   </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./assets/js/supabase-client.js"></script>
-  <script src="./assets/js/admin-page.js"></script>
+  <script src="./admin.js"></script>
 </body>
 </html>
