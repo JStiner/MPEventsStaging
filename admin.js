@@ -1,4 +1,4 @@
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
 const state = {
   user: null,
@@ -35,7 +35,7 @@ function formatJson(value) {
 }
 
 async function requireUser() {
-  const { data, error } = await supabase.auth.getSession();
+  const { data, error } = await supabaseClient.auth.getSession();
   if (error) throw error;
   const user = data.session?.user;
   if (!user) {
@@ -46,7 +46,7 @@ async function requireUser() {
 }
 
 async function fetchProfile(userId) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('profiles')
     .select('id, email, display_name, is_admin')
     .eq('id', userId)
@@ -57,7 +57,7 @@ async function fetchProfile(userId) {
 }
 
 async function fetchAllGroups() {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('event_groups')
     .select('id, slug, name')
     .order('name', { ascending: true });
@@ -66,7 +66,7 @@ async function fetchAllGroups() {
 }
 
 async function fetchMemberships(userId) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('group_memberships')
     .select('group_id, role, event_groups(id, slug, name)')
     .eq('user_id', userId)
@@ -138,7 +138,7 @@ function renderAdminPanel() {
   `;
 
   panel.querySelector('#signOutButton')?.addEventListener('click', async () => {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     window.location.href = './login.html';
   });
 }
@@ -158,7 +158,7 @@ function renderGroupPanel(tabKey) {
 }
 
 async function fetchAuditRows() {
-  const viewResult = await supabase
+  const viewResult = await supabaseClient
     .from('v_audit_log_admin')
     .select('id, changed_at, changed_by_email, table_name, action, group_slug, page_slug, record_label, changed_fields, old_data, new_data')
     .order('changed_at', { ascending: false })
@@ -166,7 +166,7 @@ async function fetchAuditRows() {
 
   if (!viewResult.error) return viewResult.data || [];
 
-  const tableResult = await supabase
+  const tableResult = await supabaseClient
     .from('audit_log')
     .select('id, changed_at, changed_by_email, table_name, action, group_slug, page_slug, record_label, changed_fields, old_data, new_data')
     .order('changed_at', { ascending: false })
@@ -274,7 +274,8 @@ function renderPanels() {
 }
 
 async function initAdmin() {
-  if (!supabase) {
+  if (!supabaseClient) {
+    console.error('Supabase client not initialized');
     document.body.innerHTML = '<main class="admin-shell"><p>Supabase client unavailable.</p></main>';
     return;
   }

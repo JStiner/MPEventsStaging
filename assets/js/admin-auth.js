@@ -1,28 +1,28 @@
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
-if (!supabase) {
+if (!supabaseClient) {
   console.error('Supabase client is not available for admin auth.');
 }
 
 async function getSession() {
-  const { data, error } = await supabase.auth.getSession();
+  const { data, error } = await supabaseClient.auth.getSession();
   if (error) throw error;
   return data.session;
 }
 
 async function getAccess() {
-  const { data, error } = await supabase.rpc('get_my_access');
+  const { data, error } = await supabaseClient.rpc('get_my_access');
   if (error) throw error;
   return data || [];
 }
 
 async function signIn(email, password) {
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
   if (error) throw error;
 }
 
 async function signOut() {
-  const { error } = await supabase.auth.signOut();
+  const { error } = await supabaseClient.auth.signOut();
   if (error) throw error;
 }
 
@@ -88,7 +88,7 @@ async function handleLogout() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
-  if (!supabase) {
+  if (!supabaseClient) {
     const errorEl = document.getElementById('adminError');
     if (errorEl) errorEl.textContent = 'Admin auth is unavailable until Supabase loads.';
     return;
@@ -96,7 +96,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('adminLoginForm')?.addEventListener('submit', handleLoginSubmit);
   document.getElementById('adminLogoutBtn')?.addEventListener('click', handleLogout);
 
-  supabase.auth.onAuthStateChange(async () => {
+  supabaseClient.auth.onAuthStateChange(async () => {
     await refreshUi();
   });
 

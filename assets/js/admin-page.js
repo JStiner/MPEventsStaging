@@ -1,6 +1,6 @@
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
-if (!supabase) {
+if (!supabaseClient) {
   console.error('Supabase client is not available for admin page.');
 }
 
@@ -17,7 +17,7 @@ function escapeHtml(value) {
 }
 
 async function getSessionOrRedirect() {
-  const { data, error } = await supabase.auth.getSession();
+  const { data, error } = await supabaseClient.auth.getSession();
   if (error) throw error;
   if (!data.session?.user) {
     window.location.href = './index.html';
@@ -27,13 +27,13 @@ async function getSessionOrRedirect() {
 }
 
 async function getAccess() {
-  const { data, error } = await supabase.rpc('get_my_access');
+  const { data, error } = await supabaseClient.rpc('get_my_access');
   if (error) throw error;
   return data || [];
 }
 
 async function loadEvents() {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('events')
     .select(`
       id,
@@ -134,7 +134,7 @@ async function saveEvent(event) {
     _metadata: safelyParseJson(document.getElementById('metadata').value),
   };
 
-  const { error } = await supabase.rpc('save_event', payload);
+  const { error } = await supabaseClient.rpc('save_event', payload);
   if (error) {
     document.getElementById('formError').textContent = error.message;
     return;
@@ -149,7 +149,7 @@ async function deleteEvent() {
   const eventId = document.getElementById('eventId').value;
   if (!eventId) return;
 
-  const { error } = await supabase.rpc('delete_event', { _event_id: eventId });
+  const { error } = await supabaseClient.rpc('delete_event', { _event_id: eventId });
   if (error) {
     document.getElementById('formError').textContent = error.message;
     return;
@@ -184,7 +184,7 @@ async function initPage() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
-  if (!supabase) {
+  if (!supabaseClient) {
     const errorEl = document.getElementById('formError');
     if (errorEl) errorEl.textContent = 'Admin editor is unavailable until Supabase loads.';
     return;
@@ -193,7 +193,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('newEventBtn')?.addEventListener('click', resetForm);
   document.getElementById('deleteEventBtn')?.addEventListener('click', deleteEvent);
   document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     window.location.href = './index.html';
   });
 

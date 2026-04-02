@@ -315,18 +315,18 @@ async function initializeApp() {
 }
 
 async function loadAppDataFromSupabase() {
-  const supabase = window.supabaseClient;
-  if (!supabase) {
+  const supabaseClient = window.supabaseClient;
+  if (!supabaseClient) {
     throw new Error('Supabase client not found. Check index.html initialization.');
   }
 
   const [recipesResult, stepsResult, recipeIngredientsResult, ingredientsResult, ingredientCategoriesResult, appSettingsResult] = await Promise.all([
-    supabase.from('recipes').select('*').eq('is_active', true).order('name', { ascending: true }),
-    supabase.from('recipe_steps').select('*').order('step_number', { ascending: true }),
-    supabase.from('recipe_ingredients').select('*').order('sort_order', { ascending: true }),
-    supabase.from('ingredients').select('*').eq('is_active', true).order('name', { ascending: true }),
-    supabase.from('ingredient_categories').select('*').order('sort_order', { ascending: true }),
-    supabase.from('app_settings').select('*').eq('id', 'global').maybeSingle(),
+    supabaseClient.from('recipes').select('*').eq('is_active', true).order('name', { ascending: true }),
+    supabaseClient.from('recipe_steps').select('*').order('step_number', { ascending: true }),
+    supabaseClient.from('recipe_ingredients').select('*').order('sort_order', { ascending: true }),
+    supabaseClient.from('ingredients').select('*').eq('is_active', true).order('name', { ascending: true }),
+    supabaseClient.from('ingredient_categories').select('*').order('sort_order', { ascending: true }),
+    supabaseClient.from('app_settings').select('*').eq('id', 'global').maybeSingle(),
   ]);
 
   if (recipesResult.error) throw recipesResult.error;
@@ -2061,14 +2061,14 @@ function resetSettings() {
 }
 
 async function initializeAuth() {
-  const supabase = window.supabaseClient;
-  if (!supabase) return;
+  const supabaseClient = window.supabaseClient;
+  if (!supabaseClient) return;
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   await applyAuthSession(session);
 
   authSubscription?.subscription?.unsubscribe?.();
-  const { data } = supabase.auth.onAuthStateChange((_event, sessionUpdate) => {
+  const { data } = supabaseClient.auth.onAuthStateChange((_event, sessionUpdate) => {
     applyAuthSession(sessionUpdate).catch(error => console.error('Auth state refresh failed:', error));
   });
   authSubscription = data;
