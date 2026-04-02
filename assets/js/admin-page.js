@@ -54,9 +54,9 @@ async function loadEvents() {
       source_page_slug,
       external_id,
       metadata,
-      groups!inner(slug, name)
+      event_groups!inner(slug, name)
     `)
-    .eq('groups.slug', groupSlug)
+    .eq('event_groups.slug', groupSlug)
     .order('start_at', { ascending: true });
 
   if (error) throw error;

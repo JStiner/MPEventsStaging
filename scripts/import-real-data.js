@@ -37,7 +37,7 @@ function readJson(filePath) {
 
 async function ensureGroupExists(groupSlug) {
   const { data, error } = await supabaseClient
-    .from('groups')
+    .from('event_groups')
     .select('slug')
     .eq('slug', groupSlug)
     .maybeSingle();
@@ -47,7 +47,7 @@ async function ensureGroupExists(groupSlug) {
   }
 
   if (!data) {
-    throw new Error(`Group "${groupSlug}" does not exist. Seed groups first in SQL.`);
+    throw new Error(`Group "${groupSlug}" does not exist. Seed event_groups first in SQL.`);
   }
 }
 
