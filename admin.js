@@ -12,10 +12,10 @@ const state = {
   selectedPageByGroup: {},
   selectedGroupViewBySlug: {},
   groupSelectedDateBySlug: {},
+  groupCalendarEditorBySlug: {},
   groupSubviewConfigBySlug: {},
   groupCalendarAnchorBySlug: {},
   groupLoadErrors: {},
-  dateModalContext: null,
 };
 
 const GROUP_SUBVIEW_KEYS = ['calendar', 'pages', 'schedule', 'vendors', 'locations', 'flyer', 'resources', 'settings'];
@@ -319,6 +319,28 @@ function mapExistingPageDataToCalendarItems(groupSlug, pages) {
     if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime);
     return a.title.localeCompare(b.title);
   });
+}
+
+function getGroupCalendarBehavior(groupSlug) {
+  return {
+    supportsInlineEditor: true,
+    eventNoun: 'event',
+    emptyLabel: 'No events',
+    groupSlug,
+  };
+}
+
+function formatEventCountLabel(count, behavior = getGroupCalendarBehavior()) {
+  if (!count) return behavior.emptyLabel;
+  if (count === 1) return `1 ${behavior.eventNoun}`;
+  return `${count} ${behavior.eventNoun}s`;
+}
+
+function getWeekKeyFromDate(dateValue) {
+  const parsed = new Date(`${dateValue}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const start = getDateRangeStart(parsed);
+  return toDateKey(start);
 }
 
 function buildCalendarMatrix(anchorDate) {
@@ -739,10 +761,33 @@ function renderGroupPanel(tabKey) {
       const date = button.dataset.calendarDate;
       if (!date) return;
       state.groupSelectedDateBySlug[group.slug] = date;
-      const items = mapExistingPageDataToCalendarItems(group.slug, pages).filter((item) => item.date === date);
-      openDateModal(group, pages, date, items);
+      const nextEditorState = state.groupCalendarEditorBySlug[group.slug] || { mode: null, itemId: null };
+      nextEditorState.mode = null;
+      nextEditorState.itemId = null;
+      state.groupCalendarEditorBySlug[group.slug] = nextEditorState;
       renderGroupPanel(tabKey);
     });
+  });
+
+  panel.querySelector('[data-calendar-add-event]')?.addEventListener('click', () => {
+    state.groupCalendarEditorBySlug[group.slug] = { mode: 'add', itemId: null };
+    renderGroupPanel(tabKey);
+  });
+
+  panel.querySelectorAll('[data-calendar-edit-item]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.groupCalendarEditorBySlug[group.slug] = { mode: 'edit', itemId: button.dataset.calendarEditItem || null };
+      renderGroupPanel(tabKey);
+    });
+  });
+
+  panel.querySelector('[data-calendar-cancel-form]')?.addEventListener('click', () => {
+    state.groupCalendarEditorBySlug[group.slug] = { mode: null, itemId: null };
+    renderGroupPanel(tabKey);
+  });
+
+  panel.querySelector('[data-calendar-inline-form]')?.addEventListener('submit', (event) => {
+    saveCalendarDateItem(event, group);
   });
 
   panel.querySelectorAll('[data-page-slug]').forEach((button) => {
@@ -848,6 +893,7 @@ async function saveGeneralPage(event, group) {
 function renderGroupCalendar(group, pages) {
   const anchor = state.groupCalendarAnchorBySlug[group.slug] || new Date();
   state.groupCalendarAnchorBySlug[group.slug] = anchor;
+  const behavior = getGroupCalendarBehavior(group.slug);
   const calendarItems = mapExistingPageDataToCalendarItems(group.slug, pages);
   const itemsByDate = new Map();
   calendarItems.forEach((item) => {
@@ -858,24 +904,46 @@ function renderGroupCalendar(group, pages) {
 
   const dayCells = buildCalendarMatrix(anchor);
   const selectedDate = state.groupSelectedDateBySlug[group.slug];
+  const selectedWeekKey = selectedDate ? getWeekKeyFromDate(selectedDate) : null;
   const monthLabel = anchor.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-  const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    .map((day) => `<div class="group-calendar-weekday">${day}</div>`)
+  const weekdayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    .map((day) => `<th scope="col" class="group-calendar-weekday">${day}</th>`)
     .join('');
 
-  const cells = dayCells.map((date) => {
-    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    const dayItems = itemsByDate.get(dateKey) || [];
-    const muted = date.getMonth() !== anchor.getMonth() ? 'muted' : '';
-    const hasItems = dayItems.length ? 'has-items' : '';
-    const selected = selectedDate === dateKey ? 'selected' : '';
-    return `
-      <button type="button" class="group-calendar-cell ${muted} ${hasItems} ${selected}" data-calendar-date="${escapeHtml(dateKey)}">
-        <span class="group-calendar-day-number">${date.getDate()}</span>
-        <span class="group-calendar-item-count">${dayItems.length ? `${dayItems.length} item${dayItems.length === 1 ? '' : 's'}` : 'No items'}</span>
-      </button>
-    `;
-  }).join('');
+  const weekRows = [];
+  for (let index = 0; index < dayCells.length; index += 7) {
+    const weekDates = dayCells.slice(index, index + 7);
+    const firstDateKey = toDateKey(weekDates[0]);
+    const weekKey = firstDateKey ? getWeekKeyFromDate(firstDateKey) : null;
+
+    const cells = weekDates.map((date) => {
+      const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const dayItems = itemsByDate.get(dateKey) || [];
+      const muted = date.getMonth() !== anchor.getMonth() ? 'muted' : '';
+      const hasItems = dayItems.length ? 'has-items' : '';
+      const selected = selectedDate === dateKey ? 'selected' : '';
+      return `
+        <td class="group-calendar-day-cell">
+          <button type="button" class="group-calendar-cell ${muted} ${hasItems} ${selected}" data-calendar-date="${escapeHtml(dateKey)}">
+            <span class="group-calendar-day-number">${date.getDate()}</span>
+            <span class="group-calendar-item-count">${escapeHtml(formatEventCountLabel(dayItems.length, behavior))}</span>
+          </button>
+        </td>
+      `;
+    }).join('');
+
+    weekRows.push(`
+      <tr class="group-calendar-week-row">
+        ${cells}
+      </tr>
+    `);
+
+    if (selectedWeekKey && weekKey === selectedWeekKey && selectedDate) {
+      const selectedItems = itemsByDate.get(selectedDate) || [];
+      const editorState = state.groupCalendarEditorBySlug[group.slug] || { mode: null, itemId: null };
+      weekRows.push(renderCalendarExpandedRow(group, pages, selectedDate, selectedItems, editorState));
+    }
+  }
 
   return `
     <section class="admin-card">
@@ -887,12 +955,89 @@ function renderGroupCalendar(group, pages) {
           <button type="button" data-calendar-next>&rarr;</button>
         </div>
       </div>
-      <p class="subtle-text">Click a date to view, add, or edit items.</p>
-      <div class="group-calendar-grid">
-        ${weekdayLabels}
-        ${cells}
+      <p class="subtle-text">Click a date to inspect and edit events inline.</p>
+      <div class="group-calendar-table-wrap">
+        <table class="group-calendar-table">
+          <thead>
+            <tr>${weekdayHeaders}</tr>
+          </thead>
+          <tbody>
+            ${weekRows.join('')}
+          </tbody>
+        </table>
       </div>
     </section>
+  `;
+}
+
+function renderCalendarExpandedRow(group, pages, date, items, editorState) {
+  const editingItem = editorState.mode === 'edit'
+    ? items.find((item) => item.id === editorState.itemId)
+    : null;
+  const showForm = editorState.mode === 'add' || !!editingItem;
+  const defaultPageSlug = editingItem?.pageSlug || pages[0]?.slug || '';
+
+  const eventCards = items.map((item) => `
+    <li class="calendar-event-card">
+      <div class="calendar-event-content">
+        <strong>${escapeHtml(item.title || 'Untitled')}</strong>
+        <p class="subtle-text">${escapeHtml(item.startTime || 'No start time')}${item.endTime ? ` - ${escapeHtml(item.endTime)}` : ''}</p>
+        <p class="subtle-text">${escapeHtml(item.location || 'No location')}</p>
+        <p class="subtle-text">${escapeHtml(item.description ? `${item.description.slice(0, 140)}${item.description.length > 140 ? '…' : ''}` : 'No description')}</p>
+      </div>
+      <button type="button" class="secondary-action" data-calendar-edit-item="${escapeHtml(item.id)}">Edit</button>
+    </li>
+  `).join('');
+
+  return `
+    <tr class="group-calendar-expanded-row">
+      <td colspan="7">
+        <section class="calendar-expanded-panel">
+          <div class="calendar-expanded-header">
+            <div>
+              <h4>${escapeHtml(formatDateOnly(date))}</h4>
+              <p class="subtle-text">${escapeHtml(formatEventCountLabel(items.length))}</p>
+            </div>
+            <button type="button" data-calendar-add-event>Add Event</button>
+          </div>
+
+          <section class="calendar-expanded-subpanel">
+            <h5>Events for this date</h5>
+            ${items.length ? `<ul class="calendar-event-list">${eventCards}</ul>` : '<p class="subtle-text">No events scheduled for this date yet.</p>'}
+          </section>
+
+          ${showForm ? `
+            <section class="calendar-expanded-subpanel">
+              <h5>${editingItem ? 'Edit Event' : 'Add Event'}</h5>
+              <form class="admin-form" data-calendar-inline-form>
+                <label>Page
+                  <select name="page_slug" required>
+                    ${pages.map((page) => `<option value="${escapeHtml(page.slug)}" ${page.slug === defaultPageSlug ? 'selected' : ''}>${escapeHtml(page.event_name || page.slug)}</option>`).join('')}
+                  </select>
+                </label>
+                <div class="admin-columns-2">
+                  <label>Title<input type="text" name="title" value="${escapeHtml(editingItem?.title || '')}" required></label>
+                  <label>Category/Type<input type="text" name="category" value="${escapeHtml(editingItem?.category || '')}"></label>
+                </div>
+                <div class="admin-columns-2">
+                  <label>Start Time<input type="text" name="start_time" value="${escapeHtml(editingItem?.startTime || '')}" placeholder="6:00 PM"></label>
+                  <label>End Time<input type="text" name="end_time" value="${escapeHtml(editingItem?.endTime || '')}" placeholder="8:00 PM"></label>
+                </div>
+                <label>Location<input type="text" name="location" value="${escapeHtml(editingItem?.location || '')}"></label>
+                <label>Description<textarea name="description" rows="3">${escapeHtml(editingItem?.description || '')}</textarea></label>
+                <input type="hidden" name="date" value="${escapeHtml(date)}">
+                <input type="hidden" name="edit_item_id" value="${escapeHtml(editingItem?.id || '')}">
+                <p class="error-text" data-calendar-form-message></p>
+                <div class="button-row">
+                  <button type="submit">Save</button>
+                  <button type="button" class="secondary-action" data-calendar-cancel-form>Cancel</button>
+                </div>
+              </form>
+            </section>
+          ` : ''}
+        </section>
+      </td>
+    </tr>
   `;
 }
 
@@ -908,18 +1053,6 @@ function renderGroupSubviewScaffold(group, viewKey) {
   `;
 }
 
-function openDateModal(group, pages, date, items) {
-  state.groupSelectedDateBySlug[group.slug] = date;
-  state.dateModalContext = { group, pages, date, editItemId: null };
-  renderDateModal(items);
-}
-
-function closeDateModal() {
-  state.dateModalContext = null;
-  const modal = document.getElementById('dateItemModal');
-  modal?.classList.add('hidden');
-}
-
 function buildEditableDateEntry(formData) {
   return {
     date: formData.date,
@@ -932,50 +1065,40 @@ function buildEditableDateEntry(formData) {
   };
 }
 
-async function saveDateItem(event) {
+async function saveCalendarDateItem(event, group) {
   event.preventDefault();
   const form = event.currentTarget;
-  if (!state.dateModalContext) return;
-  const { group, pages, editItemId } = state.dateModalContext;
+  const pages = state.groupPagesBySlug[group.slug] || [];
   const formData = Object.fromEntries(new FormData(form).entries());
   const targetPageSlug = String(formData.page_slug || '');
   const targetPage = pages.find((page) => page.slug === targetPageSlug);
   if (!targetPage) return;
+
+  const editItemId = String(formData.edit_item_id || '').trim() || null;
   const sourceItem = editItemId
     ? mapExistingPageDataToCalendarItems(group.slug, pages).find((item) => item.id === editItemId)
     : null;
 
   const dates = Array.isArray(targetPage.dates) ? [...targetPage.dates] : [];
   const nextEntry = buildEditableDateEntry(formData);
-
-  if (editItemId) {
-    if (sourceItem && sourceItem.pageSlug === targetPage.slug && Number.isInteger(sourceItem.entryIndex)) {
-      dates[sourceItem.entryIndex] = nextEntry;
-    } else {
-      dates.push(nextEntry);
-    }
+  if (sourceItem && sourceItem.pageSlug === targetPage.slug && Number.isInteger(sourceItem.entryIndex)) {
+    dates[sourceItem.entryIndex] = nextEntry;
   } else {
     dates.push(nextEntry);
   }
 
+  const messageEl = form.querySelector('[data-calendar-form-message]');
   const { error } = await supabaseClient
     .from('event_pages')
     .update({ dates })
     .eq('group_slug', group.slug)
     .eq('slug', targetPage.slug);
-
-  const messageEl = form.querySelector('[data-modal-message]');
   if (error) {
-    if (messageEl) messageEl.textContent = `Failed to save item: ${error.message || 'Unknown error'}`;
+    if (messageEl) messageEl.textContent = `Failed to save event: ${error.message || 'Unknown error'}`;
     return;
   }
 
-  let nextPages = pages.map((page) => (
-    page.slug === targetPage.slug
-      ? { ...page, dates }
-      : page
-  ));
-
+  let nextPages = pages.map((page) => (page.slug === targetPage.slug ? { ...page, dates } : page));
   if (sourceItem && sourceItem.pageSlug !== targetPage.slug && Number.isInteger(sourceItem.entryIndex)) {
     nextPages = nextPages.map((page) => {
       if (page.slug !== sourceItem.pageSlug) return page;
@@ -990,113 +1113,15 @@ async function saveDateItem(event) {
       .update({ dates: sourcePage?.dates || [] })
       .eq('group_slug', group.slug)
       .eq('slug', sourceItem.pageSlug);
-
     if (sourceUpdate.error && messageEl) {
-      messageEl.textContent = `Saved target page, but failed to remove old item: ${sourceUpdate.error.message || 'Unknown error'}`;
+      messageEl.textContent = `Saved target page, but failed to remove old event: ${sourceUpdate.error.message || 'Unknown error'}`;
+      return;
     }
   }
 
   state.groupPagesBySlug[group.slug] = nextPages;
-
-  const dateItems = mapExistingPageDataToCalendarItems(group.slug, state.groupPagesBySlug[group.slug])
-    .filter((item) => item.date === state.dateModalContext.date);
-  state.dateModalContext.editItemId = null;
-  renderDateModal(dateItems);
-  if (state.activeTab === `group:${group.slug}`) {
-    renderGroupPanel(state.activeTab);
-  }
-}
-
-function renderDateModal(items) {
-  const modal = document.getElementById('dateItemModal');
-  const content = document.getElementById('dateItemModalContent');
-  if (!modal || !content || !state.dateModalContext) return;
-  const { group, pages, date, editItemId } = state.dateModalContext;
-  const editingItem = editItemId ? items.find((item) => item.id === editItemId) : null;
-
-  const itemRows = items.map((item) => `
-    <li class="date-item-row">
-      <div>
-        <strong>${escapeHtml(item.title || 'Untitled')}</strong>
-        <p class="subtle-text">${escapeHtml(item.startTime || '—')} - ${escapeHtml(item.endTime || '—')} • ${escapeHtml(item.location || 'No location')}</p>
-      </div>
-      <button type="button" class="admin-tab" data-edit-item-id="${escapeHtml(item.id)}">Edit</button>
-    </li>
-  `).join('');
-
-  const selectedPageForForm = editingItem?.pageSlug || pages[0]?.slug || '';
-
-  content.innerHTML = `
-    <div class="calendar-modal-header">
-      <h3>${escapeHtml(formatDateOnly(date))}</h3>
-      <button type="button" class="admin-tab" data-close-date-modal>Close</button>
-    </div>
-    <p class="subtle-text">${escapeHtml(group.name)} (${escapeHtml(group.slug)})</p>
-
-    <section class="admin-subcard">
-      <h4>Items for selected date</h4>
-      ${items.length ? `<ul class="admin-list date-item-list">${itemRows}</ul>` : '<p class="subtle-text">No items exist for this date yet.</p>'}
-      <div class="button-row">
-        <button type="button" data-add-item>+ Add New Item</button>
-      </div>
-    </section>
-
-    <section class="admin-subcard">
-      <h4>${editingItem ? 'Edit Item' : 'New Item'}</h4>
-      <form id="dateItemEditorForm" class="admin-form">
-        <label>Page
-          <select name="page_slug" required>
-            ${pages.map((page) => `<option value="${escapeHtml(page.slug)}" ${page.slug === selectedPageForForm ? 'selected' : ''}>${escapeHtml(page.event_name || page.slug)}</option>`).join('')}
-          </select>
-        </label>
-        <div class="admin-columns-2">
-          <label>Title<input type="text" name="title" value="${escapeHtml(editingItem?.title || '')}" required></label>
-          <label>Category/Type<input type="text" name="category" value="${escapeHtml(editingItem?.category || '')}"></label>
-        </div>
-        <div class="admin-columns-2">
-          <label>Start Time<input type="text" name="start_time" placeholder="6:00 PM" value="${escapeHtml(editingItem?.startTime || '')}"></label>
-          <label>End Time<input type="text" name="end_time" placeholder="8:00 PM" value="${escapeHtml(editingItem?.endTime || '')}"></label>
-        </div>
-        <label>Location<input type="text" name="location" value="${escapeHtml(editingItem?.location || '')}"></label>
-        <label>Description<textarea name="description" rows="3">${escapeHtml(editingItem?.description || '')}</textarea></label>
-        <input type="hidden" name="date" value="${escapeHtml(date)}">
-        <p class="error-text" data-modal-message></p>
-        <div class="button-row">
-          <button type="submit">${editingItem ? 'Save Changes' : 'Save Item'}</button>
-        </div>
-      </form>
-    </section>
-  `;
-
-  content.querySelector('[data-close-date-modal]')?.addEventListener('click', closeDateModal);
-  content.querySelector('[data-add-item]')?.addEventListener('click', () => {
-    state.dateModalContext.editItemId = null;
-    renderDateModal(items);
-  });
-  content.querySelectorAll('[data-edit-item-id]').forEach((button) => {
-    button.addEventListener('click', () => {
-      state.dateModalContext.editItemId = button.dataset.editItemId;
-      renderDateModal(items);
-    });
-  });
-  content.querySelector('#dateItemEditorForm')?.addEventListener('submit', saveDateItem);
-
-  modal.classList.remove('hidden');
-}
-
-function ensureDateModal() {
-  if (document.getElementById('dateItemModal')) return;
-  const modal = document.createElement('div');
-  modal.id = 'dateItemModal';
-  modal.className = 'admin-modal hidden';
-  modal.innerHTML = '<div class="admin-modal-card" role="dialog" aria-modal="true" aria-label="Date items editor" id="dateItemModalContent"></div>';
-  document.body.appendChild(modal);
-  modal.addEventListener('click', (event) => {
-    if (event.target === modal) closeDateModal();
-  });
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeDateModal();
-  });
+  state.groupCalendarEditorBySlug[group.slug] = { mode: null, itemId: null };
+  renderGroupPanel(`group:${group.slug}`);
 }
 
 async function fetchAuditRows() {
@@ -1238,7 +1263,6 @@ async function initAdmin() {
 
   state.tabs = buildTabs();
   state.activeTab = state.tabs[0]?.key || 'admin';
-  ensureDateModal();
 
   renderTabs();
   renderPanels();
