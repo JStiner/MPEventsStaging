@@ -749,7 +749,7 @@ async function loadEventData(requestedPageSlug) {
     getSupabaseClient().from('event_pages').select('*').eq('slug', effectivePageSlug).single(),
     getSupabaseClient().from('event_days').select('*').eq('page_slug', effectivePageSlug),
     getSupabaseClient().from('event_locations').select('*').eq('page_slug', effectivePageSlug),
-    getSupabaseClient().from('event_schedule').select('*').eq('page_slug', effectivePageSlug),
+    getSupabaseClient().from('event_schedule').select('*').eq('page_slug', effectivePageSlug).or('is_active.is.null,is_active.eq.true'),
     getSupabaseClient().from('event_vendors').select('*').eq('page_slug', effectivePageSlug)
   ]);
 
