@@ -71,3 +71,10 @@ This site loads event data from JSON files using `fetch()`. If you open the HTML
 Use one of these instead:
 - GitHub Pages
 - a local web server such as `python -m http.server`
+
+## Supabase import deployment (external calendars)
+- Apply the SQL migration in `supabase/migrations/20260403_event_import_pipeline.sql`.
+- Deploy the edge function:
+  - `supabase functions deploy import-events`
+- Ensure `event_sources` has enabled rows for `city-events` and `school-events` with accurate `parser_type` values (`html` or `ics`) and `auto_publish` as desired.
+- Run imports from Admin > **External Event Imports** or invoke the function manually with optional `sourceKeys`.

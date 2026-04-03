@@ -180,7 +180,7 @@ async function loadSourceData(source) {
 
   const [pageResult, scheduleResult, locationResult, dayResult] = await Promise.all([
     supabaseClient.from('event_pages').select('*').eq('slug', source.slug).single(),
-    supabaseClient.from('event_schedule').select('*').eq('page_slug', source.slug).order('event_date', { ascending: true }).order('sort_order', { ascending: true }),
+    supabaseClient.from('event_schedule').select('*').eq('page_slug', source.slug).or('is_active.is.null,is_active.eq.true').order('event_date', { ascending: true }).order('sort_order', { ascending: true }),
     supabaseClient.from('event_locations').select('*').eq('page_slug', source.slug),
     supabaseClient.from('event_days').select('*').eq('page_slug', source.slug).order('sort_order', { ascending: true })
   ]);
