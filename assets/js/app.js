@@ -494,6 +494,154 @@ function renderLocations(data) {
     : '<div class="empty-state">No locations are listed yet.</div>';
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderFlyerBadges(entry, bagIcon) {
+  const badges = Array.isArray(entry?.badges) ? entry.badges : [];
+  const bagMarkup = entry?.bagLocation
+    ? `<img class="covh-bag-icon covh-inline-bag-icon" src="${escapeHtml(bagIcon || '')}" alt="Bag location">`
+    : '';
+
+  if (!badges.length && !bagMarkup) return '';
+
+  return `<span class="covh-item-badges">${badges.map(b => `<span class="covh-inline-badge">${escapeHtml(b)}</span>`).join('')}${bagMarkup}</span>`;
+}
+
+function renderCovhEntry(entry, bagIcon) {
+  return `
+    <article class="covh-list-item">
+      <div class="covh-item-head">
+        <div class="covh-item-title-line">
+          ${entry?.entry_code || entry?.number ? `<span class="covh-item-number">${escapeHtml(entry.entry_code || entry.number)}</span>` : ''}
+          <h4>${escapeHtml(entry?.name || 'Untitled')}</h4>
+        </div>
+        ${entry?.hours ? `<div class="covh-item-hours">${escapeHtml(entry.hours)}</div>` : ''}
+      </div>
+      <div class="covh-item-meta">
+        ${entry?.address ? `<span>${escapeHtml(entry.address)}</span>` : ''}
+        ${renderFlyerBadges(entry, bagIcon)}
+      </div>
+      ${entry?.description ? `<p>${escapeHtml(entry.description)}</p>` : ''}
+    </article>
+  `;
+}
+
+function renderCovhRegionalBlock(block, maps = {}) {
+  const entries = Array.isArray(block?.entries) ? block.entries : [];
+  const mapSrc = block?.mapKey ? maps[block.mapKey] : '';
+  return `
+    <section class="covh-regional-block">
+      <div class="covh-regional-title">${escapeHtml(block?.title || '')}</div>
+      ${mapSrc ? `<img class="flyer-mini-map" src="${escapeHtml(mapSrc)}" alt="${escapeHtml(block?.title || 'Regional map')}">` : ''}
+      <div class="covh-regional-wrap">
+        ${entries.map(entry => `
+          <article class="covh-regional-item">
+            <div class="covh-regional-head">
+              <div class="covh-item-title-line">
+                ${entry?.entry_code || entry?.number ? `<span class="covh-item-number">${escapeHtml(entry.entry_code || entry.number)}</span>` : ''}
+                <h4 class="covh-regional-name">${escapeHtml(entry?.name || 'Untitled')}</h4>
+              </div>
+              ${entry?.hours ? `<div class="covh-regional-hours">${escapeHtml(entry.hours)}</div>` : ''}
+            </div>
+            <div class="covh-regional-meta">${entry?.address ? `<span>${escapeHtml(entry.address)}</span>` : ''}</div>
+            ${entry?.description ? `<p>${escapeHtml(entry.description)}</p>` : ''}
+          </article>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderCovhFlyer(data, flyer) {
+  const sections = flyer.sections || {};
+  const legend = Array.isArray(flyer.legend) ? flyer.legend : [];
+  const assets = flyer.assets || {};
+  const maps = assets.maps || {};
+  const callouts = flyer.callouts || {};
+  const bagIcon = assets.bagIcon || '';
+  const pageOneLeft = sections['mt-pulaski-a'] || Object.values(sections)[0] || null;
+  const pageOneRight = sections['mt-pulaski-b'] || Object.values(sections)[1] || null;
+  const pageTwoLeft = sections['mt-pulaski-c'] || Object.values(sections)[2] || null;
+  const regional = sections['regional'] || Object.values(sections).find(section => Array.isArray(section?.blocks) && section.blocks.length) || null;
+
+  const headerGraphic = assets.headerGraphic || '';
+  const mainMap = maps.mtPulaski || '';
+
+  return `
+    <div class="flyer-preview-shell covh-preview-shell">
+      <article class="flyer-page covh-pamphlet-page">
+        <div class="flyer-page-inner covh-page-inner">
+          <header class="covh-banner">
+            <div class="covh-banner-overlay">
+              ${headerGraphic ? `<div class="covh-banner-strip-overlay"><img class="covh-banner-strip-image-wide" src="${escapeHtml(headerGraphic)}" alt="${escapeHtml(flyer.document?.title || data.eventName || 'Flyer header')}"></div>` : ''}
+              <div class="covh-banner-copy covh-banner-copy-overlay">
+                ${flyer.document?.eyebrow ? `<div class="covh-banner-date">${escapeHtml(flyer.document.eyebrow)}</div>` : ''}
+                <div class="covh-banner-title">${escapeHtml(flyer.document?.title || data.eventName || 'Christmas on Vinegar Hill')}</div>
+                ${flyer.document?.subtitle ? `<div class="covh-banner-note">${escapeHtml(flyer.document.subtitle)}</div>` : ''}
+              </div>
+            </div>
+          </header>
+
+          <section class="covh-page-one-grid">
+            <div class="covh-column">
+              ${pageOneLeft ? `<div class="covh-regional-title">${escapeHtml(pageOneLeft.title || '')}</div>${(pageOneLeft.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}` : ''}
+            </div>
+            <aside class="covh-key-card">
+              <div class="covh-key-title">Key</div>
+              ${legend.map(item => `<div class="covh-key-row"><div class="covh-key-label">${escapeHtml(item.label || '')}</div><div>${escapeHtml(item.meaning || '')}</div></div>`).join('')}
+              ${callouts.bagNotice ? `<div class="covh-bag-callout">${bagIcon ? `<img class="covh-bag-icon covh-callout-bag-icon" src="${escapeHtml(bagIcon)}" alt="Bag icon">` : '<span class="covh-bag-text-symbol">Bag</span>'}${escapeHtml(callouts.bagNotice)}</div>` : ''}
+            </aside>
+            <div class="covh-column">
+              ${pageOneRight ? `<div class="covh-regional-title">${escapeHtml(pageOneRight.title || '')}</div>${(pageOneRight.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}` : ''}
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="flyer-page covh-pamphlet-page">
+        <div class="flyer-page-inner covh-page-inner">
+          <section class="covh-map-layout">
+            <div class="covh-map-main-card">
+              <div class="covh-map-tag">Mt. Pulaski</div>
+              ${mainMap ? `<img class="covh-main-map" src="${escapeHtml(mainMap)}" alt="Mt. Pulaski map">` : ''}
+            </div>
+            <div class="covh-map-stack">
+              ${(regional?.blocks || []).map(block => renderCovhRegionalBlock(block, maps)).join('')}
+            </div>
+          </section>
+
+          <section class="covh-footer-layout">
+            <div class="covh-thanks-block">
+              ${callouts.thankYouTitle ? `<div class="covh-script-heading">${escapeHtml(callouts.thankYouTitle)}</div>` : ''}
+              ${callouts.thankYouText ? `<p>${escapeHtml(callouts.thankYouText)}</p>` : ''}
+              ${Array.isArray(callouts.benefactors) ? `<ul class="covh-benefactor-list">${callouts.benefactors.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : ''}
+            </div>
+            <div class="covh-qr-block">
+              ${callouts.scanText ? `<div class="covh-qr-title">${escapeHtml(callouts.scanText)}</div>` : ''}
+              ${assets.qrMap ? `<img class="covh-qr-image" src="${escapeHtml(assets.qrMap)}" alt="QR code map">` : ''}
+            </div>
+            <div class="covh-art-block">
+              ${assets.treeSign ? `<img class="covh-art-image" src="${escapeHtml(assets.treeSign)}" alt="Tree sign">` : ''}
+              ${Array.isArray(callouts.footer) ? `<div class="covh-footer-lines">${callouts.footer.map(line => `<div>${escapeHtml(line)}</div>`).join('')}</div>` : ''}
+            </div>
+            <div class="covh-sponsor-block">
+              ${callouts.sponsorsTitle ? `<div class="covh-script-heading">${escapeHtml(callouts.sponsorsTitle)}</div>` : ''}
+              ${Array.isArray(callouts.sponsors) ? `<ul class="covh-sponsor-list">${callouts.sponsors.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : ''}
+            </div>
+          </section>
+        </div>
+      </article>
+    </div>
+  `;
+}
+
 function renderFlyer(data) {
   if (!el.flyerPanel) return;
   const flyer = data.flyer;
@@ -502,12 +650,12 @@ function renderFlyer(data) {
     return;
   }
 
-  const escape = (value) => String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  const escape = escapeHtml;
+
+  if ((pageSlug || eventFile) === 'christmas-on-vinegar-hill') {
+    el.flyerPanel.innerHTML = renderCovhFlyer(data, flyer);
+    return;
+  }
 
   const renderMetaLine = (entry) => {
     const parts = [entry?.address, entry?.hours].filter(Boolean);
@@ -517,7 +665,7 @@ function renderFlyer(data) {
   const renderEntry = (entry, compact = false) => `
     <article class="flyer-entry${compact ? ' compact' : ''}">
       <div class="flyer-entry-top">
-        ${entry?.entry_code ? `<span class="flyer-number">${escape(entry.entry_code)}</span>` : ''}
+        ${entry?.entry_code || entry?.number ? `<span class="flyer-number">${escape(entry.entry_code || entry.number)}</span>` : ''}
         <div class="flyer-name-block">
           <h4>${escape(entry?.name || 'Untitled')}</h4>
           ${renderMetaLine(entry)}
@@ -532,10 +680,12 @@ function renderFlyer(data) {
     const title = block.title || block.heading || '';
     const items = Array.isArray(block.items) ? block.items : [];
     const lines = Array.isArray(block.lines) ? block.lines : [];
+    const entries = Array.isArray(block.entries) ? block.entries : [];
     return `
       <article class="flyer-note-card">
         ${title ? `<h3>${escape(title)}</h3>` : ''}
         ${items.length ? `<div class="flyer-list">${items.map(item => `<div>${escape(item)}</div>`).join('')}</div>` : ''}
+        ${entries.length ? `<div class="flyer-entry-list compact">${entries.map(entry => renderEntry(entry, true)).join('')}</div>` : ''}
         ${lines.length ? `<div class="flyer-footer-lines">${lines.map(line => `<div>${escape(line)}</div>`).join('')}</div>` : ''}
       </article>
     `;
@@ -814,7 +964,104 @@ function normalizeFlyer(flyer, pageRow = {}, raw = {}) {
   };
 }
 
-function buildEventData(pageRow, dayRows, locationRows, scheduleRows, vendorRows) {
+function mapFlyerEntryRow(row) {
+  const raw = row.raw || row.raw_payload || {};
+  return {
+    ...raw,
+    entry_code: row.entry_code,
+    number: row.entry_code,
+    name: row.name,
+    address: row.address,
+    hours: row.hours,
+    description: row.description,
+    badges: Array.isArray(row.badges) ? row.badges : [],
+    bagLocation: !!(row.bag_location ?? raw.bagLocation ?? raw.bag_location),
+    sort_order: row.sort_order
+  };
+}
+
+function buildFlyerFromTables(pageRow, flyerTables) {
+  const raw = pageRow.raw || {};
+  const baseFlyer = normalizeFlyer(pageRow.flyer ?? raw.flyer, pageRow, raw) || {};
+  const sectionRows = Array.isArray(flyerTables?.sections) ? flyerTables.sections : [];
+  const entryRows = Array.isArray(flyerTables?.entries) ? flyerTables.entries : [];
+  const legendRows = Array.isArray(flyerTables?.legend) ? flyerTables.legend : [];
+  const footerRows = Array.isArray(flyerTables?.footerNotes) ? flyerTables.footerNotes : [];
+  const sponsorRows = Array.isArray(flyerTables?.sponsors) ? flyerTables.sponsors : [];
+
+  if (!sectionRows.length && !legendRows.length && !footerRows.length && !sponsorRows.length) {
+    return baseFlyer && Object.keys(baseFlyer).length ? baseFlyer : null;
+  }
+
+  const baseSectionKeys = Object.keys(baseFlyer.sections || {});
+  const entryMap = new Map();
+  entryRows.forEach((row) => {
+    const key = row.section_id;
+    if (!entryMap.has(key)) entryMap.set(key, []);
+    entryMap.get(key).push(mapFlyerEntryRow(row));
+  });
+
+  const mergedSections = {};
+  sectionRows
+    .slice()
+    .sort((a, b) => (Number(a.sort_order || 0) - Number(b.sort_order || 0)))
+    .forEach((sectionRow, index) => {
+      const title = sectionRow.section_title || sectionRow.title || `Section ${index + 1}`;
+      const hintedKey = baseSectionKeys[index];
+      const key = hintedKey || slugifyFlyerSectionKey(title) || `section-${index + 1}`;
+      const baseSection = baseFlyer.sections?.[key] || {};
+      const dbEntries = (entryMap.get(sectionRow.id) || []).sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
+      const baseEntries = Array.isArray(baseSection.entries) ? baseSection.entries : [];
+      const mergedEntries = dbEntries.map((entry, entryIndex) => {
+        const baseEntry = baseEntries.find((candidate) => String(candidate.entry_code || candidate.number || '') === String(entry.entry_code || entry.number || '')) || baseEntries[entryIndex] || {};
+        return {
+          ...baseEntry,
+          ...entry,
+          badges: Array.isArray(entry.badges) && entry.badges.length ? entry.badges : (Array.isArray(baseEntry.badges) ? baseEntry.badges : []),
+          bagLocation: entry.bagLocation || !!baseEntry.bagLocation
+        };
+      });
+      mergedSections[key] = {
+        key,
+        title,
+        entries: mergedEntries,
+        blocks: Array.isArray(baseSection.blocks) ? baseSection.blocks : []
+      };
+    });
+
+  // keep any base sections not represented in DB, e.g. regional block-only sections
+  Object.entries(baseFlyer.sections || {}).forEach(([key, section]) => {
+    if (!mergedSections[key]) mergedSections[key] = section;
+  });
+
+  const legend = legendRows.length
+    ? legendRows.slice().sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0)).map(item => ({ label: item.label, meaning: item.meaning }))
+    : (baseFlyer.legend || []);
+
+  const footer = footerRows.length
+    ? footerRows.slice().sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0)).map(item => item.note)
+    : (baseFlyer.callouts?.footer || []);
+
+  const sponsors = sponsorRows.length
+    ? sponsorRows.slice().sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0)).map(item => item.sponsor_name)
+    : (baseFlyer.callouts?.sponsors || []);
+
+  return {
+    ...baseFlyer,
+    sections: mergedSections,
+    legend,
+    pageFlow: Array.isArray(baseFlyer.pageFlow) && baseFlyer.pageFlow.length
+      ? baseFlyer.pageFlow
+      : buildDefaultFlyerPageFlow(Object.keys(mergedSections)),
+    callouts: {
+      ...(baseFlyer.callouts || {}),
+      footer,
+      sponsors
+    }
+  };
+}
+
+function buildEventData(pageRow, dayRows, locationRows, scheduleRows, vendorRows, flyerTables = {}) {
   const raw = pageRow.raw || {};
   return {
     ...raw,
@@ -828,7 +1075,7 @@ function buildEventData(pageRow, dayRows, locationRows, scheduleRows, vendorRows
     dates: Array.isArray(pageRow.dates) ? pageRow.dates : (raw.dates || []),
     theme: pageRow.theme ?? raw.theme,
     featuredBranding: pageRow.featured_branding ?? raw.featuredBranding,
-    flyer: normalizeFlyer(pageRow.flyer ?? raw.flyer, pageRow, raw),
+    flyer: buildFlyerFromTables(pageRow, flyerTables),
     resources: Array.isArray(pageRow.resources) ? pageRow.resources : (raw.resources || []),
     days: dayRows.map(mapDayRow),
     locations: locationRows.map(mapLocationRow),
@@ -843,15 +1090,20 @@ async function loadEventData(requestedPageSlug) {
     throw new Error('Page slug is required to load event data.');
   }
 
-  const [pageResult, daysResult, locationsResult, scheduleResult, vendorsResult] = await Promise.all([
+  const [pageResult, daysResult, locationsResult, scheduleResult, vendorsResult, flyerSectionsResult, flyerEntriesResult, flyerLegendResult, flyerFooterResult, flyerSponsorsResult] = await Promise.all([
     getSupabaseClient().from('event_pages').select('*').eq('slug', effectivePageSlug).single(),
     getSupabaseClient().from('event_days').select('*').eq('page_slug', effectivePageSlug),
     getSupabaseClient().from('event_locations').select('*').eq('page_slug', effectivePageSlug),
     getSupabaseClient().from('event_schedule').select('*').eq('page_slug', effectivePageSlug).or('is_active.is.null,is_active.eq.true'),
-    getSupabaseClient().from('event_vendors').select('*').eq('page_slug', effectivePageSlug)
+    getSupabaseClient().from('event_vendors').select('*').eq('page_slug', effectivePageSlug),
+    getSupabaseClient().from('event_flyer_sections').select('*').eq('page_slug', effectivePageSlug),
+    getSupabaseClient().from('event_flyer_entries').select('*, event_flyer_sections!inner(page_slug)').eq('event_flyer_sections.page_slug', effectivePageSlug),
+    getSupabaseClient().from('event_flyer_legend').select('*').eq('page_slug', effectivePageSlug),
+    getSupabaseClient().from('event_flyer_footer_notes').select('*').eq('page_slug', effectivePageSlug),
+    getSupabaseClient().from('event_flyer_sponsors').select('*').eq('page_slug', effectivePageSlug)
   ]);
 
-  const results = [pageResult, daysResult, locationsResult, scheduleResult];
+  const results = [pageResult, daysResult, locationsResult, scheduleResult, flyerSectionsResult, flyerEntriesResult, flyerLegendResult, flyerFooterResult, flyerSponsorsResult];
   const failed = results.find(result => result.error);
   if (failed) {
     throw failed.error;
@@ -902,7 +1154,14 @@ async function loadEventData(requestedPageSlug) {
     dayRows,
     locationRows,
     scheduleRows,
-    vendorRows
+    vendorRows,
+    {
+      sections: flyerSectionsResult.error ? [] : (flyerSectionsResult.data || []),
+      entries: flyerEntriesResult.error ? [] : (flyerEntriesResult.data || []),
+      legend: flyerLegendResult.error ? [] : (flyerLegendResult.data || []),
+      footerNotes: flyerFooterResult.error ? [] : (flyerFooterResult.data || []),
+      sponsors: flyerSponsorsResult.error ? [] : (flyerSponsorsResult.data || [])
+    }
   );
 }
 
