@@ -20,6 +20,7 @@ const state = {
   tabs: [],
   activeTab: null,
   auditRows: [],
+  importRuns: [],
   groupData: {},
   selectedGroupViewBySlug: {},
   selectedPageByGroup: {},
@@ -129,6 +130,17 @@ async function fetchAuditRows() {
   return tableResult.data || [];
 }
 
+async function fetchImportRuns() {
+  const { data, error } = await supabaseClient
+    .from('v_event_import_runs')
+    .select('id, source_key, page_slug, source_name, parser_type, status, started_at, finished_at, staged_count, published_count, error_message')
+    .order('started_at', { ascending: false })
+    .limit(20);
+
+  if (error) throw error;
+  return data || [];
+}
+
 async function loadGroupData(groupSlug) {
   const pageResult = await supabaseClient.from('event_pages').select('*').eq('group_slug', groupSlug).order('event_name');
   if (pageResult.error) throw pageResult.error;
@@ -141,7 +153,7 @@ async function loadGroupData(groupSlug) {
 
   const [daysResult, scheduleResult, locationsResult, vendorsResult] = await Promise.all([
     supabaseClient.from('event_days').select('*').in('page_slug', pageSlugs),
-    supabaseClient.from('event_schedule').select('*').in('page_slug', pageSlugs),
+    supabaseClient.from('event_schedule').select('*').in('page_slug', pageSlugs).or('is_active.is.null,is_active.eq.true'),
     supabaseClient.from('event_locations').select('*').in('page_slug', pageSlugs),
     supabaseClient.from('event_vendors').select('*').in('page_slug', pageSlugs),
   ]);
@@ -209,6 +221,17 @@ function renderTabs() {
 function renderAdminPanel() {
   const panel = document.getElementById('adminTabPanel');
   const groupRows = state.groups.map((group) => `<li>${escapeHtml(group.name)} <span class="subtle-text">(${escapeHtml(group.slug)})</span></li>`).join('');
+  const importRows = (state.importRuns || []).map((row) => `
+    <tr>
+      <td>${escapeHtml(row.source_key || '')}</td>
+      <td>${escapeHtml(row.page_slug || '—')}</td>
+      <td>${escapeHtml(row.status || '—')}</td>
+      <td>${escapeHtml(formatDate(row.started_at))}</td>
+      <td>${escapeHtml(String(row.staged_count ?? 0))}</td>
+      <td>${escapeHtml(String(row.published_count ?? 0))}</td>
+      <td>${escapeHtml(row.error_message || '')}</td>
+    </tr>
+  `).join('');
 
   panel.innerHTML = `
     <h2>Admin</h2>
@@ -220,12 +243,51 @@ function renderAdminPanel() {
     </dl>
     <div class="button-row"><button type="button" id="signOutButton">Sign Out</button></div>
     <section class="admin-card"><h3>Event Groups</h3><ul class="admin-list">${groupRows || '<li>No groups found.</li>'}</ul></section>
+    <section class="admin-card">
+      <h3>External Event Imports</h3>
+      <div class="button-row">
+        <button type="button" data-run-import="city-events">Import City Events</button>
+        <button type="button" data-run-import="school-events">Import School Events</button>
+        <button type="button" data-run-import="all">Import All</button>
+      </div>
+      <p class="error-text" data-message="imports"></p>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>source</th><th>page</th><th>status</th><th>started</th><th>staged</th><th>published</th><th>error</th></tr></thead>
+          <tbody>${importRows || '<tr><td colspan="7">No import runs yet.</td></tr>'}</tbody>
+        </table>
+      </div>
+    </section>
   `;
 
   panel.querySelector('#signOutButton')?.addEventListener('click', async () => {
     await supabaseClient.auth.signOut();
     window.location.href = './login.html';
   });
+
+  panel.querySelectorAll('[data-run-import]').forEach((button) => button.addEventListener('click', async () => {
+    const target = button.dataset.runImport;
+    const sourceKeys = target === 'all' ? null : [target];
+    setMessage(panel, 'imports', `Running ${target} import…`);
+
+    const { data, error } = await supabaseClient.functions.invoke('import-events', {
+      body: sourceKeys ? { sourceKeys } : {},
+    });
+
+    if (error) {
+      setMessage(panel, 'imports', error.message || 'Import failed.');
+      return;
+    }
+
+    if (!data?.ok) {
+      setMessage(panel, 'imports', data?.error || 'Import failed.');
+      return;
+    }
+
+    state.importRuns = await fetchImportRuns().catch(() => state.importRuns || []);
+    setMessage(panel, 'imports', `Import complete for ${target}.`);
+    renderAdminPanel();
+  }));
 }
 
 function getSelectedPage(groupSlug, data) {
@@ -916,6 +978,7 @@ async function initAdmin() {
 
   if (state.profile?.is_admin) {
     state.auditRows = await fetchAuditRows();
+    state.importRuns = await fetchImportRuns().catch(() => []);
   }
 
   state.tabs = buildTabs();
