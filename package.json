@@ -1,26 +1,26 @@
 {
-  "name": "whatsfordinner",
+  "name": "mpevents-staging",
   "version": "1.0.0",
-  "description": "GitHub Pages demo for a tablet-friendly cooking app.",
-  "main": "app.js",
+  "description": "Community Events staging site and admin console.",
+  "main": "assets/js/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "check:syntax": "node --check assets/js/app.js && node --check assets/js/home.js && node --check assets/js/admin-auth.js && node --check assets/js/admin-page.js",
+    "check:syntax": "node --check assets/js/app.js && node --check assets/js/home.js && node --check assets/js/admin-auth.js && node --check admin.js",
     "check:conflicts": "bash -lc '! rg -n \"^(<<<<<<<|=======|>>>>>>>)\" --glob \"*.html\" --glob \"assets/js/*.js\" --glob \"assets/css/*.css\" .'",
     "check:premerge": "npm run check:syntax && npm run check:conflicts"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JStiner/WhatsForDinner.git"
+    "url": ""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/JStiner/WhatsForDinner/issues"
+    "url": ""
   },
-  "homepage": "https://github.com/JStiner/WhatsForDinner#readme",
+  "homepage": "",
   "dependencies": {
     "@supabase/supabase-js": "^2.101.0"
   }
