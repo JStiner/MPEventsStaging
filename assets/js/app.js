@@ -501,17 +501,115 @@ function renderFlyer(data) {
     el.flyerPanel.innerHTML = '<div class="empty-state">No printable flyer has been configured yet.</div>';
     return;
   }
-  el.flyerPanel.innerHTML = `<pre>${JSON.stringify(flyer, null, 2)}</pre>`;
+
+  const escape = (value) => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  const renderMetaLine = (entry) => {
+    const parts = [entry?.address, entry?.hours].filter(Boolean);
+    return parts.length ? `<p class="flyer-meta">${escape(parts.join(' • '))}</p>` : '';
+  };
+
+  const renderEntry = (entry, compact = false) => `
+    <article class="flyer-entry${compact ? ' compact' : ''}">
+      <div class="flyer-entry-top">
+        ${entry?.entry_code ? `<span class="flyer-number">${escape(entry.entry_code)}</span>` : ''}
+        <div class="flyer-name-block">
+          <h4>${escape(entry?.name || 'Untitled')}</h4>
+          ${renderMetaLine(entry)}
+        </div>
+      </div>
+      ${entry?.description ? `<p>${escape(entry.description)}</p>` : ''}
+    </article>
+  `;
+
+  const renderBlock = (block) => {
+    if (!block || typeof block !== 'object') return '';
+    const title = block.title || block.heading || '';
+    const items = Array.isArray(block.items) ? block.items : [];
+    const lines = Array.isArray(block.lines) ? block.lines : [];
+    return `
+      <article class="flyer-note-card">
+        ${title ? `<h3>${escape(title)}</h3>` : ''}
+        ${items.length ? `<div class="flyer-list">${items.map(item => `<div>${escape(item)}</div>`).join('')}</div>` : ''}
+        ${lines.length ? `<div class="flyer-footer-lines">${lines.map(line => `<div>${escape(line)}</div>`).join('')}</div>` : ''}
+      </article>
+    `;
+  };
+
+  const renderSection = (sectionKey) => {
+    const section = flyer.sections?.[sectionKey];
+    if (!section) return '';
+
+    const hasEntries = Array.isArray(section.entries) && section.entries.length;
+    const hasBlocks = Array.isArray(section.blocks) && section.blocks.length;
+    if (!hasEntries && !hasBlocks) return '';
+
+    return `
+      <section class="flyer-section">
+        <h3 class="flyer-section-heading">${escape(section.title || 'Section')}</h3>
+        ${hasEntries ? `<div class="flyer-entry-list${section.entries.length > 7 ? ' compact' : ''}">${section.entries.map(entry => renderEntry(entry, section.entries.length > 7)).join('')}</div>` : ''}
+        ${hasBlocks ? `<div class="flyer-callout-grid">${section.blocks.map(renderBlock).join('')}</div>` : ''}
+      </section>
+    `;
+  };
+
+  const legend = Array.isArray(flyer.legend) ? flyer.legend : [];
+  const pageFlow = Array.isArray(flyer.pageFlow) ? flyer.pageFlow : [];
+  const sponsors = Array.isArray(flyer.callouts?.sponsors) ? flyer.callouts.sponsors : [];
+  const footer = Array.isArray(flyer.callouts?.footer) ? flyer.callouts.footer : [];
+
+  const pagesMarkup = pageFlow.length
+    ? pageFlow.map((page, index) => `
+        <article class="flyer-page">
+          <div class="flyer-page-inner">
+            <header class="flyer-page-header">
+              <div class="flyer-title-wrap">
+                <p class="eyebrow">${escape(flyer.document?.eyebrow || 'Printable flyer')}</p>
+                <h2>${escape(flyer.document?.title || data.eventName || 'Event Flyer')}</h2>
+                ${flyer.document?.subtitle ? `<p class="subtle">${escape(flyer.document.subtitle)}</p>` : ''}
+              </div>
+              ${legend.length && index === 0 ? `
+                <div class="flyer-legend">
+                  ${legend.map(item => `<div>${escape(item.label || item.code || '')}${item.meaning ? ` — ${escape(item.meaning)}` : ''}</div>`).join('')}
+                </div>
+              ` : ''}
+            </header>
+            <div class="flyer-page-columns${index === 1 ? ' page-two' : ''}">
+              <div class="flyer-column">${renderSection(page.leftSection)}</div>
+              <div class="flyer-column">${page.rightSection ? renderSection(page.rightSection) : ''}</div>
+            </div>
+            ${(sponsors.length || footer.length) && index === pageFlow.length - 1 ? `
+              <section class="flyer-note-card">
+                ${sponsors.length ? `<h3>Sponsors</h3><div class="flyer-list">${sponsors.map(item => `<div>${escape(item)}</div>`).join('')}</div>` : ''}
+                ${footer.length ? `<div class="flyer-footer-lines">${footer.map(item => `<div>${escape(item)}</div>`).join('')}</div>` : ''}
+              </section>
+            ` : ''}
+          </div>
+        </article>
+      `).join('')
+    : '<div class="empty-state">Flyer layout is not configured yet.</div>';
+
+  el.flyerPanel.innerHTML = `<div class="flyer-preview-shell">${pagesMarkup}</div>`;
 }
 
 function setupTabs() {
   const buttons = document.querySelectorAll('[data-tab]');
-  const panels = document.querySelectorAll('[data-panel]');
+  const panels = document.querySelectorAll('[data-panel], .tab-panel');
   if (!buttons.length || !panels.length) return;
 
   const openTab = tab => {
     buttons.forEach(button => button.classList.toggle('active', button.dataset.tab === tab));
-    panels.forEach(panel => panel.classList.toggle('hidden', panel.dataset.panel !== tab));
+    panels.forEach(panel => {
+      const panelKey = panel.dataset.panel || panel.id;
+      const isActive = panelKey === tab;
+      panel.classList.toggle('active', isActive);
+      panel.classList.toggle('hidden', !isActive && panel.hasAttribute('data-panel'));
+    });
   };
 
   buttons.forEach(button => {
