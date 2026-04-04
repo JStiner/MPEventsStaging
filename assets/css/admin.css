@@ -762,3 +762,133 @@ button.danger {
     align-items: stretch;
   }
 }
+
+.admin-section-header,
+.admin-group-block__header,
+.admin-entity-card__top,
+.admin-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.admin-section-header {
+  margin-bottom: 1rem;
+}
+
+.admin-form-card {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #d0d7e2;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.admin-form-header {
+  margin-bottom: 0.5rem;
+}
+
+.admin-group-block {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.admin-group-block:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.admin-group-block-warning {
+  border-top-color: #f59e0b;
+}
+
+.admin-entity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.admin-entity-card,
+.admin-vendor-row,
+.admin-empty-state {
+  padding: 1rem;
+  border: 1px solid #dbe1ea;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.admin-vendor-row {
+  margin-top: 0.85rem;
+}
+
+.admin-vendor-row:first-of-type {
+  margin-top: 0;
+}
+
+.admin-kv-grid {
+  margin: 0.85rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.admin-kv-grid.compact {
+  margin-top: 0.6rem;
+}
+
+.admin-kv-grid div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.admin-kv-grid dt {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #475467;
+}
+
+.admin-kv-grid dd {
+  margin: 0;
+}
+
+.admin-badge-row,
+.admin-checkbox-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 0.82rem;
+}
+
+.admin-badge-highlight {
+  border-color: #93c5fd;
+  background: #dbeafe;
+}
+
+.admin-badge-muted {
+  color: #667085;
+}
+
+@media (max-width: 900px) {
+  .admin-section-header,
+  .admin-group-block__header,
+  .admin-entity-card__top,
+  .admin-form-header {
+    flex-direction: column;
+  }
+
+  .admin-kv-grid {
+    grid-template-columns: 1fr;
+  }
+}
