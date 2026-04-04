@@ -1,5 +1,3 @@
-function isCovhPage(page){ return page.slug === 'christmas-on-vinegar-hill'; }
-
 const supabaseClient = window.supabaseClient;
 
 const GROUP_SUBVIEW_KEYS = ['pages', 'calendar', 'schedule', 'vendors', 'locations', 'flyer', 'resources', 'settings'];
@@ -133,6 +131,11 @@ function usesAdvancedLocationFields(pageOrSlug) {
   return slug === 'christmas-on-vinegar-hill' || slug === 'fall-fest';
 }
 
+function usesCovhLocationFields(pageOrSlug) {
+  const slug = String(typeof pageOrSlug === 'string' ? pageOrSlug : pageOrSlug?.slug || '').trim().toLowerCase();
+  return slug === 'christmas-on-vinegar-hill';
+}
+
 function getPageDefaultMeta(pageOrSlug) {
   const slug = String(typeof pageOrSlug === 'string' ? pageOrSlug : pageOrSlug?.slug || '').trim().toLowerCase();
   if (slug === 'community-events-library') {
@@ -155,10 +158,10 @@ function getPageDefaultMeta(pageOrSlug) {
 }
 
 function getLocationHelperText(pageOrSlug) {
-  if (usesAdvancedLocationFields(pageOrSlug)) {
+  if (usesCovhLocationFields(pageOrSlug)) {
     return 'Use this record for public location listings, flyer sections, map metadata, and vendor routing.';
   }
-  return 'Use this record for the public listing, directions, hours, and event location selection.';
+  return 'Use this record for the public listing, directions, hours, and vendor/location assignments.';
 }
 
 function getAccessiblePageRowsForGroup(groupSlug) {
@@ -313,12 +316,13 @@ function openAdminModal(title, bodyHtml) {
 
 async function openLocationEditorModal(groupSlug, tabKey, page, data, record = null) {
   const advancedLocationFields = usesAdvancedLocationFields(page);
+  const covhLocationFields = usesCovhLocationFields(page);
   const bodyHtml = `
     <form class="admin-form" data-form="location-modal">
       <input type="hidden" name="external_id" value="${escapeHtml(record?.external_id || '')}">
       <div class="admin-columns-2">
         <label>Name<input name="name" value="${escapeHtml(record?.name || '')}" required></label>
-        <label>Flyer Number<input name="location_number" value="${escapeHtml(record?.location_number || '')}" placeholder="12"></label>
+        ${covhLocationFields ? `<label>Flyer Number<input name="location_number" value="${escapeHtml(record?.location_number || '')}" placeholder="12"></label>` : '<div></div>'}
       </div>
       <div class="admin-columns-2">
         <label>Address<input name="address" value="${escapeHtml(record?.address || '')}"></label>
@@ -348,8 +352,8 @@ async function openLocationEditorModal(groupSlug, tabKey, page, data, record = n
         ${advancedLocationFields ? `<label>Directions URL<input name="directions_url" value="${escapeHtml(record?.directions_url || '')}" placeholder="https://..."></label>` : '<div></div>'}
       </div>
       <div class="admin-checkbox-grid">
-        ${advancedLocationFields ? `<label><input type="checkbox" name="multi_vendor" ${record?.multi_vendor ? 'checked' : ''}> Multi-vendor location</label>
-        <label><input type="checkbox" name="is_bag_location" ${record?.is_bag_location ? 'checked' : ''}> Bag location</label>
+        ${advancedLocationFields ? `<label><input type="checkbox" name="multi_vendor" ${record?.multi_vendor ? 'checked' : ''}> Multi-vendor location</label>` : ''}
+        ${covhLocationFields ? `<label><input type="checkbox" name="is_bag_location" ${record?.is_bag_location ? 'checked' : ''}> Bag location</label>
         <label><input type="checkbox" name="show_on_flyer" ${record?.show_on_flyer === false ? '' : 'checked'}> Show on flyer</label>` : ''}
         <label><input type="checkbox" name="is_active" ${record?.is_active === false ? '' : 'checked'}> Active</label>
       </div>
@@ -371,7 +375,7 @@ async function openLocationEditorModal(groupSlug, tabKey, page, data, record = n
         page_slug: page.slug,
         external_id: String(formData.get('external_id') || '').trim() || getId(),
         name: String(formData.get('name') || '').trim(),
-        location_number: String(formData.get('location_number') || '').trim() || null,
+        location_number: covhLocationFields ? (String(formData.get('location_number') || '').trim() || null) : (record?.location_number ?? null),
         address: String(formData.get('address') || '').trim() || null,
         map_x: formData.get('map_x') ? Number(formData.get('map_x')) : null,
         map_y: formData.get('map_y') ? Number(formData.get('map_y')) : null,
@@ -383,8 +387,8 @@ async function openLocationEditorModal(groupSlug, tabKey, page, data, record = n
         hours: String(formData.get('hours') || '').trim() || null,
         tags: advancedLocationFields ? String(formData.get('tags') || '').split(',').map((item) => item.trim()).filter(Boolean) : (Array.isArray(record?.tags) ? record.tags : []),
         multi_vendor: advancedLocationFields ? formData.get('multi_vendor') === 'on' : Boolean(record?.multi_vendor),
-        is_bag_location: advancedLocationFields ? formData.get('is_bag_location') === 'on' : Boolean(record?.is_bag_location),
-        show_on_flyer: advancedLocationFields ? formData.get('show_on_flyer') === 'on' : (record?.show_on_flyer === false ? false : true),
+        is_bag_location: covhLocationFields ? formData.get('is_bag_location') === 'on' : Boolean(record?.is_bag_location),
+        show_on_flyer: covhLocationFields ? formData.get('show_on_flyer') === 'on' : (record?.show_on_flyer === false ? false : true),
         is_active: formData.get('is_active') === 'on',
         location_group: String(formData.get('location_group') || '').trim() || null,
         sort_order: advancedLocationFields && formData.get('sort_order') ? Number(formData.get('sort_order')) : (record?.sort_order ?? null),
@@ -1133,6 +1137,7 @@ function renderCalendarView(groupSlug, data, page) {
 
 function renderLocationsView(data, page) {
   const rows = sortLocationsForAdmin(data.locations.filter((r) => r.page_slug === page.slug));
+  const covhLocationFields = usesCovhLocationFields(page);
   const grouped = rows.reduce((acc, row) => {
     const group = normalizeTownGroup(row.location_group);
     if (!acc[group]) acc[group] = [];
@@ -1144,14 +1149,17 @@ function renderLocationsView(data, page) {
     const locationItems = groupRows.map((row) => {
       const vendorCount = data.vendors.filter((vendor) => vendor.page_slug === page.slug && (vendor.event_location_id === row.id || vendor.location_external_id === row.external_id)).length;
       const tags = Array.isArray(row.tags) && row.tags.length ? row.tags.map((tag) => `<span class="admin-badge">${escapeHtml(tag)}</span>`).join('') : '<span class="admin-badge admin-badge-muted">No badges yet</span>';
-      const bagBadge = row.is_bag_location ? '<span class="admin-badge admin-badge-highlight">Bag Location</span>' : '';
+      const bagBadge = covhLocationFields && row.is_bag_location ? '<span class="admin-badge admin-badge-highlight">Bag Location</span>' : '';
       const mvText = row.multi_vendor ? (vendorCount ? `${vendorCount} vendor${vendorCount === 1 ? '' : 's'}` : 'Vendor list coming soon') : 'Single location';
+      const metaLine = covhLocationFields
+        ? `${escapeHtml(displayValue(row.location_number))} · ${escapeHtml(displayValue(row.external_id))}`
+        : `${escapeHtml(displayValue(row.external_id))}`;
       return `
         <article class="admin-vendor-row admin-location-row">
           <div class="admin-entity-card__top">
             <div>
               <h5>${escapeHtml(displayValue(row.name))}</h5>
-              <p class="subtle-text">${escapeHtml(displayValue(row.location_number))} · ${escapeHtml(displayValue(row.external_id))}</p>
+              <p class="subtle-text">${metaLine}</p>
             </div>
             <div class="button-row">
               <button type="button" data-edit-location="${escapeHtml(row.external_id)}">Edit</button>
@@ -1165,7 +1173,7 @@ function renderLocationsView(data, page) {
             <div><dt>Hours</dt><dd>${escapeHtml(displayValue(row.hours))}</dd></div>
             <div><dt>Directions</dt><dd>${escapeHtml(displayValue(row.directions_text))}</dd></div>
             <div><dt>Vendor Status</dt><dd>${escapeHtml(mvText)}</dd></div>
-            <div><dt>Flyer</dt><dd>${row.show_on_flyer === false ? 'Hidden' : 'Included'}</dd></div>
+            ${covhLocationFields ? `<div><dt>Flyer</dt><dd>${row.show_on_flyer === false ? 'Hidden' : 'Included'}</dd></div>` : ''}
           </dl>
         </article>
       `;
@@ -1188,7 +1196,7 @@ function renderLocationsView(data, page) {
   const empty = `
     <section class="admin-empty-state">
       <h4>No locations yet</h4>
-      <p class="subtle-text">Add the first event location to start building the public list and flyer sections.</p>
+      <p class="subtle-text">${usesCovhLocationFields(page) ? 'Add the first event location to start building the public list and flyer sections.' : 'Add the first event location to start building the public list and vendor/location assignments.'}</p>
       <div class="button-row"><button type="button" data-location-new>Add Location</button></div>
     </section>
   `;
@@ -1198,7 +1206,7 @@ function renderLocationsView(data, page) {
       <div class="admin-section-header">
         <div>
           <h3>Locations</h3>
-          <p class="subtle-text">Locations drive the CoVH flyer, grouped public listing, map references, and multi-vendor routing.</p>
+          <p class="subtle-text">${escapeHtml(getLocationHelperText(page))}</p>
         </div>
         <button type="button" data-location-new>Add Location</button>
       </div>
@@ -1296,7 +1304,7 @@ function renderVendorsView(data, page) {
       <div class="admin-section-header">
         <div>
           <h3>Vendors</h3>
-          <p class="subtle-text">Public fields render on the website. Internal fields stay in admin for CoVH staff and location managers.</p>
+          <p class="subtle-text">Public fields render on the website. Internal fields stay in admin for organizers and location managers.</p>
         </div>
         <button type="button" data-vendor-new>Add Vendor</button>
       </div>
@@ -1409,6 +1417,8 @@ function renderDynamicEntityForm(type, record, groupSlug) {
   if (type === 'location') {
     const form = panel.querySelector('[data-form="location"]');
     if (!form) return;
+    const advancedLocationFields = usesAdvancedLocationFields(page);
+    const covhLocationFields = usesCovhLocationFields(page);
     form.innerHTML = `
       <input type="hidden" name="external_id" value="${escapeHtml(record?.external_id || '')}">
       <div class="admin-form-header">
@@ -1417,15 +1427,15 @@ function renderDynamicEntityForm(type, record, groupSlug) {
       </div>
       <div class="admin-columns-2">
         <label>Name<input name="name" value="${escapeHtml(record?.name || '')}" required></label>
-        <label>Flyer Number<input name="location_number" value="${escapeHtml(record?.location_number || '')}" placeholder="12"></label>
+        ${covhLocationFields ? `<label>Flyer Number<input name="location_number" value="${escapeHtml(record?.location_number || '')}" placeholder="12"></label>` : '<div></div>'}
       </div>
       <div class="admin-columns-2">
         <label>Address<input name="address" value="${escapeHtml(record?.address || '')}"></label>
         <label>Town / Group<input name="location_group" value="${escapeHtml(record?.location_group || '')}" placeholder="Mt. Pulaski"></label>
       </div>
-      <div class="admin-columns-3">
+      ${advancedLocationFields ? `<div class="admin-columns-3">
         <label>Web Sort<input type="number" name="web_sort_order" value="${escapeHtml(String(record?.web_sort_order ?? record?.sort_order ?? ''))}"></label>
-        <label>Flyer Sort<input type="number" name="flyer_sort_order" value="${escapeHtml(String(record?.flyer_sort_order ?? record?.sort_order ?? ''))}"></label>
+        <label>${covhLocationFields ? 'Flyer Sort' : 'Secondary Sort'}<input type="number" name="flyer_sort_order" value="${escapeHtml(String(record?.flyer_sort_order ?? record?.sort_order ?? ''))}"></label>
         <label>Legacy Sort<input type="number" name="sort_order" value="${escapeHtml(String(record?.sort_order ?? ''))}"></label>
       </div>
       <div class="admin-columns-3">
@@ -1436,17 +1446,20 @@ function renderDynamicEntityForm(type, record, groupSlug) {
       <div class="admin-columns-2">
         <label>Hours<input name="hours" value="${escapeHtml(record?.hours || '')}"></label>
         <label>Tags (comma)<input name="tags" value="${escapeHtml((record?.tags || []).join(', '))}" placeholder="Multi Vendor, Food"></label>
-      </div>
+      </div>` : `<div class="admin-columns-2">
+        <label>Hours<input name="hours" value="${escapeHtml(record?.hours || '')}"></label>
+        <label>Directions URL<input name="directions_url" value="${escapeHtml(record?.directions_url || '')}" placeholder="https://..."></label>
+      </div>`}
       <label>Description<textarea rows="2" name="description">${escapeHtml(record?.description || '')}</textarea></label>
       <label>Notes<textarea rows="2" name="notes">${escapeHtml(record?.notes || '')}</textarea></label>
       <div class="admin-columns-2">
         <label>Directions Text<textarea rows="2" name="directions_text">${escapeHtml(record?.directions_text || '')}</textarea></label>
-        <label>Directions URL<input name="directions_url" value="${escapeHtml(record?.directions_url || '')}" placeholder="https://..."></label>
+        ${advancedLocationFields ? `<label>Directions URL<input name="directions_url" value="${escapeHtml(record?.directions_url || '')}" placeholder="https://..."></label>` : '<div></div>'}
       </div>
       <div class="admin-checkbox-grid">
-        <label><input type="checkbox" name="multi_vendor" ${record?.multi_vendor ? 'checked' : ''}> Multi-vendor location</label>
-        <label><input type="checkbox" name="is_bag_location" ${record?.is_bag_location ? 'checked' : ''}> Bag location</label>
-        <label><input type="checkbox" name="show_on_flyer" ${record?.show_on_flyer === false ? '' : 'checked'}> Show on flyer</label>
+        ${advancedLocationFields ? `<label><input type="checkbox" name="multi_vendor" ${record?.multi_vendor ? 'checked' : ''}> Multi-vendor location</label>` : ''}
+        ${covhLocationFields ? `<label><input type="checkbox" name="is_bag_location" ${record?.is_bag_location ? 'checked' : ''}> Bag location</label>
+        <label><input type="checkbox" name="show_on_flyer" ${record?.show_on_flyer === false ? '' : 'checked'}> Show on flyer</label>` : ''}
         <label><input type="checkbox" name="is_active" ${record?.is_active === false ? '' : 'checked'}> Active</label>
       </div>
       --<label>Raw JSON<textarea rows="2" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
@@ -1462,7 +1475,7 @@ function renderDynamicEntityForm(type, record, groupSlug) {
       <input type="hidden" name="external_id" value="${escapeHtml(record?.external_id || '')}">
       <div class="admin-form-header">
         <h4>${record ? 'Edit Vendor' : 'Add Vendor'}</h4>
-        <p class="subtle-text">Customer-facing contact is public. Internal contact is for CoVH staff and location managers only.</p>
+        <p class="subtle-text">Customer-facing contact is public. Internal contact is for organizers and location managers only.</p>
       </div>
       <div class="admin-columns-2">
         <label>Vendor Name<input name="name" value="${escapeHtml(record?.name || '')}" required></label>
