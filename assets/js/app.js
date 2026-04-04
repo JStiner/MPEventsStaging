@@ -604,15 +604,13 @@ function renderVendors(data) {
     return;
   }
 
-  // 🔹 Group locations by town
   const grouped = {};
-  locations.forEach(location => {
+  locations.forEach((location) => {
     const group = location.group || 'Other';
     if (!grouped[group]) grouped[group] = [];
     grouped[group].push(location);
   });
 
-  // 🔹 Sort towns (Mt. Pulaski first, then A–Z)
   const sortedGroups = Object.entries(grouped).sort(([a], [b]) => {
     const normalize = (v) => (v || '').toLowerCase().replace('.', '').trim();
     const isPrimary = (v) => normalize(v) === 'mt pulaski';
@@ -624,15 +622,35 @@ function renderVendors(data) {
   });
 
   const groupsMarkup = sortedGroups.map(([groupName, groupLocations]) => {
-
     const locationMarkup = groupLocations
       .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }))
       .map((location) => {
+        const locationVendors = vendors.filter((v) => v.locationId === location.id);
 
-        const locationVendors = vendors.filter(v => v.locationId === location.id);
+        const badgeItems = [
+          ...(Array.isArray(location.tags) ? location.tags : []),
+          ...(location.isBagLocation ? ['Bag Location'] : [])
+        ];
+
+        const badgesMarkup = badgeItems.length
+          ? `
+            <div class="chip-row">
+              ${badgeItems.map((tag) => `
+                <span class="detail-chip">${escapeHtml(tag)}</span>
+              `).join('')}
+            </div>
+          `
+          : '';
+
+        const vendorStatus = locationVendors.length
+          ? `${locationVendors.length} vendor${locationVendors.length === 1 ? '' : 's'}`
+          : location.multiVendor
+            ? 'Vendor list coming soon'
+            : 'No vendors assigned to this location yet.';
 
         const vendorItems = locationVendors.length
-          ? `<div class="detail-list">
+          ? `
+            <div class="detail-list">
               ${locationVendors.map((vendor) => `
                 <button
                   type="button"
@@ -644,44 +662,53 @@ function renderVendors(data) {
                   <span class="detail-list-meta">${escapeHtml(displayDash(vendor.category))}</span>
                 </button>
               `).join('')}
-            </div>`
-			   : `<div class="public-empty">${
-				location.multiVendor
-				  ? 'Vendor list coming soon'
-				  : 'No vendors assigned to this location yet.'
-			  }</div>`;
+            </div>
+          `
+          : `
+            <div class="public-empty">
+              ${escapeHtml(vendorStatus)}
+            </div>
+          `;
 
-		   return `
-		  <div class="public-group-card" id="${getTownAnchorId(groupName)}-${escapeAttr(location.id)}">
-			<div class="public-group-card__header">
-			  <div>
-				<h4>${escapeHtml(location.name)}</h4>
-				<p class="subtle">${escapeHtml(displayDash(location.address))}</p>
-			  </div>
-			</div>
+        return `
+          <div class="public-group-card" id="${getTownAnchorId(groupName)}-${escapeAttr(location.id)}">
+            <div class="public-group-card__header">
+              <div>
+                <h4>${escapeHtml(location.name)}</h4>
+                <p class="subtle">${escapeHtml(displayDash(location.address))}</p>
+              </div>
+            </div>
 
-			<div class="public-group-card__body">
-			  ${vendorItems}
-			</div>
-		  </div>
-		`;
+            ${badgesMarkup}
+
+            <div class="public-group-card__meta">
+              <div>
+                <div class="detail-label">Vendor Status</div>
+                <div>${escapeHtml(vendorStatus)}</div>
+              </div>
+            </div>
+
+            <div class="public-group-card__body">
+              ${vendorItems}
+            </div>
+          </div>
+        `;
       }).join('');
 
-		return `
-		  <section class="public-group-section">
-			<div class="public-group-section__header">
-			  <h3>${escapeHtml(groupName)}</h3>
-			</div>
-			<div class="public-group-section__body">
-			  ${locationMarkup}
-			</div>
-		  </section>
-		`;
+    return `
+      <section class="public-group-section">
+        <div class="public-group-section__header">
+          <h3>${escapeHtml(groupName)}</h3>
+        </div>
+        <div class="public-group-section__body">
+          ${locationMarkup}
+        </div>
+      </section>
+    `;
   }).join('');
 
   el.vendorList.innerHTML = groupsMarkup;
 
-  // 🔹 Rebind click handlers
   el.vendorList.querySelectorAll('[data-vendor-id]').forEach((button) => {
     button.addEventListener('click', () => {
       const vendor = vendors.find((item) => item.id === button.dataset.vendorId);
