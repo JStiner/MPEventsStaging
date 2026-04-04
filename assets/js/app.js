@@ -1009,7 +1009,29 @@ function mapFlyerEntryRow(row) {
 
 function buildFlyerFromTables(pageRow, flyerTables) {
   const raw = pageRow.raw || {};
-  const baseFlyer = normalizeFlyer(pageRow.flyer ?? raw.flyer, pageRow, raw) || {};
+  const pageFlyer = pageRow.flyer && typeof pageRow.flyer === 'object' ? pageRow.flyer : {};
+const rawFlyer = raw.flyer && typeof raw.flyer === 'object' ? raw.flyer : {};
+
+const combinedFlyer = {
+  ...rawFlyer,
+  ...pageFlyer,
+  document: {
+    ...(rawFlyer.document || {}),
+    ...(pageFlyer.document || {})
+  },
+  assets: {
+    ...(rawFlyer.assets || {}),
+    ...(pageFlyer.assets || {})
+  },
+  callouts: {
+    ...(rawFlyer.callouts || {}),
+    ...(pageFlyer.callouts || {})
+  },
+  sections: rawFlyer.sections || pageFlyer.sections,
+  pageFlow: pageFlyer.pageFlow || rawFlyer.pageFlow
+};
+
+const baseFlyer = normalizeFlyer(combinedFlyer, pageRow, raw) || {};
   const sectionRows = Array.isArray(flyerTables?.sections) ? flyerTables.sections : [];
   const entryRows = Array.isArray(flyerTables?.entries) ? flyerTables.entries : [];
   const legendRows = Array.isArray(flyerTables?.legend) ? flyerTables.legend : [];
@@ -1033,9 +1055,25 @@ function buildFlyerFromTables(pageRow, flyerTables) {
     .slice()
     .sort((a, b) => (Number(a.sort_order || 0) - Number(b.sort_order || 0)))
     .forEach((sectionRow, index) => {
-      const title = sectionRow.section_title || sectionRow.title || `Section ${index + 1}`;
-      const hintedKey = baseSectionKeys[index];
-      const key = hintedKey || slugifyFlyerSectionKey(title) || `section-${index + 1}`;
+	const title = sectionRow.section_title || sectionRow.title || `Section ${index + 1}`;
+
+let key = null;
+
+// Special mapping for Christmas on Vinegar Hill flyer layout
+if ((pageSlug || eventFile) === 'christmas-on-vinegar-hill') {
+  if (title === 'Mt. Pulaski') {
+    if (index === 0) key = 'mt-pulaski-a';
+    else if (index === 1) key = 'mt-pulaski-b';
+    else if (index === 2) key = 'mt-pulaski-c';
+  } else if (title === 'Regional Stops') {
+    key = 'regional';
+  }
+}
+
+// Fallback for all other flyers
+if (!key) {
+  key = slugifyFlyerSectionKey(title) || `section-${index + 1}`;
+}
       const baseSection = baseFlyer.sections?.[key] || {};
       const dbEntries = (entryMap.get(sectionRow.id) || []).sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
       const baseEntries = Array.isArray(baseSection.entries) ? baseSection.entries : [];
@@ -1057,9 +1095,14 @@ function buildFlyerFromTables(pageRow, flyerTables) {
     });
 
   // keep any base sections not represented in DB, e.g. regional block-only sections
-  Object.entries(baseFlyer.sections || {}).forEach(([key, section]) => {
-    if (!mergedSections[key]) mergedSections[key] = section;
-  });
+Object.entries(baseFlyer.sections || {}).forEach(([key, section]) => {
+  if (!mergedSections[key]) {
+    mergedSections[key] = {
+      ...section,
+      key
+    };
+  }
+});
 
   const legend = legendRows.length
     ? legendRows.slice().sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0)).map(item => ({ label: item.label, meaning: item.meaning }))
