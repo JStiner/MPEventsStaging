@@ -43,6 +43,7 @@ function getSupabaseClient() {
   return createClient(supabaseUrl, serviceRoleKey);
 }
 
+<<<<<<< HEAD
 Deno.serve(async (req) => {
   // ✅ HANDLE PREFLIGHT FIRST
   if (req.method === 'OPTIONS') {
@@ -53,13 +54,30 @@ Deno.serve(async (req) => {
   }
 
   // ✅ ONLY ALLOW POST
+=======
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const corsHeaders = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-headers': 'authorization, x-client-info, apikey, content-type',
+  'access-control-allow-methods': 'POST, OPTIONS',
+};
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+>>>>>>> cc9c2c0664f3660fd82bb2cdebf45769ee44766f
   if (req.method !== 'POST') {
     return json({ ok: false, error: 'Method not allowed. Use POST.' }, 405);
   }
 
+<<<<<<< HEAD
   // ✅ CREATE CLIENT HERE (AFTER PREFLIGHT + METHOD CHECK)
   const supabase = getSupabaseClient();
 
+=======
+>>>>>>> cc9c2c0664f3660fd82bb2cdebf45769ee44766f
   try {
     const body = await req.json().catch(() => ({}));
 
@@ -347,7 +365,11 @@ function json(payload: unknown, status = 200): Response {
     status,
     headers: {
       ...corsHeaders,
+<<<<<<< HEAD
       'content-type': 'application/json; charset=utf-8'
+=======
+      'content-type': 'application/json; charset=utf-8',
+>>>>>>> cc9c2c0664f3660fd82bb2cdebf45769ee44766f
     },
   });
 }
