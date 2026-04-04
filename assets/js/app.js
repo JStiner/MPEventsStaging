@@ -19,6 +19,7 @@ const el = {
   dayFilter: document.getElementById('day-filter'),
   scheduleList: document.getElementById('schedule-list'),
   mapSurface: document.getElementById('map-surface'),
+  interactiveMapLink: document.getElementById('interactive-map-link'),
   mapLocationList: document.getElementById('map-location-list'),
   vendorList: document.getElementById('vendor-list'),
   locationList: document.getElementById('location-list'),
@@ -597,30 +598,29 @@ function renderMap(data) {
     data.eventName ||
     'Event map';
 
+  if (el.interactiveMapLink) {
+    if (mapViewUrl) {
+      el.interactiveMapLink.href = mapViewUrl;
+      el.interactiveMapLink.removeAttribute('aria-disabled');
+      el.interactiveMapLink.style.pointerEvents = '';
+      el.interactiveMapLink.style.opacity = '';
+    } else {
+      el.interactiveMapLink.href = '#';
+      el.interactiveMapLink.setAttribute('aria-disabled', 'true');
+      el.interactiveMapLink.style.pointerEvents = 'none';
+      el.interactiveMapLink.style.opacity = '0.6';
+    }
+  }
+
   if (mapEmbedUrl) {
     el.mapSurface.innerHTML = `
-      <div class="external-map-wrap">
-        <iframe
-          src="${mapEmbedUrl}"
-          title="${mapTitle}"
-          class="map-embed-frame"
-          loading="lazy"
-          allowfullscreen>
-        </iframe>
-        ${
-          mapViewUrl
-            ? `<div class="map-actions">
-                <a
-                  class="button-link"
-                  href="${mapViewUrl}"
-                  target="_blank"
-                  rel="noopener noreferrer">
-                  Open full map
-                </a>
-              </div>`
-            : ''
-        }
-      </div>
+      <iframe
+        src="${mapEmbedUrl}"
+        title="${mapTitle}"
+        class="map-embed-frame"
+        loading="lazy"
+        allowfullscreen>
+      </iframe>
     `;
     return;
   }
@@ -641,108 +641,103 @@ function renderVendors(data) {
     return;
   }
 
-  const grouped = {};
-  locations.forEach((location) => {
-    const group = location.group || 'Other';
-    if (!grouped[group]) grouped[group] = [];
-    grouped[group].push(location);
-  });
+  const grouped = locations.reduce((acc, row) => {
+    const group = normalizeTownGroup(row.group);
+    if (!acc[group]) acc[group] = [];
+    acc[group].push(row);
+    return acc;
+  }, {});
 
-  const sortedGroups = Object.entries(grouped).sort(([a], [b]) => {
-    const normalize = (v) => (v || '').toLowerCase().replace('.', '').trim();
-    const isPrimary = (v) => normalize(v) === 'mt pulaski';
+  const groupsMarkup = Object.entries(grouped)
+    .sort(([a], [b]) => sortTownGroups(a, b))
+    .map(([groupName, groupRows]) => {
+      const locationItems = groupRows
+        .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }))
+        .map((location) => {
+          const locationVendors = sortByOrderThenName(
+            vendors.filter((vendor) => vendor.locationId === location.id),
+            'sortOrder',
+            'name'
+          );
 
-    if (isPrimary(a) && !isPrimary(b)) return -1;
-    if (!isPrimary(a) && isPrimary(b)) return 1;
+          const tags = Array.isArray(location.tags) && location.tags.length
+            ? location.tags.map((tag) => `<span class="mini-badge">${escapeHtml(tag)}</span>`).join('')
+            : '<span class="mini-badge mini-badge-muted">No badges yet</span>';
 
-    return a.localeCompare(b, undefined, { sensitivity: 'base' });
-  });
+          const bagBadge = location.isBagLocation
+            ? '<span class="mini-badge mini-badge-highlight">Bag Location</span>'
+            : '';
 
-  const groupsMarkup = sortedGroups.map(([groupName, groupLocations]) => {
-    const locationMarkup = groupLocations
-      .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }))
-      .map((location) => {
-        const locationVendors = vendors.filter((v) => v.locationId === location.id);
+          const vendorStatus = locationVendors.length
+            ? `${locationVendors.length} vendor${locationVendors.length === 1 ? '' : 's'}`
+            : location.multiVendor
+              ? 'Vendor list coming soon'
+              : 'No vendors assigned to this location yet.';
 
-        const badgeItems = [
-          ...(Array.isArray(location.tags) ? location.tags : []),
-          ...(location.isBagLocation ? ['Bag Location'] : [])
-        ];
-
-        const badgesMarkup = badgeItems.length
-          ? `
-            <div class="chip-row">
-              ${badgeItems.map((tag) => `
-                <span class="detail-chip">${escapeHtml(tag)}</span>
-              `).join('')}
-            </div>
-          `
-          : '';
-
-        const vendorStatus = locationVendors.length
-          ? `${locationVendors.length} vendor${locationVendors.length === 1 ? '' : 's'}`
-          : location.multiVendor
-            ? 'Vendor list coming soon'
-            : 'No vendors assigned to this location yet.';
-
-        const vendorItems = locationVendors.length
-          ? `
-            <div class="detail-list">
-              ${locationVendors.map((vendor) => `
-                <button
-                  type="button"
-                  id="${getVendorCardId(vendor.id)}"
-                  class="detail-list-item public-vendor-item"
-                  data-vendor-id="${escapeAttr(vendor.id)}"
-                >
-                  <span>${escapeHtml(vendor.name)}</span>
-                  <span class="detail-list-meta">${escapeHtml(displayDash(vendor.category))}</span>
-                </button>
-              `).join('')}
-            </div>
-          `
-          : `
-            <div class="public-empty">
-              ${escapeHtml(vendorStatus)}
-            </div>
-          `;
-
-        return `
-          <div class="public-group-card" id="${getTownAnchorId(groupName)}-${escapeAttr(location.id)}">
-            <div class="public-group-card__header">
-              <div>
-                <h4>${escapeHtml(location.name)}</h4>
-                <p class="subtle">${escapeHtml(displayDash(location.address))}</p>
+          const vendorItems = locationVendors.length
+            ? `
+              <div class="detail-list">
+                ${locationVendors.map((vendor) => `
+                  <button
+                    type="button"
+                    id="${getVendorCardId(vendor.id)}"
+                    class="detail-list-item public-vendor-item"
+                    data-vendor-id="${escapeAttr(vendor.id)}"
+                  >
+                    <span>${escapeHtml(vendor.name)}</span>
+                    <span class="detail-list-meta">${escapeHtml(displayDash(vendor.category))}</span>
+                  </button>
+                `).join('')}
               </div>
-            </div>
-
-            ${badgesMarkup}
-
-            <div class="public-group-card__meta">
-              <div>
-                <div class="detail-label">Vendor Status</div>
-                <div>${escapeHtml(vendorStatus)}</div>
+            `
+            : `
+              <div class="detail-list">
+                <div class="detail-list-item">
+                  <span>${escapeHtml(vendorStatus)}</span>
+                  <span class="detail-list-meta">Coming soon</span>
+                </div>
               </div>
-            </div>
+            `;
 
-            <div class="public-group-card__body">
+          return `
+            <article class="public-entity-row location-card" id="${getTownAnchorId(groupName)}-${escapeAttr(location.id)}">
+              <div class="public-entity-card__top">
+                <div>
+                  <h5>${escapeHtml(location.name)}</h5>
+                  <p class="subtle">${escapeHtml(displayDash(location.address))}</p>
+                </div>
+              </div>
+
+              <div class="badge-row public-badge-row">${tags}${bagBadge}</div>
+
+              <dl class="public-kv-grid compact">
+                <div>
+                  <dt>Vendor Status</dt>
+                  <dd>${escapeHtml(vendorStatus)}</dd>
+                </div>
+                <div>
+                  <dt>Location Type</dt>
+                  <dd>${escapeHtml(location.multiVendor ? 'Multi Vendor' : 'Single Location')}</dd>
+                </div>
+              </dl>
+
               ${vendorItems}
+            </article>
+          `;
+        }).join('');
+
+      return `
+        <section class="public-group-block">
+          <div class="public-group-block__header">
+            <div>
+              <h4>${escapeHtml(groupName)}</h4>
+              <p class="subtle">${groupRows.length} location${groupRows.length === 1 ? '' : 's'}</p>
             </div>
           </div>
-        `;
-      }).join('');
-
-    return `
-      <section class="public-group-section">
-        <div class="public-group-section__header">
-          <h3>${escapeHtml(groupName)}</h3>
-        </div>
-        <div class="public-group-section__body">
-          ${locationMarkup}
-        </div>
-      </section>
-    `;
-  }).join('');
+          ${locationItems}
+        </section>
+      `;
+    }).join('');
 
   el.vendorList.innerHTML = groupsMarkup;
 
@@ -1596,6 +1591,10 @@ function buildEventData(pageRow, dayRows, locationRows, scheduleRows, vendorRows
     dateLabel: pageRow.date_label,
     areaLabel: pageRow.area_label,
     category: pageRow.category,
+    mapImage: pageRow.map_image ?? raw.mapImage ?? '',
+    mapEmbedUrl: pageRow.map_embed_url ?? raw.mapEmbedUrl ?? '',
+    mapViewUrl: pageRow.map_view_url ?? raw.mapViewUrl ?? '',
+    mapTitle: pageRow.map_title ?? raw.mapTitle ?? pageRow.event_name ?? 'Event map',
     tabs: Array.isArray(pageRow.tabs) ? pageRow.tabs : (raw.tabs || []),
     dates: Array.isArray(pageRow.dates) ? pageRow.dates : (raw.dates || []),
     theme: pageRow.theme ?? raw.theme,

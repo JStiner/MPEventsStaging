@@ -2887,6 +2887,25 @@ body.theme-dark .mini-badge-highlight {
   color: #bfdbfe;
 }
 
+/* --- Vendor empty-state styling fix --- */
+.detail-list-item:not(button) {
+  cursor: default;
+}
+
+.detail-list-item:not(button):hover,
+.detail-list-item:not(button):focus {
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: none;
+}
+
+/* Dark mode */
+body.theme-dark .detail-list-item:not(button):hover,
+body.theme-dark .detail-list-item:not(button):focus {
+  border-color: rgba(148, 163, 184, 0.22);
+  box-shadow: none;
+}
+
+
 @media (max-width: 720px) {
   .public-group-block__header,
   .public-entity-card__top,
