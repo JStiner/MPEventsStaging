@@ -595,6 +595,7 @@ function renderMap(data) {
 
 function renderVendors(data) {
   if (!el.vendorList) return;
+
   const locations = sortLocationsForDisplay(data.locations || []);
   const vendors = sortByOrderThenName(data.vendors || [], 'sortOrder', 'name');
 
@@ -603,32 +604,77 @@ function renderVendors(data) {
     return;
   }
 
-  const groupsMarkup = locations.map((location) => {
-    const locationVendors = vendors.filter((vendor) => vendor.locationId === location.id);
-    const vendorItems = locationVendors.length
-      ? `<div class="detail-list">${locationVendors.map((vendor) => `
-          <button type="button" id="${getVendorCardId(vendor.id)}" class="detail-list-item public-vendor-item" data-vendor-id="${escapeAttr(vendor.id)}">
-            <span>${escapeHtml(vendor.name)}</span>
-            <span class="detail-list-meta">${escapeHtml(displayDash(vendor.category))}</span>
-          </button>
-        `).join('')}</div>`
-      : `<p class="subtle">${location.multiVendor ? 'Vendor list coming soon' : 'No vendors assigned to this location yet.'}</p>`;
+  // 🔹 Group locations by town
+  const grouped = {};
+  locations.forEach(location => {
+    const group = location.group || 'Other';
+    if (!grouped[group]) grouped[group] = [];
+    grouped[group].push(location);
+  });
 
-    return `
-      <section class="public-group-block" id="${getTownAnchorId(location.group)}-${escapeAttr(location.id)}">
-        <div class="public-group-block__header">
-          <div>
-            <p class="eyebrow">${escapeHtml(displayDash(location.group))}</p>
+  // 🔹 Sort towns (Mt. Pulaski first, then A–Z)
+  const sortedGroups = Object.entries(grouped).sort(([a], [b]) => {
+    const normalize = (v) => (v || '').toLowerCase().replace('.', '').trim();
+    const isPrimary = (v) => normalize(v) === 'mt pulaski';
+
+    if (isPrimary(a) && !isPrimary(b)) return -1;
+    if (!isPrimary(a) && isPrimary(b)) return 1;
+
+    return a.localeCompare(b, undefined, { sensitivity: 'base' });
+  });
+
+  const groupsMarkup = sortedGroups.map(([groupName, groupLocations]) => {
+
+    const locationMarkup = groupLocations
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }))
+      .map((location) => {
+
+        const locationVendors = vendors.filter(v => v.locationId === location.id);
+
+        const vendorItems = locationVendors.length
+          ? `<div class="detail-list">
+              ${locationVendors.map((vendor) => `
+                <button
+                  type="button"
+                  id="${getVendorCardId(vendor.id)}"
+                  class="detail-list-item public-vendor-item"
+                  data-vendor-id="${escapeAttr(vendor.id)}"
+                >
+                  <span>${escapeHtml(vendor.name)}</span>
+                  <span class="detail-list-meta">${escapeHtml(displayDash(vendor.category))}</span>
+                </button>
+              `).join('')}
+            </div>`
+          : `<p class="subtle">${
+              location.multiVendor
+                ? 'Vendor list coming soon'
+                : 'No vendors assigned to this location yet.'
+            }</p>`;
+
+        return `
+          <div class="public-location-block" id="${getTownAnchorId(groupName)}-${escapeAttr(location.id)}">
             <h4>${escapeHtml(location.name)}</h4>
             <p class="subtle">${escapeHtml(displayDash(location.address))}</p>
+            ${vendorItems}
           </div>
+        `;
+      }).join('');
+
+    return `
+      <section class="public-group-block">
+        <div class="public-group-block__header">
+          <h3>${escapeHtml(groupName)}</h3>
         </div>
-        ${vendorItems}
+        <div class="public-group-block__content">
+          ${locationMarkup}
+        </div>
       </section>
     `;
   }).join('');
 
   el.vendorList.innerHTML = groupsMarkup;
+
+  // 🔹 Rebind click handlers
   el.vendorList.querySelectorAll('[data-vendor-id]').forEach((button) => {
     button.addEventListener('click', () => {
       const vendor = vendors.find((item) => item.id === button.dataset.vendorId);
