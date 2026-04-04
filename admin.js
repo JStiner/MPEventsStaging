@@ -391,9 +391,15 @@ async function openLocationEditorModal(groupSlug, tabKey, page, data, record = n
         show_on_flyer: covhLocationFields ? formData.get('show_on_flyer') === 'on' : (record?.show_on_flyer === false ? false : true),
         is_active: formData.get('is_active') === 'on',
         location_group: String(formData.get('location_group') || '').trim() || null,
-        sort_order: advancedLocationFields && formData.get('sort_order') ? Number(formData.get('sort_order')) : (record?.sort_order ?? null),
-        web_sort_order: advancedLocationFields && formData.get('web_sort_order') ? Number(formData.get('web_sort_order')) : (record?.web_sort_order ?? null),
-        flyer_sort_order: advancedLocationFields && formData.get('flyer_sort_order') ? Number(formData.get('flyer_sort_order')) : (record?.flyer_sort_order ?? null),
+		 sort_order: advancedLocationFields
+		  ? (formData.get('sort_order') ? Number(formData.get('sort_order')) : (record?.sort_order ?? 0))
+		  : (record?.sort_order ?? 0),
+		web_sort_order: advancedLocationFields
+		  ? (formData.get('web_sort_order') ? Number(formData.get('web_sort_order')) : (record?.web_sort_order ?? 0))
+		  : (record?.web_sort_order ?? 0),
+		flyer_sort_order: advancedLocationFields
+		  ? (formData.get('flyer_sort_order') ? Number(formData.get('flyer_sort_order')) : (record?.flyer_sort_order ?? 0))
+		  : (record?.flyer_sort_order ?? 0),
         raw: advancedLocationFields ? parseJsonField(formData.get('raw'), {}) : (record?.raw || {}),
       };
       const { error } = await supabaseClient.from('event_locations').upsert(payload, { onConflict: 'page_slug,external_id' });
