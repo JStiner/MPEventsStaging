@@ -1546,13 +1546,27 @@ body.modal-open {
 .covh-item-title-line {
   display: flex;
   gap: 8px;
-  align-items: baseline;
+  align-items: flex-start;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.covh-item-title-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.covh-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
 }
 
 .covh-item-number {
   min-width: 18px;
   font-weight: 700;
+  line-height: 1.1;
 }
 
 .covh-item-title-line h4,
@@ -1568,6 +1582,8 @@ body.modal-open {
   font-size: 0.79rem;
   white-space: nowrap;
   color: #525252;
+  text-align: right;
+  padding-top: 1px;
 }
 
 .covh-item-meta,
@@ -1575,7 +1591,7 @@ body.modal-open {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 2px 0 4px 26px;
+  margin: 2px 0 4px;
   color: #4f4f4f;
   font-size: 0.77rem;
 }
@@ -1588,13 +1604,17 @@ body.modal-open {
   line-height: 1;
 }
 
+.covh-item-address {
+  color: #4f4f4f;
+}
+
 .covh-list-item p,
 .covh-regional-item p,
 .covh-thanks-block p,
 .covh-footer-lines,
 .covh-sponsor-list,
 .covh-benefactor-list {
-  margin: 0 0 0 26px;
+  margin: 0;
   font-size: 0.78rem;
   line-height: 1.28;
   color: #303030;
@@ -1662,6 +1682,11 @@ body.modal-open {
   height: 11px;
   min-width: 11px;
   flex: 0 0 11px;
+}
+
+.covh-title-bag-icon {
+  margin-left: 2px;
+  align-self: center;
 }
 
 .covh-callout-bag-icon {
