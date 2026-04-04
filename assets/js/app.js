@@ -727,7 +727,7 @@ function renderCovhFlyer(data, flyer) {
 
 					<div class="covh-tree-callout covh-tree-callout-under-regional">
 					  Look for the
-					  <img class="covh-tree-icon-inline" src="assets/images/covh/flyer-tree-sign.jpg" alt="Tree icon">
+					  <img class="covh-tree-icon-inline" src="assets/images/covh/flyer-tree-sign.png" alt="Tree icon">
 					  sign for participating locations.
 					</div>
 				  </section>
