@@ -1517,10 +1517,61 @@ body.modal-open {
   gap: 8px;
 }
 
+.covh-bag-callout,
+.covh-tree-callout {
+  padding: 10px 12px;
+  border: 1px solid #cfcfcf;
+  background: #f6faf6;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: #31503a;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.covh-bag-callout-under-regional,
+.covh-tree-callout-under-regional {
+  margin-top: 8px;
+}
+
+.covh-tree-callout {
+  background: #f8faf7;
+}
+
+.covh-tree-icon-inline {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.covh-callout-bag-icon {
+  width: 13px;
+  height: 13px;
+  min-width: 13px;
+  flex: 0 0 13px;
+  margin: 0 2px;
+}
+
+.covh-banner-date {
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #4f4f4f;
+  margin-bottom: 10px;
+}
+
+.covh-banner-note {
+  font-size: 1rem;
+  color: #3f3f3f;
+}
+
 .covh-list-item,
 .covh-regional-block,
 .covh-key-card,
-.covh-bag-callout,
 .covh-map-main-card,
 .covh-map-card,
 .covh-thanks-block,

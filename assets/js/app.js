@@ -714,16 +714,24 @@ function renderCovhFlyer(data, flyer) {
                   : ''
               }
 
-              ${
-                regional
-                  ? `
-                    <section class="covh-page-one-block covh-page-one-regional-block">
-                      <div class="covh-regional-title">${escapeHtml(regional.title || '')}</div>
-                      ${(regional.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
-                    </section>
-                  `
-                  : ''
-              }
+				  ${regional ? `
+				  <section class="covh-page-one-block covh-page-one-regional-block">
+					<div class="covh-regional-title">${escapeHtml(regional.title || '')}</div>
+					${(regional.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
+
+					<div class="covh-bag-callout covh-bag-callout-under-regional">
+					  Visit a location with the
+					  ${bagIcon ? `<img class="covh-bag-icon covh-callout-bag-icon" src="${escapeHtml(bagIcon)}" alt="Bag icon">` : '<span class="covh-bag-text-symbol">bag</span>'}
+					  symbol and receive a reusable shopping bag with any donation to the Christmas on Vinegar Hill event while supplies last.
+					</div>
+
+					<div class="covh-tree-callout covh-tree-callout-under-regional">
+					  Look for the
+					  <img class="covh-tree-icon-inline" src="assets/images/covh/flyer-tree-sign.jpg" alt="Tree icon">
+					  sign for participating locations.
+					</div>
+				  </section>
+				` : ''}
 			  
 			    ${
                 callouts.bagNotice
