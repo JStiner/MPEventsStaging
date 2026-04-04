@@ -1479,11 +1479,12 @@ body.modal-open {
 }
 
 .covh-banner-date {
-  font-size: 0.88rem;
-  letter-spacing: 0.22em;
+  font-size: 1rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: #4f4f4f;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  text-shadow: 0 1px 1px rgba(255,255,255,0.55);
 }
 
 .covh-banner-title {
@@ -1495,12 +1496,8 @@ body.modal-open {
 }
 
 .covh-banner-note {
-  font-size: 0.92rem;
+  font-size: 1rem;
   color: #3f3f3f;
-}
-
-.covh-banner-note,
-.covh-banner-date {
   text-shadow: 0 1px 1px rgba(255,255,255,0.55);
 }
 
@@ -1515,62 +1512,6 @@ body.modal-open {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.covh-bag-callout,
-.covh-tree-callout {
-  padding: 10px 12px;
-  border: 1px solid #cfcfcf;
-  background: #f6faf6;
-  font-size: 0.88rem;
-  line-height: 1.35;
-  color: #31503a;
-}
-
-.covh-bag-callout-under-regional,
-.covh-tree-callout-under-regional {
-  margin-top: 8px;
-}
-
-.covh-bag-callout {
-  display: block;
-}
-
-.covh-bag-callout span,
-.covh-tree-callout span {
-  display: inline;
-}
-
-.covh-callout-bag-icon-inline,
-.covh-tree-icon-inline {
-  display: inline-block;
-  vertical-align: -2px;
-  margin: 0 4px;
-}
-
-.covh-callout-bag-icon-inline {
-  width: 13px;
-  height: 13px;
-  object-fit: contain;
-}
-
-.covh-tree-icon-inline {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
-}
-
-.covh-banner-date {
-  font-size: 1rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #4f4f4f;
-  margin-bottom: 10px;
-}
-
-.covh-banner-note {
-  font-size: 1rem;
-  color: #3f3f3f;
 }
 
 .covh-list-item,
@@ -1732,29 +1673,53 @@ body.modal-open {
   vertical-align: middle;
 }
 
-.covh-callout-bag-icon {
-  width: 12px;
-  height: 12px;
-  min-width: 12px;
-  flex: 0 0 12px;
-  margin: 0 2px;
-}
-
 .covh-bag-text-symbol {
   font-weight: 700;
 }
 
-.covh-bag-callout {
-  padding: 10px;
+.covh-bag-callout,
+.covh-tree-callout {
+  padding: 10px 12px;
+  border: 1px solid #cfcfcf;
   background: #f6faf6;
-  font-size: 0.77rem;
-  line-height: 1.3;
+  font-size: 0.88rem;
+  line-height: 1.35;
   color: #31503a;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
 }
+
+.covh-bag-callout-under-regional,
+.covh-tree-callout-under-regional {
+  margin-top: 8px;
+}
+
+.covh-bag-callout {
+  display: block;
+}
+
+.covh-bag-callout span,
+.covh-tree-callout span {
+  display: inline;
+}
+
+.covh-callout-bag-icon-inline,
+.covh-tree-icon-inline {
+  display: inline-block;
+  vertical-align: -2px;
+  margin: 0 4px;
+}
+
+.covh-callout-bag-icon-inline {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+}
+
+.covh-tree-icon-inline {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
 .covh-map-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.95fr);
@@ -1764,17 +1729,21 @@ body.modal-open {
 }
 
 .covh-map-main-card,
-.covh-map-card {
+.covh-map-card,
+.covh-regional-map-only {
   padding: 10px;
   position: relative;
+  min-height: 0;
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-.covh-main-map,
-.covh-map-card img {
+.covh-main-map {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
+  object-fit: cover;
 }
 
 .covh-map-stack {
@@ -1784,25 +1753,14 @@ body.modal-open {
   height: 100%;
 }
 
-.covh-regional-map-only {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  height: 100%;
-}
-
 .covh-regional-map-image {
   width: 100%;
-  min-height: 180px;
-  object-fit: contain;
+  flex: 1 1 auto;
+  min-height: 0;
   display: block;
+  object-fit: cover;
   border: 1px solid #d8d8d8;
   background: #fff;
-}
-
-.covh-regional-map-only {
-  justify-content: center;
 }
 
 .covh-map-tag {
@@ -1928,18 +1886,14 @@ body.modal-open {
 .covh-footer-lines {
   position: absolute;
   left: 12px;
-  top: 16px; 
+  top: 16px;
   z-index: 2;
   margin: 0;
   max-width: 31%;
   line-height: 1.35;
   color: #303030;
 }
-.covh-bag-callout-under-regional {
-  margin-top: 8px;
-  border: 1px solid #cfcfcf;
-  background: #f6faf6;
-}
+
 .covh-footer-lines > div {
   padding: 0 0 4px;
 }
