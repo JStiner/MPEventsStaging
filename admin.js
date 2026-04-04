@@ -1,6 +1,6 @@
 const supabaseClient = window.supabaseClient;
 
-const GROUP_SUBVIEW_KEYS = ['calendar', 'pages', 'schedule', 'vendors', 'locations', 'flyer', 'resources', 'settings'];
+const GROUP_SUBVIEW_KEYS = ['pages', 'calendar', 'schedule', 'vendors', 'locations', 'flyer', 'resources', 'settings'];
 const GROUP_SUBVIEW_LABELS = {
   calendar: 'Calendar',
   pages: 'General',
@@ -819,7 +819,10 @@ async function fetchImportRuns() {
 }
 
 async function loadGroupData(groupSlug) {
-  let pageQuery = supabaseClient.from('event_pages').select('*').eq('group_slug', groupSlug).order('event_name');
+  let pageQuery = supabaseClient
+    .from('event_pages')
+    .select('*')
+    .eq('group_slug', groupSlug);
 
   if (!state.profile?.is_admin) {
     const allowedPageSlugs = getAccessiblePageSlugsForGroup(groupSlug);
@@ -832,7 +835,22 @@ async function loadGroupData(groupSlug) {
   const pageResult = await pageQuery;
   if (pageResult.error) throw pageResult.error;
 
-  const pages = pageResult.data || [];
+  const subsectionOrder = {
+    'community-events-general': 1,
+    'community-events-camp': 2,
+    'community-events-library': 3,
+    'community-events-nightlife': 4,
+  };
+
+  const pages = (pageResult.data || [])
+    .filter((p) => !(groupSlug === 'community-events' && p.slug === 'community-events'))
+    .sort((a, b) => {
+      const aOrder = subsectionOrder[a.slug] ?? 999;
+      const bOrder = subsectionOrder[b.slug] ?? 999;
+      if (aOrder !== bOrder) return aOrder - bOrder;
+      return (a.event_name || a.slug).localeCompare(b.event_name || b.slug);
+    });
+
   const pageSlugs = pages.map((p) => p.slug).filter(Boolean);
   if (!pageSlugs.length) {
     return { pages: [], days: [], schedule: [], locations: [], vendors: [], loaded: true, error: null };
