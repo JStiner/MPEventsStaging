@@ -178,13 +178,16 @@ async function loadSourceData(source) {
     throw new Error('Supabase client is not available.');
   }
 
-  const [pageResult, scheduleResult, locationResult, dayResult] = await Promise.all([
-    supabaseClient.from('event_pages').select('*').eq('slug', source.slug).maybeSingle()
-    supabaseClient.from('event_schedule').select('*').eq('page_slug', source.slug).or('is_active.is.null,is_active.eq.true').order('event_date', { ascending: true }).order('sort_order', { ascending: true }),
-    supabaseClient.from('event_locations').select('*').eq('page_slug', source.slug),
-    supabaseClient.from('event_days').select('*').eq('page_slug', source.slug).order('sort_order', { ascending: true })
-  ]);
+const [pageResult, scheduleResult, locationResult, dayResult] = await Promise.all([
+  supabaseClient.from('event_pages').select('*').eq('slug', source.slug).maybeSingle(),
+  supabaseClient.from('event_schedule').select('*').eq('page_slug', source.slug).or('is_active.is.null,is_active.eq.true').order('event_date', { ascending: true }).order('sort_order', { ascending: true }),
+  supabaseClient.from('event_locations').select('*').eq('page_slug', source.slug),
+  supabaseClient.from('event_days').select('*').eq('page_slug', source.slug).order('sort_order', { ascending: true })
+]);
 
+if (!pageResult.data) {
+  throw new Error(`Missing event_pages row for slug: ${source.slug}`);
+}
   const failed = [pageResult, scheduleResult, locationResult, dayResult].find(result => result.error);
   if (failed) {
     throw failed.error;
