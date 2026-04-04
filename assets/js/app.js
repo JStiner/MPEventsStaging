@@ -534,27 +534,16 @@ function renderCovhEntry(entry, bagIcon) {
 }
 
 function renderCovhRegionalBlock(block, maps = {}) {
-  const entries = Array.isArray(block?.entries) ? block.entries : [];
   const mapSrc = block?.mapKey ? maps[block.mapKey] : '';
+
   return `
-    <section class="covh-regional-block">
+    <section class="covh-regional-block covh-regional-map-only">
       <div class="covh-regional-title">${escapeHtml(block?.title || '')}</div>
-      ${mapSrc ? `<img class="flyer-mini-map" src="${escapeHtml(mapSrc)}" alt="${escapeHtml(block?.title || 'Regional map')}">` : ''}
-      <div class="covh-regional-wrap">
-        ${entries.map(entry => `
-          <article class="covh-regional-item">
-            <div class="covh-regional-head">
-              <div class="covh-item-title-line">
-                ${entry?.entry_code || entry?.number ? `<span class="covh-item-number">${escapeHtml(entry.entry_code || entry.number)}</span>` : ''}
-                <h4 class="covh-regional-name">${escapeHtml(entry?.name || 'Untitled')}</h4>
-              </div>
-              ${entry?.hours ? `<div class="covh-regional-hours">${escapeHtml(entry.hours)}</div>` : ''}
-            </div>
-            <div class="covh-regional-meta">${entry?.address ? `<span>${escapeHtml(entry.address)}</span>` : ''}</div>
-            ${entry?.description ? `<p>${escapeHtml(entry.description)}</p>` : ''}
-          </article>
-        `).join('')}
-      </div>
+      ${
+        mapSrc
+          ? `<img class="flyer-mini-map covh-regional-map-image" src="${escapeHtml(mapSrc)}" alt="${escapeHtml(block?.title || 'Regional map')}">`
+          : ''
+      }
     </section>
   `;
 }
@@ -721,7 +710,7 @@ function renderCovhFlyer(data, flyer) {
 
 					<div class="covh-bag-callout covh-bag-callout-under-regional">
 					  <span>Visit a location with the</span>
-					  ${bagIcon ? `<img class="covh-bag-icon covh-callout-bag-icon-inline" src="${escapeHtml(bagIcon)}" alt="Bag icon">` : ''}
+					  ${bagIcon ? `<img class="covh-callout-bag-icon-inline" src="${escapeHtml(bagIcon)}" alt="Bag icon">` : ''}
 					  <span>symbol and receive a reusable shopping bag with any donation to the Christmas on Vinegar Hill event while supplies last.</span>
 					</div>
 

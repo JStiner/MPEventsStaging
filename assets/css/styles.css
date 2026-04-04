@@ -1755,18 +1755,19 @@ body.modal-open {
   align-items: center;
   gap: 4px;
 }
-
 .covh-map-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.95fr);
   gap: 16px;
   margin-bottom: 16px;
+  align-items: stretch;
 }
 
 .covh-map-main-card,
 .covh-map-card {
   padding: 10px;
   position: relative;
+  height: 100%;
 }
 
 .covh-main-map,
@@ -1778,7 +1779,26 @@ body.modal-open {
 
 .covh-map-stack {
   display: grid;
+  grid-template-rows: repeat(3, 1fr);
   gap: 12px;
+  height: 100%;
+}
+
+.covh-regional-map-only {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.covh-regional-map-image {
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  display: block;
+  object-fit: cover;
+  border: 1px solid #d8d8d8;
 }
 
 .covh-map-tag {
