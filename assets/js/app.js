@@ -720,9 +720,9 @@ function renderCovhFlyer(data, flyer) {
 					${(regional.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
 
 					<div class="covh-bag-callout covh-bag-callout-under-regional">
-					  Visit a location with the
-					  ${bagIcon ? `<img class="covh-bag-icon covh-callout-bag-icon" src="${escapeHtml(bagIcon)}" alt="Bag icon">` : '<span class="covh-bag-text-symbol">bag</span>'}
-					  symbol and receive a reusable shopping bag with any donation to the Christmas on Vinegar Hill event while supplies last.
+					  <span>Visit a location with the</span>
+					  ${bagIcon ? `<img class="covh-bag-icon covh-callout-bag-icon-inline" src="${escapeHtml(bagIcon)}" alt="Bag icon">` : ''}
+					  <span>symbol and receive a reusable shopping bag with any donation to the Christmas on Vinegar Hill event while supplies last.</span>
 					</div>
 
 					<div class="covh-tree-callout covh-tree-callout-under-regional">
