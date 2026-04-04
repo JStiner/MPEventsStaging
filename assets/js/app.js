@@ -645,31 +645,38 @@ function renderVendors(data) {
                 </button>
               `).join('')}
             </div>`
-          : `<p class="subtle">${
-              location.multiVendor
-                ? 'Vendor list coming soon'
-                : 'No vendors assigned to this location yet.'
-            }</p>`;
+			   : `<div class="public-empty">${
+				location.multiVendor
+				  ? 'Vendor list coming soon'
+				  : 'No vendors assigned to this location yet.'
+			  }</div>`;
 
-        return `
-          <div class="public-location-block" id="${getTownAnchorId(groupName)}-${escapeAttr(location.id)}">
-            <h4>${escapeHtml(location.name)}</h4>
-            <p class="subtle">${escapeHtml(displayDash(location.address))}</p>
-            ${vendorItems}
-          </div>
-        `;
+		   return `
+		  <div class="public-group-card" id="${getTownAnchorId(groupName)}-${escapeAttr(location.id)}">
+			<div class="public-group-card__header">
+			  <div>
+				<h4>${escapeHtml(location.name)}</h4>
+				<p class="subtle">${escapeHtml(displayDash(location.address))}</p>
+			  </div>
+			</div>
+
+			<div class="public-group-card__body">
+			  ${vendorItems}
+			</div>
+		  </div>
+		`;
       }).join('');
 
-    return `
-      <section class="public-group-block">
-        <div class="public-group-block__header">
-          <h3>${escapeHtml(groupName)}</h3>
-        </div>
-        <div class="public-group-block__content">
-          ${locationMarkup}
-        </div>
-      </section>
-    `;
+		return `
+		  <section class="public-group-section">
+			<div class="public-group-section__header">
+			  <h3>${escapeHtml(groupName)}</h3>
+			</div>
+			<div class="public-group-section__body">
+			  ${locationMarkup}
+			</div>
+		  </section>
+		`;
   }).join('');
 
   el.vendorList.innerHTML = groupsMarkup;

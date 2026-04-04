@@ -1150,7 +1150,42 @@ body.modal-open {
   border-top: 1px solid rgba(145, 164, 190, 0.22);
   margin: 14px 0;
 }
+.public-group-section {
+  margin-bottom: 20px;
+}
 
+.public-group-section__header {
+  margin-bottom: 12px;
+}
+
+.public-group-section__body {
+  display: grid;
+  gap: 14px;
+}
+
+.public-group-card {
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #d9dee8);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.public-group-card__header {
+  margin-bottom: 10px;
+}
+
+.public-group-card__body {
+  display: grid;
+  gap: 10px;
+}
+
+.public-empty {
+  border: 1px dashed var(--border, #d9dee8);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: var(--muted, #667085);
+  font-style: italic;
+}
 /* =========================
    Flyer / printable pamphlet
    ========================= */
