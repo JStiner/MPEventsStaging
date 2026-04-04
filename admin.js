@@ -1347,7 +1347,7 @@ function renderSettingsView(page) {
       <form class="admin-form" data-form="settings">
         <label>Theme JSON<textarea rows="5" name="theme">${escapeHtml(JSON.stringify(page.theme || {}, null, 2))}</textarea></label>
         <label>Featured Branding JSON<textarea rows="5" name="featured_branding">${escapeHtml(JSON.stringify(page.featured_branding || {}, null, 2))}</textarea></label>
-        <label>Raw JSON<textarea rows="8" name="raw">${escapeHtml(JSON.stringify(page.raw || {}, null, 2))}</textarea></label>
+       -- <label>Raw JSON<textarea rows="8" name="raw">${escapeHtml(JSON.stringify(page.raw || {}, null, 2))}</textarea></label>
         <p class="error-text" data-message="settings"></p>
         <div class="button-row"><button type="submit">Save Settings</button></div>
       </form>
@@ -1421,7 +1421,7 @@ function renderDynamicEntityForm(type, record, groupSlug) {
         <label><input type="checkbox" name="show_on_flyer" ${record?.show_on_flyer === false ? '' : 'checked'}> Show on flyer</label>
         <label><input type="checkbox" name="is_active" ${record?.is_active === false ? '' : 'checked'}> Active</label>
       </div>
-      <label>Raw JSON<textarea rows="2" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
+      --<label>Raw JSON<textarea rows="2" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
       <div class="button-row"><button type="submit">Save Location</button></div>
     `;
   }
@@ -1463,7 +1463,7 @@ function renderDynamicEntityForm(type, record, groupSlug) {
       </div>
       <label>Internal Notes<textarea rows="2" name="internal_notes">${escapeHtml(record?.internal_notes || '')}</textarea></label>
       <label><input type="checkbox" name="is_active" ${record?.is_active === false ? '' : 'checked'}> Active</label>
-      <label>Raw JSON<textarea rows="2" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
+    --  <label>Raw JSON<textarea rows="2" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
       <div class="button-row"><button type="submit">Save Vendor</button></div>
       <datalist id="location-id-list">${locationOptions}</datalist>
     `;
@@ -1493,7 +1493,7 @@ function renderDynamicEntityForm(type, record, groupSlug) {
       <div class="admin-form-section"><div class="admin-form-section__header"><strong>Assigned vendors</strong><span class="subtle-text">Use checkboxes instead of free text vendor IDs.</span></div>${(() => { const vendors = sortByOrderThenName(data.vendors.filter((row) => row.page_slug === page.slug)); return vendors.length ? renderCheckboxList('vendor_ids', vendors.map((vendor) => ({ value: vendor.external_id, label: vendor.name || vendor.external_id })), Array.isArray(record?.vendor_ids) ? record.vendor_ids : []) : "<p class=\"subtle-text\">No vendors are available for this page yet.</p>"; })()}</div>
       <p class="subtle-text">Audience is fixed for this page: <strong>${isAdultPage(page) ? 'Adult / Night Life' : 'General Community'}</strong></p>
       <label>Description<textarea rows="2" name="description">${escapeHtml(record?.description || '')}</textarea></label>
-      <label>Raw JSON<textarea rows="2" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
+     -- <label>Raw JSON<textarea rows="2" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
       <div class="button-row"><button type="submit">Save Schedule</button></div>
     `;
   }
