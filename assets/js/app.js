@@ -103,6 +103,7 @@ function escapeAttr(value = '') {
 }
 
 function getDirectionsUrl(location) {
+  if (location?.directionsUrl) return location.directionsUrl;
   if (location?.googleMapsUrl) return location.googleMapsUrl;
   const destination = encodeURIComponent(location?.address || location?.name || state.eventData?.eventName || 'Mt. Pulaski, IL');
   return `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
@@ -114,6 +115,82 @@ function getInteractiveMapUrl(data = state.eventData) {
 
 function getLocationCardId(locationId) {
   return `location-card-${locationId}`;
+}
+
+function getVendorCardId(vendorId) {
+  return `vendor-card-${vendorId}`;
+}
+
+function normalizeTownGroup(value) {
+  return String(value || '').trim() || 'Other';
+}
+
+function isPrimaryTownGroup(value) {
+  const normalized = normalizeTownGroup(value).toLowerCase();
+  return normalized === 'mt. pulaski' || normalized === 'mt pulaski';
+}
+
+function sortTownGroups(a, b) {
+  const aGroup = normalizeTownGroup(a);
+  const bGroup = normalizeTownGroup(b);
+
+  const aPrimary = isPrimaryTownGroup(aGroup);
+  const bPrimary = isPrimaryTownGroup(bGroup);
+
+  if (aPrimary && !bPrimary) return -1;
+  if (!aPrimary && bPrimary) return 1;
+
+  return aGroup.localeCompare(bGroup, undefined, { sensitivity: 'base' });
+}
+
+function sortByOrderThenName(rows = [], orderKey = 'sort_order', nameKey = 'name') {
+  return rows.slice().sort((a, b) => {
+    const aSort = Number.isFinite(Number(a?.[orderKey])) ? Number(a[orderKey]) : null;
+    const bSort = Number.isFinite(Number(b?.[orderKey])) ? Number(b[orderKey]) : null;
+    if (aSort !== null && bSort !== null && aSort !== bSort) return aSort - bSort;
+    if (aSort !== null && bSort === null) return -1;
+    if (aSort === null && bSort !== null) return 1;
+    return String(a?.[nameKey] || '').localeCompare(String(b?.[nameKey] || ''), undefined, { sensitivity: 'base' });
+  });
+}
+
+function sortLocationsForDisplay(rows = []) {
+  return rows.slice().sort((a, b) => {
+    const groupCompare = sortTownGroups(a?.group, b?.group);
+    if (groupCompare !== 0) return groupCompare;
+
+    const aSort = Number.isFinite(Number(a?.webSortOrder)) ? Number(a.webSortOrder)
+      : Number.isFinite(Number(a?.sortOrder)) ? Number(a.sortOrder)
+      : null;
+    const bSort = Number.isFinite(Number(b?.webSortOrder)) ? Number(b.webSortOrder)
+      : Number.isFinite(Number(b?.sortOrder)) ? Number(b.sortOrder)
+      : null;
+    if (aSort !== null && bSort !== null && aSort !== bSort) return aSort - bSort;
+    if (aSort !== null && bSort === null) return -1;
+    if (aSort === null && bSort !== null) return 1;
+
+    return String(a?.name || '').localeCompare(String(b?.name || ''), undefined, { sensitivity: 'base' });
+  });
+}
+
+function displayDash(value) {
+  const text = String(value ?? '').trim();
+  return text || '-';
+}
+
+function displaySoon(value, fallback = 'Coming soon') {
+  const text = String(value ?? '').trim();
+  return text || fallback;
+}
+
+function getTownAnchorId(groupName) {
+  return `town-${normalizeTownGroup(groupName).toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+}
+
+function getLocationSummaryVendorsText(location, vendors) {
+  if (!location?.multiVendor) return 'Single location';
+  if (!vendors.length) return 'Vendor list coming soon';
+  return `${vendors.length} vendor${vendors.length === 1 ? '' : 's'}`;
 }
 
 function getMapPanelTitle(panelKey) {
@@ -196,6 +273,22 @@ function openModal(kicker, title, html) {
 function closeModal() {
   el.modal.classList.add('hidden');
   document.body.classList.remove('modal-open');
+}
+
+function handleModalContentClick(event) {
+  const vendorButton = event.target.closest('[data-open-vendor-id]');
+  if (vendorButton) {
+    const vendor = (state.eventData?.vendors || []).find(item => item.id === vendorButton.dataset.openVendorId);
+    if (vendor) showVendorModal(vendor, state.eventData);
+    return;
+  }
+
+  const vendorListButton = event.target.closest('[data-open-location-vendors]');
+  if (vendorListButton) {
+    const location = getLocationById(vendorListButton.dataset.openLocationVendors, state.eventData);
+    if (location) showLocationVendorsModal(location, state.eventData);
+    return;
+  }
 }
 
 function showLoadError(message) {
@@ -373,21 +466,50 @@ function renderDayFilter(data) {
 }
 
 function showLocationModal(location, data = state.eventData) {
-  const vendors = getVendorsByLocation(location.id, data);
+  const vendors = sortByOrderThenName(getVendorsByLocation(location.id, data), 'sortOrder', 'name');
   const schedule = getScheduleByLocation(location.id, data);
   const directionsUrl = getDirectionsUrl(location);
+  const vendorMarkup = location.multiVendor
+    ? vendors.length
+      ? `<div class="modal-inline-list">${vendors.map(v => `<button type="button" class="inline-link-button" data-open-vendor-id="${escapeAttr(v.id)}">${escapeHtml(v.name)}</button>`).join('')}</div>`
+      : '<p>Vendor list coming soon</p>'
+    : '';
+
   openModal(
     'Location Details',
     location.name,
     `
-      <p><strong>Address:</strong> ${location.address || 'TBD'}</p>
-      ${location.hours ? `<p><strong>Hours:</strong> ${location.hours}</p>` : ''}
-      ${location.description ? `<p>${location.description}</p>` : ''}
-      ${location.notes ? `<p>${location.notes}</p>` : ''}
-      <p><a href="${directionsUrl}" target="_blank" rel="noopener">Open in Google Maps</a></p>
-      ${vendors.length ? `<p><strong>Vendors:</strong> ${vendors.map(v => v.name).join(', ')}</p>` : ''}
-      ${schedule.length ? `<p><strong>Schedule:</strong> ${schedule.map(item => `${formatTimeRange(item.startTime, item.endTime)} ${item.title}`).join('<br>')}</p>` : ''}
+      <dl class="detail-grid">
+        <div><dt>Town</dt><dd>${escapeHtml(displayDash(location.group))}</dd></div>
+        <div><dt>Location #</dt><dd>${escapeHtml(displayDash(location.locationNumber))}</dd></div>
+        <div><dt>Address</dt><dd>${escapeHtml(displayDash(location.address))}</dd></div>
+        <div><dt>Hours</dt><dd>${escapeHtml(displayDash(location.hours))}</dd></div>
+      </dl>
+      <p>${escapeHtml(displaySoon(location.description, 'Description coming soon'))}</p>
+      ${location.notes ? `<p>${escapeHtml(location.notes)}</p>` : ''}
+      <div class="detail-actions">
+        <a class="secondary-button" href="${escapeAttr(directionsUrl)}" target="_blank" rel="noopener">Directions</a>
+        ${location.multiVendor ? `<button type="button" class="secondary-button" data-open-location-vendors="${escapeAttr(location.id)}">Vendors</button>` : ''}
+      </div>
+      ${vendorMarkup ? `<div class="detail-section"><h4>Vendors</h4>${vendorMarkup}</div>` : ''}
+      ${schedule.length ? `<div class="detail-section"><h4>Schedule</h4><p>${schedule.map(item => `${formatTimeRange(item.startTime, item.endTime)} ${escapeHtml(item.title)}`).join('<br>')}</p></div>` : ''}
     `
+  );
+}
+
+function showLocationVendorsModal(location, data = state.eventData) {
+  const vendors = sortByOrderThenName(getVendorsByLocation(location.id, data), 'sortOrder', 'name');
+  openModal(
+    'Vendor List',
+    `${location.name} Vendors`,
+    vendors.length
+      ? `<div class="detail-list">${vendors.map(vendor => `
+          <button type="button" class="detail-list-item" data-open-vendor-id="${escapeAttr(vendor.id)}">
+            <span>${escapeHtml(vendor.name)}</span>
+            <span class="detail-list-meta">${escapeHtml(displayDash(vendor.category))}</span>
+          </button>
+        `).join('')}</div>`
+      : '<p>Vendor list coming soon</p>'
   );
 }
 
@@ -397,11 +519,21 @@ function showVendorModal(vendor, data = state.eventData) {
     'Vendor Details',
     vendor.name,
     `
-      ${vendor.category ? `<p><strong>Category:</strong> ${vendor.category}</p>` : ''}
-      ${vendor.booth ? `<p><strong>Booth:</strong> ${vendor.booth}</p>` : ''}
-      ${vendor.hours ? `<p><strong>Hours:</strong> ${vendor.hours}</p>` : ''}
-      ${location ? `<p><strong>Location:</strong> ${location.name}</p>` : ''}
-      ${vendor.description ? `<p>${vendor.description}</p>` : ''}
+      <dl class="detail-grid">
+        <div><dt>Town</dt><dd>${escapeHtml(displayDash(location?.group))}</dd></div>
+        <div><dt>Location</dt><dd>${escapeHtml(displayDash(location?.name))}</dd></div>
+        <div><dt>Address</dt><dd>${escapeHtml(displayDash(vendor.address))}</dd></div>
+        <div><dt>Phone</dt><dd>${escapeHtml(displayDash(vendor.publicPhone))}</dd></div>
+        <div><dt>Email</dt><dd>${escapeHtml(displayDash(vendor.publicEmail))}</dd></div>
+        <div><dt>Website</dt><dd>${vendor.publicWebsite ? `<a href="${escapeAttr(vendor.publicWebsite)}" target="_blank" rel="noopener">${escapeHtml(vendor.publicWebsite)}</a>` : '-'}</dd></div>
+        <div><dt>Category</dt><dd>${escapeHtml(displayDash(vendor.category))}</dd></div>
+        <div><dt>Booth</dt><dd>${escapeHtml(displayDash(vendor.booth))}</dd></div>
+      </dl>
+      <div class="detail-section">
+        <h4>Products</h4>
+        <p>${escapeHtml(displaySoon(vendor.productList, 'Product list coming soon'))}</p>
+      </div>
+      ${vendor.description ? `<div class="detail-section"><h4>Description</h4><p>${escapeHtml(vendor.description)}</p></div>` : ''}
     `
   );
 }
@@ -463,35 +595,117 @@ function renderMap(data) {
 
 function renderVendors(data) {
   if (!el.vendorList) return;
-  const vendors = data.vendors || [];
-  el.vendorList.innerHTML = vendors.length
-    ? vendors.map(vendor => `
-        <article class="vendor-card">
+  const locations = sortLocationsForDisplay(data.locations || []);
+  const vendors = sortByOrderThenName(data.vendors || [], 'sortOrder', 'name');
+
+  if (!locations.length) {
+    el.vendorList.innerHTML = '<div class="empty-state">No vendor locations are listed yet.</div>';
+    return;
+  }
+
+  const groupsMarkup = locations.map((location) => {
+    const locationVendors = vendors.filter((vendor) => vendor.locationId === location.id);
+    const vendorItems = locationVendors.length
+      ? `<div class="detail-list">${locationVendors.map((vendor) => `
+          <button type="button" id="${getVendorCardId(vendor.id)}" class="detail-list-item public-vendor-item" data-vendor-id="${escapeAttr(vendor.id)}">
+            <span>${escapeHtml(vendor.name)}</span>
+            <span class="detail-list-meta">${escapeHtml(displayDash(vendor.category))}</span>
+          </button>
+        `).join('')}</div>`
+      : `<p class="subtle">${location.multiVendor ? 'Vendor list coming soon' : 'No vendors assigned to this location yet.'}</p>`;
+
+    return `
+      <section class="public-group-block" id="${getTownAnchorId(location.group)}-${escapeAttr(location.id)}">
+        <div class="public-group-block__header">
           <div>
-            <h4>${vendor.name}</h4>
-            ${vendor.category ? `<p>${vendor.category}</p>` : ''}
-            ${vendor.description ? `<p>${vendor.description}</p>` : ''}
+            <p class="eyebrow">${escapeHtml(displayDash(location.group))}</p>
+            <h4>${escapeHtml(location.name)}</h4>
+            <p class="subtle">${escapeHtml(displayDash(location.address))}</p>
           </div>
-        </article>
-      `).join('')
-    : '<div class="empty-state">No vendors are listed yet.</div>';
+        </div>
+        ${vendorItems}
+      </section>
+    `;
+  }).join('');
+
+  el.vendorList.innerHTML = groupsMarkup;
+  el.vendorList.querySelectorAll('[data-vendor-id]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const vendor = vendors.find((item) => item.id === button.dataset.vendorId);
+      if (vendor) showVendorModal(vendor, data);
+    });
+  });
 }
 
 function renderLocations(data) {
   if (!el.locationList) return;
-  const locations = data.locations || [];
-  el.locationList.innerHTML = locations.length
-    ? locations.map(location => `
-        <article class="location-card" id="${getLocationCardId(location.id)}">
-          <div>
-            <h4>${location.name}</h4>
-            <p>${location.address || 'Address coming soon.'}</p>
-            ${location.description ? `<p>${location.description}</p>` : ''}
-            ${badgeMarkup(location.tags)}
+  const locations = sortLocationsForDisplay(data.locations || []);
+
+  if (!locations.length) {
+    el.locationList.innerHTML = '<div class="empty-state">No locations are listed yet.</div>';
+    return;
+  }
+
+  const grouped = locations.reduce((acc, row) => {
+    const group = normalizeTownGroup(row.group);
+    if (!acc[group]) acc[group] = [];
+    acc[group].push(row);
+    return acc;
+  }, {});
+
+  const groupsMarkup = Object.entries(grouped)
+    .sort(([a], [b]) => sortTownGroups(a, b))
+    .map(([groupName, groupRows]) => {
+      const locationItems = groupRows.map((location) => {
+        const vendors = sortByOrderThenName(getVendorsByLocation(location.id, data), 'sortOrder', 'name');
+        const tags = Array.isArray(location.tags) && location.tags.length
+          ? location.tags.map((tag) => `<span class="mini-badge">${escapeHtml(tag)}</span>`).join('')
+          : '<span class="mini-badge mini-badge-muted">No badges yet</span>';
+        const bagBadge = location.isBagLocation ? '<span class="mini-badge mini-badge-highlight">Bag Location</span>' : '';
+        const numberText = displayDash(location.locationNumber);
+        const directionsUrl = getDirectionsUrl(location);
+        const vendorAction = location.multiVendor
+          ? (vendors.length
+              ? `<button type="button" class="secondary-button" data-open-location-vendors="${escapeAttr(location.id)}">Vendors</button>`
+              : '<span class="subtle">Vendor list coming soon</span>')
+          : '';
+        return `
+          <article class="public-entity-row location-card" id="${getLocationCardId(location.id)}">
+            <div class="public-entity-card__top">
+              <div>
+                <h5>${escapeHtml(location.name)}</h5>
+                <p class="subtle">${escapeHtml(numberText)} · ${escapeHtml(displayDash(location.address))}</p>
+              </div>
+              <div class="button-row public-button-row">
+                ${vendorAction}
+                <a class="secondary-button" href="${escapeAttr(directionsUrl)}" target="_blank" rel="noopener">Directions</a>
+              </div>
+            </div>
+            <div class="badge-row public-badge-row">${tags}${bagBadge}</div>
+            <dl class="public-kv-grid compact">
+              <div><dt>Description</dt><dd>${escapeHtml(displaySoon(location.description, 'Description coming soon'))}</dd></div>
+              <div><dt>Hours</dt><dd>${escapeHtml(displayDash(location.hours))}</dd></div>
+              <div><dt>Vendor Status</dt><dd>${escapeHtml(getLocationSummaryVendorsText(location, vendors))}</dd></div>
+              <div><dt>Directions</dt><dd>${escapeHtml(displayDash(location.directionsText))}</dd></div>
+            </dl>
+          </article>
+        `;
+      }).join('');
+
+      return `
+        <section class="public-group-block" id="${getTownAnchorId(groupName)}">
+          <div class="public-group-block__header">
+            <div>
+              <h4>${escapeHtml(groupName)}</h4>
+              <p class="subtle">${groupRows.length} location${groupRows.length === 1 ? '' : 's'}</p>
+            </div>
           </div>
-        </article>
-      `).join('')
-    : '<div class="empty-state">No locations are listed yet.</div>';
+          ${locationItems}
+        </section>
+      `;
+    }).join('');
+
+  el.locationList.innerHTML = groupsMarkup;
 }
 
 function escapeHtml(value) {
@@ -950,6 +1164,7 @@ function mapLocationRow(row) {
   return {
     ...raw,
     id: row.external_id,
+    dbId: row.id,
     name: row.name,
     address: row.address,
     mapX: row.map_x,
@@ -957,11 +1172,19 @@ function mapLocationRow(row) {
     description: row.description,
     notes: row.notes,
     directionsText: row.directions_text,
+    directionsUrl: row.directions_url,
     pinIcon: row.pin_icon,
     hours: row.hours,
     tags: Array.isArray(row.tags) ? row.tags : [],
     multiVendor: !!row.multi_vendor,
-    group: row.location_group
+    group: row.location_group,
+    locationNumber: row.location_number,
+    isBagLocation: !!row.is_bag_location,
+    showOnFlyer: row.show_on_flyer !== false,
+    flyerSortOrder: row.flyer_sort_order,
+    webSortOrder: row.web_sort_order,
+    sortOrder: row.sort_order,
+    isActive: row.is_active !== false
   };
 }
 
@@ -987,12 +1210,21 @@ function mapVendorRow(row) {
   return {
     ...raw,
     id: row.external_id,
+    dbId: row.id,
     name: row.name,
     locationId: row.location_external_id,
+    eventLocationId: row.event_location_id,
     category: row.category,
     description: row.description,
     booth: row.booth,
-    hours: row.hours
+    hours: row.hours,
+    address: row.vendor_address,
+    publicPhone: row.public_phone,
+    publicEmail: row.public_email,
+    publicWebsite: row.public_website,
+    productList: row.product_list,
+    sortOrder: row.sort_order,
+    isActive: row.is_active !== false
   };
 }
 
@@ -1296,12 +1528,16 @@ async function loadEventData(requestedPageSlug) {
   });
 
   const locationRows = (locationsResult.data || []).slice().sort((a, b) => {
-    const aSort = Number.isFinite(Number(a?.sort_order)) ? Number(a.sort_order) : null;
-    const bSort = Number.isFinite(Number(b?.sort_order)) ? Number(b.sort_order) : null;
+    const groupCompare = sortTownGroups(a?.location_group, b?.location_group);
+    if (groupCompare !== 0) return groupCompare;
+    const aSort = Number.isFinite(Number(a?.web_sort_order)) ? Number(a.web_sort_order)
+      : Number.isFinite(Number(a?.sort_order)) ? Number(a.sort_order) : null;
+    const bSort = Number.isFinite(Number(b?.web_sort_order)) ? Number(b.web_sort_order)
+      : Number.isFinite(Number(b?.sort_order)) ? Number(b.sort_order) : null;
     if (aSort !== null && bSort !== null && aSort !== bSort) return aSort - bSort;
     if (aSort !== null && bSort === null) return -1;
     if (aSort === null && bSort !== null) return 1;
-    return String(a?.name || '').localeCompare(String(b?.name || ''));
+    return String(a?.name || '').localeCompare(String(b?.name || ''), undefined, { sensitivity: 'base' });
   });
 
   const scheduleRows = (scheduleResult.data || []).slice().sort((a, b) => {
