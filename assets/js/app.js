@@ -503,65 +503,32 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function normalizeFlyerBadges(badges) {
-  if (Array.isArray(badges)) {
-    return badges.map(item => String(item || '').trim()).filter(Boolean);
-  }
-
-  if (typeof badges === 'string') {
-    const trimmed = badges.trim();
-    if (!trimmed) return [];
-
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (Array.isArray(parsed)) {
-        return parsed.map(item => String(item || '').trim()).filter(Boolean);
-      }
-    } catch (error) {
-      // fall through to delimiter parsing
-    }
-
-    return trimmed
-      .split(/\s*[|,;/]\s*/)
-      .map(item => item.trim())
-      .filter(Boolean);
-  }
-
-  return [];
-}
-
 function renderFlyerBadges(entry) {
-  const badges = normalizeFlyerBadges(entry?.badges);
+  const badges = Array.isArray(entry?.badges) ? entry.badges : [];
   if (!badges.length) return '';
-
   return `<span class="covh-item-badges">${badges.map(b => `<span class="covh-inline-badge">${escapeHtml(b)}</span>`).join('')}</span>`;
 }
 
 function renderCovhEntry(entry, bagIcon) {
-  const hasBagIcon = entry?.bagLocation && bagIcon;
-  const number = entry?.entry_code || entry?.number;
-  const badgesMarkup = renderFlyerBadges(entry);
-  const addressMarkup = entry?.address ? `<span class="covh-item-address">${escapeHtml(entry.address)}</span>` : '';
+  const bagMarkup = entry?.bagLocation
+    ? `<img class="covh-bag-icon covh-inline-bag-icon covh-title-bag-icon" src="${escapeHtml(bagIcon || '')}" alt="Bag location">`
+    : '';
 
   return `
     <article class="covh-list-item">
       <div class="covh-item-head">
         <div class="covh-item-title-line">
-          ${number ? `<span class="covh-item-number">${escapeHtml(number)}</span>` : ''}
-          <div class="covh-item-title-copy">
-            <div class="covh-item-title-row">
-              <h4>${escapeHtml(entry?.name || 'Untitled')}</h4>
-              ${hasBagIcon ? `<img class="covh-bag-icon covh-inline-bag-icon covh-title-bag-icon" src="${escapeHtml(bagIcon)}" alt="Bag location">` : ''}
-            </div>
-            <div class="covh-item-meta">
-              ${badgesMarkup}
-              ${addressMarkup}
-            </div>
-            ${entry?.description ? `<p>${escapeHtml(entry.description)}</p>` : ''}
-          </div>
+          ${entry?.entry_code || entry?.number ? `<span class="covh-item-number">${escapeHtml(entry.entry_code || entry.number)}</span>` : ''}
+          <h4>${escapeHtml(entry?.name || 'Untitled')}</h4>
+          ${bagMarkup}
         </div>
-        ${entry?.hours ? `<div class="covh-item-hours">${escapeHtml(entry.hours)}</div>` : ''}
+        ${entry?.hours ? `<div class="covh-item-hours">(${escapeHtml(entry.hours)})</div>` : ''}
       </div>
+      <div class="covh-item-meta">
+        ${renderFlyerBadges(entry)}
+        ${entry?.address ? `<span class="covh-item-address">${escapeHtml(entry.address)}</span>` : ''}
+      </div>
+      ${entry?.description ? `<p>${escapeHtml(entry.description)}</p>` : ''}
     </article>
   `;
 }
@@ -1007,7 +974,7 @@ function mapFlyerEntryRow(row) {
     address: row.address,
     hours: row.hours,
     description: row.description,
-    badges: Array.isArray(row.badges) ? row.badges : (typeof row.badges === 'string' ? row.badges : []),
+    badges: Array.isArray(row.badges) ? row.badges : [],
     bagLocation: !!(row.bag_location ?? raw.bagLocation ?? raw.bag_location),
     sort_order: row.sort_order
   };
