@@ -102,21 +102,46 @@ function normalizeTownGroup(value) {
   return String(value || '').trim() || 'Other';
 }
 
+function isPrimaryTownGroup(value) {
+  const normalized = normalizeTownGroup(value).toLowerCase();
+  return normalized === 'mt. pulaski' || normalized === 'mt pulaski';
+}
+
+function sortTownGroups(a, b) {
+  const aGroup = normalizeTownGroup(a);
+  const bGroup = normalizeTownGroup(b);
+
+  const aPrimary = isPrimaryTownGroup(aGroup);
+  const bPrimary = isPrimaryTownGroup(bGroup);
+
+  if (aPrimary && !bPrimary) return -1;
+  if (!aPrimary && bPrimary) return 1;
+
+  return aGroup.localeCompare(bGroup, undefined, { sensitivity: 'base' });
+}
+
 function sortLocationsForAdmin(rows) {
   return rows.slice().sort((a, b) => {
-    const aGroup = normalizeTownGroup(a?.location_group);
-    const bGroup = normalizeTownGroup(b?.location_group);
-    if (aGroup !== bGroup) return aGroup.localeCompare(bGroup);
-    const aSort = Number.isFinite(Number(a?.web_sort_order)) ? Number(a.web_sort_order)
-      : Number.isFinite(Number(a?.sort_order)) ? Number(a.sort_order)
-      : null;
-    const bSort = Number.isFinite(Number(b?.web_sort_order)) ? Number(b.web_sort_order)
-      : Number.isFinite(Number(b?.sort_order)) ? Number(b.sort_order)
-      : null;
+    const groupCompare = sortTownGroups(a?.location_group, b?.location_group);
+    if (groupCompare !== 0) return groupCompare;
+
+    const aSort = Number.isFinite(Number(a?.web_sort_order))
+      ? Number(a.web_sort_order)
+      : Number.isFinite(Number(a?.sort_order))
+        ? Number(a.sort_order)
+        : null;
+
+    const bSort = Number.isFinite(Number(b?.web_sort_order))
+      ? Number(b.web_sort_order)
+      : Number.isFinite(Number(b?.sort_order))
+        ? Number(b.sort_order)
+        : null;
+
     if (aSort !== null && bSort !== null && aSort !== bSort) return aSort - bSort;
     if (aSort !== null && bSort === null) return -1;
     if (aSort === null && bSort !== null) return 1;
-    return String(a?.name || '').localeCompare(String(b?.name || ''));
+
+    return String(a?.name || '').localeCompare(String(b?.name || ''), undefined, { sensitivity: 'base' });
   });
 }
 
@@ -904,7 +929,9 @@ function renderLocationsView(data, page) {
     return acc;
   }, {});
 
-  const groupsMarkup = Object.entries(grouped).map(([groupName, groupRows]) => {
+	const groupsMarkup = Object.entries(grouped)
+	  .sort(([groupA], [groupB]) => sortTownGroups(groupA, groupB))
+	  .map(([groupName, groupRows]) => {
     const locationItems = groupRows.map((row) => {
       const vendorCount = data.vendors.filter((vendor) => vendor.page_slug === page.slug && (vendor.event_location_id === row.id || vendor.location_external_id === row.external_id)).length;
       const tags = Array.isArray(row.tags) && row.tags.length ? row.tags.map((tag) => `<span class="admin-badge">${escapeHtml(tag)}</span>`).join('') : '<span class="admin-badge admin-badge-muted">No badges yet</span>';
