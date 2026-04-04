@@ -671,9 +671,8 @@ function renderCovhFlyer(data, flyer) {
                 pageOneTopLeft
                   ? `
                     <section class="covh-page-one-block">
-                      <div class="covh-regional-title">${escapeHtml(pageOneTopLeft.title || '')}</div>
-                      ${(pageOneTopLeft.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
-                    </section>
+					  ${(pageOneTopLeft.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
+					</section>
                   `
                   : ''
               }
@@ -681,10 +680,9 @@ function renderCovhFlyer(data, flyer) {
               ${
                 pageOneBottomLeft
                   ? `
-                    <section class="covh-page-one-block">
-                      ${(pageOneTopLeft ? '' : `<div class="covh-regional-title">${escapeHtml(pageOneBottomLeft.title || '')}</div>`)}
-                      ${(pageOneBottomLeft.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
-                    </section>
+                   <section class="covh-page-one-block">
+					  ${(pageOneBottomLeft.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
+					</section>
                   `
                   : ''
               }
@@ -702,30 +700,16 @@ function renderCovhFlyer(data, flyer) {
                   `
                 )
                 .join('')}
-              ${
-                callouts.bagNotice
-                  ? `
-                    <div class="covh-bag-callout">
-                      ${
-                        bagIcon
-                          ? `<img class="covh-bag-icon covh-callout-bag-icon" src="${escapeHtml(bagIcon)}" alt="Bag icon">`
-                          : '<span class="covh-bag-text-symbol">Bag</span>'
-                      }
-                      ${escapeHtml(callouts.bagNotice)}
-                    </div>
-                  `
-                  : ''
-              }
+            
             </aside>
 
             <div class="covh-column covh-column-stacked">
               ${
                 pageOneTopRight
                   ? `
-                    <section class="covh-page-one-block">
-                      <div class="covh-regional-title">${escapeHtml(pageOneTopRight.title || '')}</div>
-                      ${(pageOneTopRight.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
-                    </section>
+                   <section class="covh-page-one-block">
+					  ${(pageOneTopRight.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
+					</section>
                   `
                   : ''
               }
@@ -737,6 +721,21 @@ function renderCovhFlyer(data, flyer) {
                       <div class="covh-regional-title">${escapeHtml(regional.title || '')}</div>
                       ${(regional.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
                     </section>
+                  `
+                  : ''
+              }
+			  
+			    ${
+                callouts.bagNotice
+                  ? `
+                    <div class="covh-bag-callout">
+                      ${
+                        bagIcon
+                          ? `<img class="covh-bag-icon covh-callout-bag-icon" src="${escapeHtml(bagIcon)}" alt="Bag icon">`
+                          : '<span class="covh-bag-text-symbol">Bag</span>'
+                      }
+                      ${escapeHtml(callouts.bagNotice)}
+                    </div>
                   `
                   : ''
               }

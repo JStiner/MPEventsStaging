@@ -1856,7 +1856,11 @@ body.modal-open {
   line-height: 1.35;
   color: #303030;
 }
-
+.covh-bag-callout-under-regional {
+  margin-top: 8px;
+  border: 1px solid #cfcfcf;
+  background: #f6faf6;
+}
 .covh-footer-lines > div {
   padding: 0 0 4px;
 }
