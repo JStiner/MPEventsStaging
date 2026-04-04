@@ -922,6 +922,7 @@ function renderAdminPanel() {
       <td>${escapeHtml(row.error_message || '')}</td>
     </tr>
   `).join('');
+  const showImports = !!state.profile?.is_admin;
 
   panel.innerHTML = `
     <h2>Admin</h2>
@@ -933,21 +934,24 @@ function renderAdminPanel() {
     </dl>
     <div class="button-row"><button type="button" id="signOutButton">Sign Out</button></div>
     <section class="admin-card"><h3>Event Groups</h3><ul class="admin-list">${groupRows || '<li>No groups found.</li>'}</ul></section>
-    <section class="admin-card">
-      <h3>External Event Imports</h3>
-      <div class="button-row">
-        <button type="button" data-run-import="city">Import City Events</button>
-        <button type="button" data-run-import="school">Import School Events</button>
-        <button type="button" data-run-import="all">Import All</button>
-      </div>
-      <p class="error-text" data-message="imports"></p>
-      <div class="table-wrap">
-        <table class="admin-table">
-          <thead><tr><th>source</th><th>page</th><th>status</th><th>started</th><th>staged</th><th>published</th><th>error</th></tr></thead>
-          <tbody>${importRows || '<tr><td colspan="7">No import runs yet.</td></tr>'}</tbody>
-        </table>
-      </div>
-    </section>
+
+    ${showImports ? `
+      <section class="admin-card">
+        <h3>External Event Imports</h3>
+        <div class="button-row">
+          <button type="button" data-run-import="city">Import City Events</button>
+          <button type="button" data-run-import="school">Import School Events</button>
+          <button type="button" data-run-import="all">Import All</button>
+        </div>
+        <p class="error-text" data-message="imports"></p>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>source</th><th>page</th><th>status</th><th>started</th><th>staged</th><th>published</th><th>error</th></tr></thead>
+            <tbody>${importRows || '<tr><td colspan="7">No import runs yet.</td></tr>'}</tbody>
+          </table>
+        </div>
+      </section>
+    ` : ''}
   `;
 
   panel.querySelector('#signOutButton')?.addEventListener('click', async () => {
@@ -955,29 +959,33 @@ function renderAdminPanel() {
     window.location.href = './login.html';
   });
 
-  panel.querySelectorAll('[data-run-import]').forEach((button) => button.addEventListener('click', async () => {
-    const target = button.dataset.runImport;
-    const sourceKey = target === 'all' ? null : target;
-    setMessage(panel, 'imports', `Running ${target} import…`);
+  if (showImports) {
+    panel.querySelectorAll('[data-run-import]').forEach((button) => button.addEventListener('click', async () => {
+      const target = button.dataset.runImport;
+      const sourceKey = target === 'all' ? null : target;
+      setMessage(panel, 'imports', `Running ${target} import…`);
 
-    const { data, error } = await supabaseClient.functions.invoke('import-events', {
-      body: sourceKey ? { source_key: sourceKey, auto_publish: true, requested_by: 'admin-ui' } : { auto_publish: true, requested_by: 'admin-ui' },
-    });
+      const { data, error } = await supabaseClient.functions.invoke('import-events', {
+        body: sourceKey
+          ? { source_key: sourceKey, auto_publish: true, requested_by: 'admin-ui' }
+          : { auto_publish: true, requested_by: 'admin-ui' },
+      });
 
-    if (error) {
-      setMessage(panel, 'imports', error.message || 'Import failed.');
-      return;
-    }
+      if (error) {
+        setMessage(panel, 'imports', error.message || 'Import failed.');
+        return;
+      }
 
-    if (!data?.ok) {
-      setMessage(panel, 'imports', data?.error || 'Import failed.');
-      return;
-    }
+      if (!data?.ok) {
+        setMessage(panel, 'imports', data?.error || 'Import failed.');
+        return;
+      }
 
-    state.importRuns = await fetchImportRuns().catch(() => state.importRuns || []);
-    setMessage(panel, 'imports', `Import complete for ${target}.`);
-    renderAdminPanel();
-  }));
+      state.importRuns = await fetchImportRuns().catch(() => state.importRuns || []);
+      setMessage(panel, 'imports', `Import complete for ${target}.`);
+      renderAdminPanel();
+    }));
+  }
 }
 
 function getSelectedPage(groupSlug, data) {
