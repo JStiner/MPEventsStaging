@@ -137,6 +137,223 @@ function buildDirectionsUrl(locationRow) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
 
+function getPublicPageHref(page) {
+  const slug = String(page?.slug || '').trim();
+  return slug ? `./${slug}.html` : './index.html';
+}
+
+function openAdminModal(title, bodyHtml) {
+  const modal = ensureModalShell();
+  if (!modal) return null;
+  modal.innerHTML = `
+    <div class="admin-modal-backdrop" data-modal-close></div>
+    <div class="admin-modal-card admin-modal-card-wide">
+      <div class="admin-modal-header">
+        <h3>${escapeHtml(title)}</h3>
+        <button type="button" class="admin-modal-close" data-modal-close>Close</button>
+      </div>
+      <div class="admin-modal-body">${bodyHtml}</div>
+    </div>
+  `;
+  modal.classList.remove('hidden');
+  modal.querySelectorAll('[data-modal-close]').forEach((el) => el.addEventListener('click', closeEventEditorModal));
+  return modal;
+}
+
+async function openLocationEditorModal(groupSlug, tabKey, page, data, record = null) {
+  const bodyHtml = `
+    <form class="admin-form" data-form="location-modal">
+      <input type="hidden" name="external_id" value="${escapeHtml(record?.external_id || '')}">
+      <div class="admin-columns-2">
+        <label>Name<input name="name" value="${escapeHtml(record?.name || '')}" required></label>
+        <label>Location Number<input name="location_number" value="${escapeHtml(record?.location_number || '')}" placeholder="12"></label>
+      </div>
+      <div class="admin-columns-2">
+        <label>Address<input name="address" value="${escapeHtml(record?.address || '')}"></label>
+        <label>Town / Group<input name="location_group" value="${escapeHtml(record?.location_group || '')}" placeholder="Mt. Pulaski"></label>
+      </div>
+      <div class="admin-columns-3">
+        <label>Web Sort<input type="number" name="web_sort_order" value="${escapeHtml(String(record?.web_sort_order ?? record?.sort_order ?? ''))}"></label>
+        <label>Flyer Sort<input type="number" name="flyer_sort_order" value="${escapeHtml(String(record?.flyer_sort_order ?? record?.sort_order ?? ''))}"></label>
+        <label>Legacy Sort<input type="number" name="sort_order" value="${escapeHtml(String(record?.sort_order ?? ''))}"></label>
+      </div>
+      <div class="admin-columns-3">
+        <label>Map X<input type="number" step="0.1" name="map_x" value="${escapeHtml(String(record?.map_x ?? ''))}"></label>
+        <label>Map Y<input type="number" step="0.1" name="map_y" value="${escapeHtml(String(record?.map_y ?? ''))}"></label>
+        <label>Pin Icon<input name="pin_icon" value="${escapeHtml(record?.pin_icon || '')}"></label>
+      </div>
+      <div class="admin-columns-2">
+        <label>Hours<input name="hours" value="${escapeHtml(record?.hours || '')}"></label>
+        <label>Tags (comma)<input name="tags" value="${escapeHtml((record?.tags || []).join(', '))}" placeholder="Multi Vendor, Food"></label>
+      </div>
+      <label>Description<textarea rows="2" name="description">${escapeHtml(record?.description || '')}</textarea></label>
+      <label>Notes<textarea rows="2" name="notes">${escapeHtml(record?.notes || '')}</textarea></label>
+      <div class="admin-columns-2">
+        <label>Directions Text<textarea rows="2" name="directions_text">${escapeHtml(record?.directions_text || '')}</textarea></label>
+        <label>Directions URL<input name="directions_url" value="${escapeHtml(record?.directions_url || '')}" placeholder="https://..."></label>
+      </div>
+      <div class="admin-checkbox-grid">
+        <label><input type="checkbox" name="multi_vendor" ${record?.multi_vendor ? 'checked' : ''}> Multi-vendor location</label>
+        <label><input type="checkbox" name="is_bag_location" ${record?.is_bag_location ? 'checked' : ''}> Bag location</label>
+        <label><input type="checkbox" name="show_on_flyer" ${record?.show_on_flyer === false ? '' : 'checked'}> Show on flyer</label>
+        <label><input type="checkbox" name="is_active" ${record?.is_active === false ? '' : 'checked'}> Active</label>
+      </div>
+      <label>Raw JSON<textarea rows="3" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
+      <p class="error-text" data-message="location-modal"></p>
+      <div class="button-row">
+        <button type="submit">Save Location</button>
+        ${record ? '<button type="button" class="danger" data-delete-location-modal>Delete</button>' : ''}
+      </div>
+    </form>
+  `;
+  const modal = openAdminModal(record ? 'Edit Location' : 'Add Location', bodyHtml);
+  const form = modal?.querySelector('[data-form="location-modal"]');
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    try {
+      const formData = new FormData(event.currentTarget);
+      const payload = {
+        page_slug: page.slug,
+        external_id: String(formData.get('external_id') || '').trim() || getId(),
+        name: String(formData.get('name') || '').trim(),
+        location_number: String(formData.get('location_number') || '').trim() || null,
+        address: String(formData.get('address') || '').trim() || null,
+        map_x: formData.get('map_x') ? Number(formData.get('map_x')) : null,
+        map_y: formData.get('map_y') ? Number(formData.get('map_y')) : null,
+        description: String(formData.get('description') || '').trim() || null,
+        notes: String(formData.get('notes') || '').trim() || null,
+        directions_text: String(formData.get('directions_text') || '').trim() || null,
+        directions_url: String(formData.get('directions_url') || '').trim() || null,
+        pin_icon: String(formData.get('pin_icon') || '').trim() || null,
+        hours: String(formData.get('hours') || '').trim() || null,
+        tags: String(formData.get('tags') || '').split(',').map((item) => item.trim()).filter(Boolean),
+        multi_vendor: formData.get('multi_vendor') === 'on',
+        is_bag_location: formData.get('is_bag_location') === 'on',
+        show_on_flyer: formData.get('show_on_flyer') === 'on',
+        is_active: formData.get('is_active') === 'on',
+        location_group: String(formData.get('location_group') || '').trim() || null,
+        sort_order: formData.get('sort_order') ? Number(formData.get('sort_order')) : null,
+        web_sort_order: formData.get('web_sort_order') ? Number(formData.get('web_sort_order')) : null,
+        flyer_sort_order: formData.get('flyer_sort_order') ? Number(formData.get('flyer_sort_order')) : null,
+        raw: parseJsonField(formData.get('raw'), {}),
+      };
+      const { error } = await supabaseClient.from('event_locations').upsert(payload, { onConflict: 'page_slug,external_id' });
+      if (error) throw error;
+      closeEventEditorModal();
+      await refreshGroup(groupSlug, tabKey);
+    } catch (error) {
+      const msg = modal.querySelector('[data-message="location-modal"]');
+      if (msg) msg.textContent = error.message || 'Failed to save location.';
+    }
+  });
+  modal?.querySelector('[data-delete-location-modal]')?.addEventListener('click', async () => {
+    if (!record?.external_id) return;
+    const { error } = await supabaseClient.from('event_locations').delete().eq('page_slug', page.slug).eq('external_id', record.external_id);
+    if (error) {
+      const msg = modal.querySelector('[data-message="location-modal"]');
+      if (msg) msg.textContent = error.message || 'Failed to delete location.';
+      return;
+    }
+    closeEventEditorModal();
+    await refreshGroup(groupSlug, tabKey);
+  });
+}
+
+async function openVendorEditorModal(groupSlug, tabKey, page, data, record = null) {
+  const locationOptions = sortLocationsForAdmin(data.locations.filter((row) => row.page_slug === page.slug))
+    .map((loc) => `<option value="${escapeHtml(loc.external_id)}">${escapeHtml(loc.location_group || 'Other')} · ${escapeHtml(loc.name || loc.external_id)}</option>`).join('');
+  const bodyHtml = `
+    <form class="admin-form" data-form="vendor-modal">
+      <input type="hidden" name="external_id" value="${escapeHtml(record?.external_id || '')}">
+      <div class="admin-columns-2">
+        <label>Vendor Name<input name="name" value="${escapeHtml(record?.name || '')}" required></label>
+        <label>Category<input name="category" value="${escapeHtml(record?.category || '')}" placeholder="Vendor, Food, Multi Vendor"></label>
+      </div>
+      <div class="admin-columns-3">
+        <label>Location<input name="location_external_id" list="location-id-list-modal" value="${escapeHtml(record?.location_external_id || '')}" required></label>
+        <label>Booth<input name="booth" value="${escapeHtml(record?.booth || '')}"></label>
+        <label>Sort Order<input type="number" name="sort_order" value="${escapeHtml(String(record?.sort_order ?? ''))}"></label>
+      </div>
+      <div class="admin-columns-2">
+        <label>Hours<input name="hours" value="${escapeHtml(record?.hours || '')}"></label>
+        <label>Vendor Address<input name="vendor_address" value="${escapeHtml(record?.vendor_address || '')}" placeholder="Shown publicly"></label>
+      </div>
+      <label>Description<textarea rows="2" name="description">${escapeHtml(record?.description || '')}</textarea></label>
+      <label>Product List<textarea rows="2" name="product_list">${escapeHtml(record?.product_list || '')}</textarea></label>
+      <div class="admin-columns-3">
+        <label>Public Phone<input name="public_phone" value="${escapeHtml(record?.public_phone || '')}" placeholder="-"></label>
+        <label>Public Email<input name="public_email" value="${escapeHtml(record?.public_email || '')}" placeholder="-"></label>
+        <label>Public Website<input name="public_website" value="${escapeHtml(record?.public_website || '')}" placeholder="https://..."></label>
+      </div>
+      <div class="admin-columns-3">
+        <label>Internal Contact<input name="internal_contact_name" value="${escapeHtml(record?.internal_contact_name || '')}"></label>
+        <label>Internal Phone<input name="internal_phone" value="${escapeHtml(record?.internal_phone || '')}"></label>
+        <label>Internal Email<input name="internal_email" value="${escapeHtml(record?.internal_email || '')}"></label>
+      </div>
+      <label>Internal Notes<textarea rows="2" name="internal_notes">${escapeHtml(record?.internal_notes || '')}</textarea></label>
+      <label><input type="checkbox" name="is_active" ${record?.is_active === false ? '' : 'checked'}> Active</label>
+      <label>Raw JSON<textarea rows="3" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
+      <p class="error-text" data-message="vendor-modal"></p>
+      <div class="button-row">
+        <button type="submit">Save Vendor</button>
+        ${record ? '<button type="button" class="danger" data-delete-vendor-modal>Delete</button>' : ''}
+      </div>
+      <datalist id="location-id-list-modal">${locationOptions}</datalist>
+    </form>
+  `;
+  const modal = openAdminModal(record ? 'Edit Vendor' : 'Add Vendor', bodyHtml);
+  const form = modal?.querySelector('[data-form="vendor-modal"]');
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    try {
+      const formData = new FormData(event.currentTarget);
+      const locationExternalId = String(formData.get('location_external_id') || '').trim() || null;
+      const matchedLocation = data.locations.find((row) => row.page_slug === page.slug && row.external_id === locationExternalId);
+      const payload = {
+        page_slug: page.slug,
+        external_id: String(formData.get('external_id') || '').trim() || getId(),
+        name: String(formData.get('name') || '').trim(),
+        location_external_id: locationExternalId,
+        event_location_id: matchedLocation?.id || null,
+        category: String(formData.get('category') || '').trim() || null,
+        description: String(formData.get('description') || '').trim() || null,
+        booth: String(formData.get('booth') || '').trim() || null,
+        hours: String(formData.get('hours') || '').trim() || null,
+        vendor_address: String(formData.get('vendor_address') || '').trim() || null,
+        public_phone: String(formData.get('public_phone') || '').trim() || null,
+        public_email: String(formData.get('public_email') || '').trim() || null,
+        public_website: String(formData.get('public_website') || '').trim() || null,
+        product_list: String(formData.get('product_list') || '').trim() || null,
+        internal_contact_name: String(formData.get('internal_contact_name') || '').trim() || null,
+        internal_phone: String(formData.get('internal_phone') || '').trim() || null,
+        internal_email: String(formData.get('internal_email') || '').trim() || null,
+        internal_notes: String(formData.get('internal_notes') || '').trim() || null,
+        is_active: formData.get('is_active') === 'on',
+        sort_order: formData.get('sort_order') ? Number(formData.get('sort_order')) : 0,
+        raw: parseJsonField(formData.get('raw'), {}),
+      };
+      const { error } = await supabaseClient.from('event_vendors').upsert(payload, { onConflict: 'page_slug,external_id' });
+      if (error) throw error;
+      closeEventEditorModal();
+      await refreshGroup(groupSlug, tabKey);
+    } catch (error) {
+      const msg = modal.querySelector('[data-message="vendor-modal"]');
+      if (msg) msg.textContent = error.message || 'Failed to save vendor.';
+    }
+  });
+  modal?.querySelector('[data-delete-vendor-modal]')?.addEventListener('click', async () => {
+    if (!record?.external_id) return;
+    const { error } = await supabaseClient.from('event_vendors').delete().eq('page_slug', page.slug).eq('external_id', record.external_id);
+    if (error) {
+      const msg = modal.querySelector('[data-message="vendor-modal"]');
+      if (msg) msg.textContent = error.message || 'Failed to delete vendor.';
+      return;
+    }
+    closeEventEditorModal();
+    await refreshGroup(groupSlug, tabKey);
+  });
+}
+
 function getPageCalendarMode(pageSlug) {
   return PAGE_CALENDAR_MODES[pageSlug] || 'full';
 }
@@ -688,18 +905,16 @@ function renderLocationsView(data, page) {
   }, {});
 
   const groupsMarkup = Object.entries(grouped).map(([groupName, groupRows]) => {
-    const cards = groupRows.map((row) => {
+    const locationItems = groupRows.map((row) => {
       const vendorCount = data.vendors.filter((vendor) => vendor.page_slug === page.slug && (vendor.event_location_id === row.id || vendor.location_external_id === row.external_id)).length;
       const tags = Array.isArray(row.tags) && row.tags.length ? row.tags.map((tag) => `<span class="admin-badge">${escapeHtml(tag)}</span>`).join('') : '<span class="admin-badge admin-badge-muted">No badges yet</span>';
       const bagBadge = row.is_bag_location ? '<span class="admin-badge admin-badge-highlight">Bag Location</span>' : '';
-      const mvText = row.multi_vendor
-        ? (vendorCount ? `${vendorCount} vendor${vendorCount === 1 ? '' : 's'}` : 'Vendor list coming soon')
-        : 'Single location';
+      const mvText = row.multi_vendor ? (vendorCount ? `${vendorCount} vendor${vendorCount === 1 ? '' : 's'}` : 'Vendor list coming soon') : 'Single location';
       return `
-        <article class="admin-entity-card">
+        <article class="admin-vendor-row admin-location-row">
           <div class="admin-entity-card__top">
             <div>
-              <h4>${escapeHtml(displayValue(row.name))}</h4>
+              <h5>${escapeHtml(displayValue(row.name))}</h5>
               <p class="subtle-text">${escapeHtml(displayValue(row.location_number))} · ${escapeHtml(displayValue(row.external_id))}</p>
             </div>
             <div class="button-row">
@@ -708,7 +923,7 @@ function renderLocationsView(data, page) {
             </div>
           </div>
           <div class="admin-badge-row">${tags}${bagBadge}</div>
-          <dl class="admin-kv-grid">
+          <dl class="admin-kv-grid compact">
             <div><dt>Address</dt><dd>${escapeHtml(displayValue(row.address))}</dd></div>
             <div><dt>Description</dt><dd>${escapeHtml(displaySoon(row.description, 'Description coming soon'))}</dd></div>
             <div><dt>Hours</dt><dd>${escapeHtml(displayValue(row.hours))}</dd></div>
@@ -723,10 +938,13 @@ function renderLocationsView(data, page) {
     return `
       <section class="admin-group-block">
         <div class="admin-group-block__header">
-          <h4>${escapeHtml(groupName)}</h4>
-          <span class="subtle-text">${groupRows.length} location${groupRows.length === 1 ? '' : 's'}</span>
+          <div>
+            <h4>${escapeHtml(groupName)}</h4>
+            <p class="subtle-text">${groupRows.length} location${groupRows.length === 1 ? '' : 's'}</p>
+          </div>
+          <button type="button" data-location-new data-default-group="${escapeHtml(groupName)}">Add Location</button>
         </div>
-        <div class="admin-entity-grid">${cards}</div>
+        ${locationItems}
       </section>
     `;
   }).join('');
@@ -735,6 +953,7 @@ function renderLocationsView(data, page) {
     <section class="admin-empty-state">
       <h4>No locations yet</h4>
       <p class="subtle-text">Add the first event location to start building the public list and flyer sections.</p>
+      <div class="button-row"><button type="button" data-location-new>Add Location</button></div>
     </section>
   `;
 
@@ -749,7 +968,6 @@ function renderLocationsView(data, page) {
       </div>
       ${groupsMarkup || empty}
       <p class="error-text" data-message="location"></p>
-      <form class="admin-form admin-form-card" data-form="location"></form>
     </section>
   `;
 }
@@ -849,7 +1067,6 @@ function renderVendorsView(data, page) {
       ${groupsMarkup || empty}
       ${unassignedMarkup}
       <p class="error-text" data-message="vendor"></p>
-      <form class="admin-form admin-form-card" data-form="vendor"></form>
     </section>
   `;
 }
@@ -1108,8 +1325,13 @@ function renderGroupPanel(tabKey) {
   if (view === 'settings') body = renderSettingsView(page);
 
   panel.innerHTML = `
-    <h2>${escapeHtml(group.name)}</h2>
-    <p class="subtle-text">${escapeHtml(group.slug)}</p>
+    <div class="admin-panel-header-row">
+      <div>
+        <h2>${escapeHtml(group.name)}</h2>
+        <p class="subtle-text">${escapeHtml(group.slug)}</p>
+      </div>
+      <a class="admin-link-button" href="${escapeHtml(getPublicPageHref(page))}">Return to Front End</a>
+    </div>
     <div class="admin-tabs">${subviewTabs}</div>
     <div class="admin-tabs">${pageTabs}</div>
     ${body}
@@ -1298,10 +1520,10 @@ async function bindGroupActions(groupSlug, tabKey) {
     if (record) openEventEditorModal(groupSlug, tabKey, page, data, record.event_date, record);
   }));
 
-  panel.querySelector('[data-location-new]')?.addEventListener('click', () => renderDynamicEntityForm('location', null, groupSlug));
+  panel.querySelectorAll('[data-location-new]').forEach((button) => button.addEventListener('click', () => openLocationEditorModal(groupSlug, tabKey, page, data, { location_group: button.dataset.defaultGroup || '' }))); 
   panel.querySelectorAll('[data-edit-location]').forEach((button) => button.addEventListener('click', () => {
     const record = data.locations.find((row) => row.page_slug === page.slug && row.external_id === button.dataset.editLocation);
-    renderDynamicEntityForm('location', record, groupSlug);
+    openLocationEditorModal(groupSlug, tabKey, page, data, record);
   }));
   panel.querySelectorAll('[data-delete-location]').forEach((button) => button.addEventListener('click', async () => {
     const { error } = await supabaseClient.from('event_locations').delete().eq('page_slug', page.slug).eq('external_id', button.dataset.deleteLocation);
@@ -1309,10 +1531,10 @@ async function bindGroupActions(groupSlug, tabKey) {
     await refreshGroup(groupSlug, tabKey);
   }));
 
-  panel.querySelectorAll('[data-vendor-new]').forEach((button) => button.addEventListener('click', () => renderDynamicEntityForm('vendor', button.dataset.defaultLocation ? { location_external_id: button.dataset.defaultLocation } : null, groupSlug)));
+  panel.querySelectorAll('[data-vendor-new]').forEach((button) => button.addEventListener('click', () => openVendorEditorModal(groupSlug, tabKey, page, data, button.dataset.defaultLocation ? { location_external_id: button.dataset.defaultLocation } : null)));
   panel.querySelectorAll('[data-edit-vendor]').forEach((button) => button.addEventListener('click', () => {
     const record = data.vendors.find((row) => row.page_slug === page.slug && row.external_id === button.dataset.editVendor);
-    renderDynamicEntityForm('vendor', record, groupSlug);
+    openVendorEditorModal(groupSlug, tabKey, page, data, record);
   }));
   panel.querySelectorAll('[data-delete-vendor]').forEach((button) => button.addEventListener('click', async () => {
     const { error } = await supabaseClient.from('event_vendors').delete().eq('page_slug', page.slug).eq('external_id', button.dataset.deleteVendor);
@@ -1331,81 +1553,6 @@ async function bindGroupActions(groupSlug, tabKey) {
     await refreshGroup(groupSlug, tabKey);
   }));
 
-  panel.querySelector('[data-form="location"]')?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    try {
-      const form = new FormData(event.currentTarget);
-      const payload = {
-        page_slug: page.slug,
-        external_id: String(form.get('external_id') || '').trim() || getId(),
-        name: String(form.get('name') || '').trim(),
-        location_number: String(form.get('location_number') || '').trim() || null,
-        address: String(form.get('address') || '').trim() || null,
-        map_x: form.get('map_x') ? Number(form.get('map_x')) : null,
-        map_y: form.get('map_y') ? Number(form.get('map_y')) : null,
-        description: String(form.get('description') || '').trim() || null,
-        notes: String(form.get('notes') || '').trim() || null,
-        directions_text: String(form.get('directions_text') || '').trim() || null,
-        directions_url: String(form.get('directions_url') || '').trim() || null,
-        pin_icon: String(form.get('pin_icon') || '').trim() || null,
-        hours: String(form.get('hours') || '').trim() || null,
-        tags: String(form.get('tags') || '').split(',').map((item) => item.trim()).filter(Boolean),
-        multi_vendor: form.get('multi_vendor') === 'on',
-        is_bag_location: form.get('is_bag_location') === 'on',
-        show_on_flyer: form.get('show_on_flyer') === 'on',
-        is_active: form.get('is_active') === 'on',
-        location_group: String(form.get('location_group') || '').trim() || null,
-        sort_order: form.get('sort_order') ? Number(form.get('sort_order')) : null,
-        web_sort_order: form.get('web_sort_order') ? Number(form.get('web_sort_order')) : null,
-        flyer_sort_order: form.get('flyer_sort_order') ? Number(form.get('flyer_sort_order')) : null,
-        raw: parseJsonField(form.get('raw'), {}),
-      };
-      const { error } = await supabaseClient.from('event_locations').upsert(payload, { onConflict: 'page_slug,external_id' });
-      if (error) throw error;
-      setMessage(panel, 'location', 'Location saved.');
-      await refreshGroup(groupSlug, tabKey);
-    } catch (error) {
-      setMessage(panel, 'location', error.message || 'Failed to save location.');
-    }
-  });
-
-  panel.querySelector('[data-form="vendor"]')?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    try {
-      const form = new FormData(event.currentTarget);
-      const locationExternalId = String(form.get('location_external_id') || '').trim() || null;
-      const matchedLocation = data.locations.find((row) => row.page_slug === page.slug && row.external_id === locationExternalId);
-      const payload = {
-        page_slug: page.slug,
-        external_id: String(form.get('external_id') || '').trim() || getId(),
-        name: String(form.get('name') || '').trim(),
-        location_external_id: locationExternalId,
-        event_location_id: matchedLocation?.id || null,
-        category: String(form.get('category') || '').trim() || null,
-        description: String(form.get('description') || '').trim() || null,
-        booth: String(form.get('booth') || '').trim() || null,
-        hours: String(form.get('hours') || '').trim() || null,
-        vendor_address: String(form.get('vendor_address') || '').trim() || null,
-        public_phone: String(form.get('public_phone') || '').trim() || null,
-        public_email: String(form.get('public_email') || '').trim() || null,
-        public_website: String(form.get('public_website') || '').trim() || null,
-        product_list: String(form.get('product_list') || '').trim() || null,
-        internal_contact_name: String(form.get('internal_contact_name') || '').trim() || null,
-        internal_phone: String(form.get('internal_phone') || '').trim() || null,
-        internal_email: String(form.get('internal_email') || '').trim() || null,
-        internal_notes: String(form.get('internal_notes') || '').trim() || null,
-        is_active: form.get('is_active') === 'on',
-        sort_order: form.get('sort_order') ? Number(form.get('sort_order')) : 0,
-        raw: parseJsonField(form.get('raw'), {}),
-      };
-      const { error } = await supabaseClient.from('event_vendors').upsert(payload, { onConflict: 'page_slug,external_id' });
-      if (error) throw error;
-      setMessage(panel, 'vendor', 'Vendor saved.');
-      await refreshGroup(groupSlug, tabKey);
-    } catch (error) {
-      setMessage(panel, 'vendor', error.message || 'Failed to save vendor.');
-    }
-  });
 
   panel.querySelector('[data-form="schedule"]')?.addEventListener('submit', async (event) => {
     event.preventDefault();
