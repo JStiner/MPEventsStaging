@@ -982,7 +982,31 @@ function mapFlyerEntryRow(row) {
 
 function buildFlyerFromTables(pageRow, flyerTables) {
   const raw = pageRow.raw || {};
-  const baseFlyer = normalizeFlyer(pageRow.flyer ?? raw.flyer, pageRow, raw) || {};
+  const pageFlyer = pageRow.flyer && typeof pageRow.flyer === 'object' ? pageRow.flyer : {};
+  const rawFlyer = raw.flyer && typeof raw.flyer === 'object' ? raw.flyer : {};
+  const combinedFlyer = {
+    ...rawFlyer,
+    ...pageFlyer,
+    document: {
+      ...(rawFlyer.document || {}),
+      ...(pageFlyer.document || {})
+    },
+    assets: {
+      ...(rawFlyer.assets || {}),
+      ...(pageFlyer.assets || {})
+    },
+    callouts: {
+      ...(rawFlyer.callouts || {}),
+      ...(pageFlyer.callouts || {})
+    },
+    sections: Array.isArray(pageFlyer.sections) || (pageFlyer.sections && typeof pageFlyer.sections === 'object')
+      ? pageFlyer.sections
+      : rawFlyer.sections,
+    pageFlow: Array.isArray(pageFlyer.pageFlow) && pageFlyer.pageFlow.length
+      ? pageFlyer.pageFlow
+      : rawFlyer.pageFlow
+  };
+  const baseFlyer = normalizeFlyer(combinedFlyer, pageRow, raw) || {};
   const sectionRows = Array.isArray(flyerTables?.sections) ? flyerTables.sections : [];
   const entryRows = Array.isArray(flyerTables?.entries) ? flyerTables.entries : [];
   const legendRows = Array.isArray(flyerTables?.legend) ? flyerTables.legend : [];
@@ -994,6 +1018,9 @@ function buildFlyerFromTables(pageRow, flyerTables) {
   }
 
   const baseSectionKeys = Object.keys(baseFlyer.sections || {});
+  const basePageFlow = Array.isArray(baseFlyer.pageFlow) ? baseFlyer.pageFlow : [];
+  const orderedFlowKeys = basePageFlow.flatMap(page => [page?.leftSection, page?.rightSection]).filter(Boolean);
+  const orderedUniqueKeys = [...new Set([...orderedFlowKeys, ...baseSectionKeys])];
   const entryMap = new Map();
   entryRows.forEach((row) => {
     const key = row.section_id;
@@ -1007,8 +1034,8 @@ function buildFlyerFromTables(pageRow, flyerTables) {
     .sort((a, b) => (Number(a.sort_order || 0) - Number(b.sort_order || 0)))
     .forEach((sectionRow, index) => {
       const title = sectionRow.section_title || sectionRow.title || `Section ${index + 1}`;
-      const hintedKey = baseSectionKeys[index];
-      const key = hintedKey || slugifyFlyerSectionKey(title) || `section-${index + 1}`;
+      const hintedKey = orderedUniqueKeys[index];
+      const key = hintedKey || `${slugifyFlyerSectionKey(title) || 'section'}-${index + 1}`;
       const baseSection = baseFlyer.sections?.[key] || {};
       const dbEntries = (entryMap.get(sectionRow.id) || []).sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
       const baseEntries = Array.isArray(baseSection.entries) ? baseSection.entries : [];
