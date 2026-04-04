@@ -121,6 +121,44 @@ function isAdultPage(pageOrSlug) {
   return getAudienceTypeForPage(pageOrSlug) === 'adult';
 }
 
+function isSimpleCommunitySubpage(pageOrSlug) {
+  const slug = String(typeof pageOrSlug === 'string' ? pageOrSlug : pageOrSlug?.slug || '').trim().toLowerCase();
+  return slug.startsWith('community-events-');
+}
+
+function usesAdvancedLocationFields(pageOrSlug) {
+  const slug = String(typeof pageOrSlug === 'string' ? pageOrSlug : pageOrSlug?.slug || '').trim().toLowerCase();
+  return slug === 'christmas-on-vinegar-hill' || slug === 'fall-fest';
+}
+
+function getPageDefaultMeta(pageOrSlug) {
+  const slug = String(typeof pageOrSlug === 'string' ? pageOrSlug : pageOrSlug?.slug || '').trim().toLowerCase();
+  if (slug === 'community-events-library') {
+    return { event_type: 'Community Event', category: 'Library', area_label: 'Mt. Pulaski Library' };
+  }
+  if (slug === 'community-events-camp') {
+    return { event_type: 'Community Event', category: 'CAMP', area_label: 'Mt. Pulaski' };
+  }
+  if (slug === 'community-events-nightlife') {
+    return { event_type: 'Community Event', category: 'Night Life', area_label: 'Mt. Pulaski' };
+  }
+  if (slug === 'community-events-general' || slug === 'community-events') {
+    return { event_type: 'Community Event', category: 'General', area_label: 'Mt. Pulaski' };
+  }
+  return {
+    event_type: null,
+    category: null,
+    area_label: null,
+  };
+}
+
+function getLocationHelperText(pageOrSlug) {
+  if (usesAdvancedLocationFields(pageOrSlug)) {
+    return 'Use this record for public location listings, flyer sections, map metadata, and vendor routing.';
+  }
+  return 'Use this record for the public listing, directions, hours, and event location selection.';
+}
+
 function getAccessiblePageRowsForGroup(groupSlug) {
   return (state.pageAccess || []).filter((row) => row.group_slug === groupSlug && row.page_slug);
 }
@@ -272,6 +310,7 @@ function openAdminModal(title, bodyHtml) {
 }
 
 async function openLocationEditorModal(groupSlug, tabKey, page, data, record = null) {
+  const advancedLocationFields = usesAdvancedLocationFields(page);
   const bodyHtml = `
     <form class="admin-form" data-form="location-modal">
       <input type="hidden" name="external_id" value="${escapeHtml(record?.external_id || '')}">
@@ -283,7 +322,7 @@ async function openLocationEditorModal(groupSlug, tabKey, page, data, record = n
         <label>Address<input name="address" value="${escapeHtml(record?.address || '')}"></label>
         <label>Town / Group<input name="location_group" value="${escapeHtml(record?.location_group || '')}" placeholder="Mt. Pulaski"></label>
       </div>
-      <div class="admin-columns-3">
+      ${advancedLocationFields ? `<div class="admin-columns-3">
         <label>Web Sort<input type="number" name="web_sort_order" value="${escapeHtml(String(record?.web_sort_order ?? record?.sort_order ?? ''))}"></label>
         <label>Flyer Sort<input type="number" name="flyer_sort_order" value="${escapeHtml(String(record?.flyer_sort_order ?? record?.sort_order ?? ''))}"></label>
         <label>Legacy Sort<input type="number" name="sort_order" value="${escapeHtml(String(record?.sort_order ?? ''))}"></label>
@@ -292,24 +331,27 @@ async function openLocationEditorModal(groupSlug, tabKey, page, data, record = n
         <label>Map X<input type="number" step="0.1" name="map_x" value="${escapeHtml(String(record?.map_x ?? ''))}"></label>
         <label>Map Y<input type="number" step="0.1" name="map_y" value="${escapeHtml(String(record?.map_y ?? ''))}"></label>
         <label>Pin Icon<input name="pin_icon" value="${escapeHtml(record?.pin_icon || '')}"></label>
-      </div>
-      <div class="admin-columns-2">
+      </div>` : `<div class="admin-columns-2">
+        <label>Hours<input name="hours" value="${escapeHtml(record?.hours || '')}"></label>
+        <label>Directions URL<input name="directions_url" value="${escapeHtml(record?.directions_url || '')}" placeholder="https://..."></label>
+      </div>`}
+      ${advancedLocationFields ? `<div class="admin-columns-2">
         <label>Hours<input name="hours" value="${escapeHtml(record?.hours || '')}"></label>
         <label>Tags (comma)<input name="tags" value="${escapeHtml((record?.tags || []).join(', '))}" placeholder="Multi Vendor, Food"></label>
-      </div>
+      </div>` : ''}
       <label>Description<textarea rows="2" name="description">${escapeHtml(record?.description || '')}</textarea></label>
       <label>Notes<textarea rows="2" name="notes">${escapeHtml(record?.notes || '')}</textarea></label>
       <div class="admin-columns-2">
         <label>Directions Text<textarea rows="2" name="directions_text">${escapeHtml(record?.directions_text || '')}</textarea></label>
-        <label>Directions URL<input name="directions_url" value="${escapeHtml(record?.directions_url || '')}" placeholder="https://..."></label>
+        ${advancedLocationFields ? `<label>Directions URL<input name="directions_url" value="${escapeHtml(record?.directions_url || '')}" placeholder="https://..."></label>` : '<div></div>'}
       </div>
       <div class="admin-checkbox-grid">
-        <label><input type="checkbox" name="multi_vendor" ${record?.multi_vendor ? 'checked' : ''}> Multi-vendor location</label>
+        ${advancedLocationFields ? `<label><input type="checkbox" name="multi_vendor" ${record?.multi_vendor ? 'checked' : ''}> Multi-vendor location</label>
         <label><input type="checkbox" name="is_bag_location" ${record?.is_bag_location ? 'checked' : ''}> Bag location</label>
-        <label><input type="checkbox" name="show_on_flyer" ${record?.show_on_flyer === false ? '' : 'checked'}> Show on flyer</label>
+        <label><input type="checkbox" name="show_on_flyer" ${record?.show_on_flyer === false ? '' : 'checked'}> Show on flyer</label>` : ''}
         <label><input type="checkbox" name="is_active" ${record?.is_active === false ? '' : 'checked'}> Active</label>
       </div>
-      <label>Raw JSON<textarea rows="3" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
+      ${advancedLocationFields ? `<label>Raw JSON<textarea rows="3" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>` : ''}
       <p class="error-text" data-message="location-modal"></p>
       <div class="button-row">
         <button type="submit">Save Location</button>
@@ -337,16 +379,16 @@ async function openLocationEditorModal(groupSlug, tabKey, page, data, record = n
         directions_url: String(formData.get('directions_url') || '').trim() || null,
         pin_icon: String(formData.get('pin_icon') || '').trim() || null,
         hours: String(formData.get('hours') || '').trim() || null,
-        tags: String(formData.get('tags') || '').split(',').map((item) => item.trim()).filter(Boolean),
-        multi_vendor: formData.get('multi_vendor') === 'on',
-        is_bag_location: formData.get('is_bag_location') === 'on',
-        show_on_flyer: formData.get('show_on_flyer') === 'on',
+        tags: advancedLocationFields ? String(formData.get('tags') || '').split(',').map((item) => item.trim()).filter(Boolean) : (Array.isArray(record?.tags) ? record.tags : []),
+        multi_vendor: advancedLocationFields ? formData.get('multi_vendor') === 'on' : Boolean(record?.multi_vendor),
+        is_bag_location: advancedLocationFields ? formData.get('is_bag_location') === 'on' : Boolean(record?.is_bag_location),
+        show_on_flyer: advancedLocationFields ? formData.get('show_on_flyer') === 'on' : (record?.show_on_flyer === false ? false : true),
         is_active: formData.get('is_active') === 'on',
         location_group: String(formData.get('location_group') || '').trim() || null,
-        sort_order: formData.get('sort_order') ? Number(formData.get('sort_order')) : null,
-        web_sort_order: formData.get('web_sort_order') ? Number(formData.get('web_sort_order')) : null,
-        flyer_sort_order: formData.get('flyer_sort_order') ? Number(formData.get('flyer_sort_order')) : null,
-        raw: parseJsonField(formData.get('raw'), {}),
+        sort_order: advancedLocationFields && formData.get('sort_order') ? Number(formData.get('sort_order')) : (record?.sort_order ?? null),
+        web_sort_order: advancedLocationFields && formData.get('web_sort_order') ? Number(formData.get('web_sort_order')) : (record?.web_sort_order ?? null),
+        flyer_sort_order: advancedLocationFields && formData.get('flyer_sort_order') ? Number(formData.get('flyer_sort_order')) : (record?.flyer_sort_order ?? null),
+        raw: advancedLocationFields ? parseJsonField(formData.get('raw'), {}) : (record?.raw || {}),
       };
       const { error } = await supabaseClient.from('event_locations').upsert(payload, { onConflict: 'page_slug,external_id' });
       if (error) throw error;
@@ -546,6 +588,28 @@ function renderCalendarDetailCard(groupSlug, data, page, dateStr, headingLabel) 
   `;
 }
 
+function renderCalendarWeekRow(groupSlug, data, page, weekDates, monthStart, selectedDate, pageDays, pageSchedule) {
+  const selectedInWeek = weekDates.some((dateStr) => dateStr === selectedDate);
+  const cells = weekDates.map((dateStr) => {
+    const date = new Date(`${dateStr}T12:00:00`);
+    const isCurrentMonth = date.getMonth() === monthStart.getMonth();
+    const dayCount = eventsForDate(pageSchedule, dateStr).length;
+    const hasDay = pageDays.some((day) => day.event_date === dateStr);
+    return `
+      <button type="button" class="admin-calendar-cell ${isCurrentMonth ? '' : 'muted'} ${dateStr === selectedDate ? 'active' : ''}" data-calendar-select-date="${escapeHtml(dateStr)}">
+        <span class="admin-calendar-cell-num">${date.getDate()}</span>
+        <span class="admin-calendar-cell-meta">${dayCount ? `${dayCount} event${dayCount === 1 ? '' : 's'}` : (hasDay ? 'Day' : '')}</span>
+      </button>
+    `;
+  }).join('');
+
+  const detail = selectedInWeek
+    ? `<div class="admin-calendar-week-detail">${renderCalendarDetailCard(groupSlug, data, page, selectedDate, formatDayLabel(new Date(`${selectedDate}T12:00:00`)))}</div>`
+    : '';
+
+  return `<div class="admin-calendar-week-row">${cells}</div>${detail}`;
+}
+
 function ensureModalShell() {
   const modal = document.getElementById('eventEditorModal');
   return modal;
@@ -653,6 +717,7 @@ function openEventEditorModal(groupSlug, tabKey, page, data, dateStr, record = n
         vendor_ids: form.getAll('vendor_ids').map((item) => String(item || '').trim()).filter(Boolean),
         event_date: eventDate,
         sort_order: form.get('sort_order') ? Number(form.get('sort_order')) : null,
+        audience_type: getAudienceTypeForPage(page),
         raw: parseJsonField(form.get('raw'), {}),
         audience_type: getAudienceTypeForPage(page),
         is_imported: false,
@@ -927,6 +992,7 @@ function getSelectedPage(groupSlug, data) {
 function renderGeneralView(groupSlug, data, page) {
   const tabOptions = getControlledOptions('page_tab', DEFAULT_PAGE_TAB_OPTIONS.map((item) => item.value));
   const tabOptionRows = DEFAULT_PAGE_TAB_OPTIONS.map((item) => ({ ...item }));
+  const defaults = getPageDefaultMeta(page);
   tabOptions.forEach((value) => {
     if (!tabOptionRows.find((row) => row.value === value)) tabOptionRows.push({ value, label: value });
   });
@@ -935,19 +1001,15 @@ function renderGeneralView(groupSlug, data, page) {
     <section class="admin-card">
       <h3>General / Pages</h3>
       <form class="admin-form" data-form="pages">
-        <div class="admin-columns-2">
-          <label>Event Name<input name="event_name" value="${escapeHtml(page.event_name || '')}" required></label>
-          <label>Slug<input name="slug" value="${escapeHtml(page.slug || '')}" required></label>
-        </div>
-        <div class="admin-columns-2">
-          <label>Event Type<select name="event_type">${renderSelectOptions(getControlledOptions('event_type', DEFAULT_CONTROLLED_OPTIONS.event_type), page.event_type)}</select></label>
-          <label>Category<select name="category">${renderSelectOptions(getControlledOptions('category', DEFAULT_CONTROLLED_OPTIONS.category), page.category)}</select></label>
+        <div class="admin-form-section">
+          <div class="admin-form-section__header">
+            <strong>${escapeHtml(page.event_name || page.slug)}</strong>
+            <span class="subtle-text">Page slug: ${escapeHtml(page.slug || '')}</span>
+          </div>
+          ${defaults.event_type || defaults.category || defaults.area_label ? `<p class="subtle-text">Defaults: ${escapeHtml([defaults.event_type, defaults.category, defaults.area_label].filter(Boolean).join(' · '))}</p>` : ''}
         </div>
         <label>Summary<textarea rows="3" name="summary">${escapeHtml(page.summary || '')}</textarea></label>
-        <div class="admin-columns-2">
-          <label>Date Label<input name="date_label" value="${escapeHtml(page.date_label || '')}"></label>
-          <label>Area Label<select name="area_label">${renderSelectOptions(getControlledOptions('area_label', DEFAULT_CONTROLLED_OPTIONS.area_label), page.area_label)}</select></label>
-        </div>
+        <label>Date Label<input name="date_label" value="${escapeHtml(page.date_label || '')}"></label>
         <div class="admin-form-section">
           <div class="admin-form-section__header">
             <strong>Tabs visible on the front end</strong>
@@ -1015,20 +1077,15 @@ function renderCalendarView(groupSlug, data, page) {
   gridStart.setDate(monthStart.getDate() - monthStart.getDay());
   const monthLabel = monthStart.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
-  const cells = [];
-  for (let i = 0; i < 42; i += 1) {
-    const date = new Date(gridStart);
-    date.setDate(gridStart.getDate() + i);
-    const dateStr = formatIsoDateLocal(date);
-    const isCurrentMonth = date.getMonth() === monthStart.getMonth();
-    const dayCount = eventsForDate(pageSchedule, dateStr).length;
-    const hasDay = pageDays.some((day) => day.event_date === dateStr);
-    cells.push(`
-      <button type="button" class="admin-calendar-cell ${isCurrentMonth ? '' : 'muted'} ${dateStr === selectedDate ? 'active' : ''}" data-calendar-select-date="${escapeHtml(dateStr)}">
-        <span class="admin-calendar-cell-num">${date.getDate()}</span>
-        <span class="admin-calendar-cell-meta">${dayCount ? `${dayCount} event${dayCount === 1 ? '' : 's'}` : (hasDay ? 'Day' : '')}</span>
-      </button>
-    `);
+  const weeks = [];
+  for (let i = 0; i < 42; i += 7) {
+    const weekDates = [];
+    for (let offset = 0; offset < 7; offset += 1) {
+      const date = new Date(gridStart);
+      date.setDate(gridStart.getDate() + i + offset);
+      weekDates.push(formatIsoDateLocal(date));
+    }
+    weeks.push(renderCalendarWeekRow(groupSlug, data, page, weekDates, monthStart, selectedDate, pageDays, pageSchedule));
   }
 
   return `
@@ -1041,9 +1098,8 @@ function renderCalendarView(groupSlug, data, page) {
       <div class="admin-calendar-weekdays">
         <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
       </div>
-      <div class="admin-calendar-grid">${cells.join('')}</div>
+      <div class="admin-calendar-grid admin-calendar-grid-stacked">${weeks.join('')}</div>
     </section>
-    ${renderCalendarDetailCard(groupSlug, data, page, selectedDate, formatDayLabel(new Date(`${selectedDate}T12:00:00`)))}
   `;
 }
 
@@ -1329,7 +1385,7 @@ function renderDynamicEntityForm(type, record, groupSlug) {
       <input type="hidden" name="external_id" value="${escapeHtml(record?.external_id || '')}">
       <div class="admin-form-header">
         <h4>${record ? 'Edit Location' : 'Add Location'}</h4>
-        <p class="subtle-text">Use this record for public location listings, flyer sections, map metadata, and vendor routing.</p>
+        <p class="subtle-text">${escapeHtml(getLocationHelperText(page))}</p>
       </div>
       <div class="admin-columns-2">
         <label>Name<input name="name" value="${escapeHtml(record?.name || '')}" required></label>
@@ -1557,13 +1613,8 @@ async function bindGroupActions(groupSlug, tabKey) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const payload = {
-      event_name: String(form.get('event_name') || '').trim(),
-      slug: String(form.get('slug') || '').trim(),
-      event_type: String(form.get('event_type') || '').trim() || null,
-      category: String(form.get('category') || '').trim() || null,
       summary: String(form.get('summary') || '').trim() || null,
       date_label: String(form.get('date_label') || '').trim() || null,
-      area_label: String(form.get('area_label') || '').trim() || null,
       tabs: form.getAll('tabs').map((item) => String(item || '').trim()).filter(Boolean),
     };
     await savePageSection(groupSlug, tabKey, page.slug, payload, 'pages', 'General settings saved.');
@@ -1657,6 +1708,7 @@ async function bindGroupActions(groupSlug, tabKey) {
         label: String(form.get('label') || '').trim(),
         event_date: String(form.get('event_date') || '').trim(),
         sort_order: form.get('sort_order') ? Number(form.get('sort_order')) : null,
+        audience_type: getAudienceTypeForPage(page),
         raw: parseJsonField(form.get('raw'), {}),
       };
       const { error } = await supabaseClient.from('event_days').upsert(payload, { onConflict: 'page_slug,external_id' });
@@ -1784,6 +1836,7 @@ async function bindGroupActions(groupSlug, tabKey) {
         vendor_ids: form.getAll('vendor_ids').map((item) => String(item || '').trim()).filter(Boolean),
         event_date: String(form.get('event_date') || '').trim(),
         sort_order: form.get('sort_order') ? Number(form.get('sort_order')) : null,
+        audience_type: getAudienceTypeForPage(page),
         raw: parseJsonField(form.get('raw'), {}),
       };
       const { error } = await supabaseClient.from('event_schedule').upsert(payload, { onConflict: 'page_slug,external_id' });

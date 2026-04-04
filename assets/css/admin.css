@@ -625,6 +625,27 @@ button.danger {
   gap: 0.5rem;
 }
 
+
+.admin-calendar-grid-stacked {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.admin-calendar-week-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.admin-calendar-week-detail {
+  grid-column: 1 / -1;
+}
+
+.admin-calendar-week-detail .admin-calendar-detail-card {
+  margin-top: 0.1rem;
+}
+
 .admin-calendar-weekdays {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -747,7 +768,28 @@ button.danger {
 
 @media (max-width: 900px) {
   .admin-calendar-grid,
-  .admin-calendar-weekdays {
+  
+.admin-calendar-grid-stacked {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.admin-calendar-week-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.admin-calendar-week-detail {
+  grid-column: 1 / -1;
+}
+
+.admin-calendar-week-detail .admin-calendar-detail-card {
+  margin-top: 0.1rem;
+}
+
+.admin-calendar-weekdays {
     gap: 0.35rem;
   }
 
