@@ -561,15 +561,41 @@ function renderCovhRegionalBlock(block, maps = {}) {
 
 function renderCovhFlyer(data, flyer) {
   const sections = flyer.sections || {};
+  const sectionList = Array.isArray(sections) ? sections : Object.values(sections);
   const legend = Array.isArray(flyer.legend) ? flyer.legend : [];
   const assets = flyer.assets || {};
   const maps = assets.maps || {};
   const callouts = flyer.callouts || {};
   const bagIcon = assets.bagIcon || '';
-  const pageOneLeft = sections['mt-pulaski-a'] || Object.values(sections)[0] || null;
-  const pageOneRight = sections['mt-pulaski-b'] || Object.values(sections)[1] || null;
-  const pageTwoLeft = sections['mt-pulaski-c'] || Object.values(sections)[2] || null;
-  const regional = sections['regional'] || Object.values(sections).find(section => Array.isArray(section?.blocks) && section.blocks.length) || null;
+
+  const mtPulaskiSections = sectionList.filter(section => /mt\.?\s*pulaski/i.test(String(section?.title || '')));
+  const regionalEntriesSection = sectionList.find(section => /regional/i.test(String(section?.title || '')));
+  const regionalBlockSection = sectionList.find(section => Array.isArray(section?.blocks) && section.blocks.length);
+
+  const pageOneLeft = sections['mt-pulaski-a'] || mtPulaskiSections[0] || sectionList[0] || null;
+  const pageOneRight = sections['mt-pulaski-b'] || mtPulaskiSections[1] || sectionList[1] || null;
+  const pageTwoLeft = sections['mt-pulaski-c'] || mtPulaskiSections[2] || sectionList[2] || null;
+  const regional = sections['regional'] || regionalBlockSection || regionalEntriesSection || sectionList.find(section => /chestnut|elkhart|latham/i.test(String(section?.title || ''))) || null;
+
+  const derivedRegionalBlocks = !Array.isArray(regional?.blocks) || !regional.blocks.length
+    ? [
+        {
+          title: 'Chestnut',
+          mapKey: 'chestnut',
+          entries: (regional?.entries || []).filter(entry => String(entry?.entry_code || entry?.number || '').toUpperCase().startsWith('C'))
+        },
+        {
+          title: 'Elkhart',
+          mapKey: 'elkhart',
+          entries: (regional?.entries || []).filter(entry => String(entry?.entry_code || entry?.number || '').toUpperCase().startsWith('E'))
+        },
+        {
+          title: 'Latham',
+          mapKey: 'latham',
+          entries: (regional?.entries || []).filter(entry => String(entry?.entry_code || entry?.number || '').toUpperCase().startsWith('L'))
+        }
+      ].filter(block => block.entries.length)
+    : regional.blocks;
 
   const headerGraphic = assets.headerGraphic || '';
   const mainMap = maps.mtPulaski || '';
@@ -607,13 +633,14 @@ function renderCovhFlyer(data, flyer) {
 
       <article class="flyer-page covh-pamphlet-page">
         <div class="flyer-page-inner covh-page-inner">
+          ${pageTwoLeft ? `<section class="covh-page-two-list"><div class="covh-regional-title">${escapeHtml(pageTwoLeft.title || '')}</div>${(pageTwoLeft.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}</section>` : ''}
           <section class="covh-map-layout">
             <div class="covh-map-main-card">
               <div class="covh-map-tag">Mt. Pulaski</div>
               ${mainMap ? `<img class="covh-main-map" src="${escapeHtml(mainMap)}" alt="Mt. Pulaski map">` : ''}
             </div>
             <div class="covh-map-stack">
-              ${(regional?.blocks || []).map(block => renderCovhRegionalBlock(block, maps)).join('')}
+              ${derivedRegionalBlocks.map(block => renderCovhRegionalBlock(block, maps)).join('')}
             </div>
           </section>
 
@@ -982,31 +1009,7 @@ function mapFlyerEntryRow(row) {
 
 function buildFlyerFromTables(pageRow, flyerTables) {
   const raw = pageRow.raw || {};
-  const pageFlyer = pageRow.flyer && typeof pageRow.flyer === 'object' ? pageRow.flyer : {};
-  const rawFlyer = raw.flyer && typeof raw.flyer === 'object' ? raw.flyer : {};
-  const combinedFlyer = {
-    ...rawFlyer,
-    ...pageFlyer,
-    document: {
-      ...(rawFlyer.document || {}),
-      ...(pageFlyer.document || {})
-    },
-    assets: {
-      ...(rawFlyer.assets || {}),
-      ...(pageFlyer.assets || {})
-    },
-    callouts: {
-      ...(rawFlyer.callouts || {}),
-      ...(pageFlyer.callouts || {})
-    },
-    sections: Array.isArray(pageFlyer.sections) || (pageFlyer.sections && typeof pageFlyer.sections === 'object')
-      ? pageFlyer.sections
-      : rawFlyer.sections,
-    pageFlow: Array.isArray(pageFlyer.pageFlow) && pageFlyer.pageFlow.length
-      ? pageFlyer.pageFlow
-      : rawFlyer.pageFlow
-  };
-  const baseFlyer = normalizeFlyer(combinedFlyer, pageRow, raw) || {};
+  const baseFlyer = normalizeFlyer(pageRow.flyer ?? raw.flyer, pageRow, raw) || {};
   const sectionRows = Array.isArray(flyerTables?.sections) ? flyerTables.sections : [];
   const entryRows = Array.isArray(flyerTables?.entries) ? flyerTables.entries : [];
   const legendRows = Array.isArray(flyerTables?.legend) ? flyerTables.legend : [];
@@ -1018,9 +1021,6 @@ function buildFlyerFromTables(pageRow, flyerTables) {
   }
 
   const baseSectionKeys = Object.keys(baseFlyer.sections || {});
-  const basePageFlow = Array.isArray(baseFlyer.pageFlow) ? baseFlyer.pageFlow : [];
-  const orderedFlowKeys = basePageFlow.flatMap(page => [page?.leftSection, page?.rightSection]).filter(Boolean);
-  const orderedUniqueKeys = [...new Set([...orderedFlowKeys, ...baseSectionKeys])];
   const entryMap = new Map();
   entryRows.forEach((row) => {
     const key = row.section_id;
@@ -1034,8 +1034,8 @@ function buildFlyerFromTables(pageRow, flyerTables) {
     .sort((a, b) => (Number(a.sort_order || 0) - Number(b.sort_order || 0)))
     .forEach((sectionRow, index) => {
       const title = sectionRow.section_title || sectionRow.title || `Section ${index + 1}`;
-      const hintedKey = orderedUniqueKeys[index];
-      const key = hintedKey || `${slugifyFlyerSectionKey(title) || 'section'}-${index + 1}`;
+      const hintedKey = baseSectionKeys[index];
+      const key = hintedKey || slugifyFlyerSectionKey(title) || `section-${index + 1}`;
       const baseSection = baseFlyer.sections?.[key] || {};
       const dbEntries = (entryMap.get(sectionRow.id) || []).sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
       const baseEntries = Array.isArray(baseSection.entries) ? baseSection.entries : [];
