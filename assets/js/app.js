@@ -568,34 +568,66 @@ function renderCovhFlyer(data, flyer) {
   const callouts = flyer.callouts || {};
   const bagIcon = assets.bagIcon || '';
 
-  const mtPulaskiSections = sectionList.filter(section => /mt\.?\s*pulaski/i.test(String(section?.title || '')));
-  const regionalEntriesSection = sectionList.find(section => /regional/i.test(String(section?.title || '')));
-  const regionalBlockSection = sectionList.find(section => Array.isArray(section?.blocks) && section.blocks.length);
+  const mtPulaskiSections = sectionList.filter(section =>
+    /mt\.?\s*pulaski/i.test(String(section?.title || ''))
+  );
+  const regionalEntriesSection = sectionList.find(section =>
+    /regional/i.test(String(section?.title || ''))
+  );
+  const regionalBlockSection = sectionList.find(section =>
+    Array.isArray(section?.blocks) && section.blocks.length
+  );
 
-  const pageOneLeft = sections['mt-pulaski-a'] || mtPulaskiSections[0] || sectionList[0] || null;
-  const pageOneRight = sections['mt-pulaski-b'] || mtPulaskiSections[1] || sectionList[1] || null;
-  const pageTwoLeft = sections['mt-pulaski-c'] || mtPulaskiSections[2] || sectionList[2] || null;
-  const regional = sections['regional'] || regionalBlockSection || regionalEntriesSection || sectionList.find(section => /chestnut|elkhart|latham/i.test(String(section?.title || ''))) || null;
+  const pageOneTopLeft =
+    sections['mt-pulaski-a'] || mtPulaskiSections[0] || sectionList[0] || null;
 
-  const derivedRegionalBlocks = !Array.isArray(regional?.blocks) || !regional.blocks.length
-    ? [
-        {
-          title: 'Chestnut',
-          mapKey: 'chestnut',
-          entries: (regional?.entries || []).filter(entry => String(entry?.entry_code || entry?.number || '').toUpperCase().startsWith('C'))
-        },
-        {
-          title: 'Elkhart',
-          mapKey: 'elkhart',
-          entries: (regional?.entries || []).filter(entry => String(entry?.entry_code || entry?.number || '').toUpperCase().startsWith('E'))
-        },
-        {
-          title: 'Latham',
-          mapKey: 'latham',
-          entries: (regional?.entries || []).filter(entry => String(entry?.entry_code || entry?.number || '').toUpperCase().startsWith('L'))
-        }
-      ].filter(block => block.entries.length)
-    : regional.blocks;
+  const pageOneBottomLeft =
+    sections['mt-pulaski-b'] || mtPulaskiSections[1] || sectionList[1] || null;
+
+  const pageOneTopRight =
+    sections['mt-pulaski-c'] || mtPulaskiSections[2] || sectionList[2] || null;
+
+  const regional =
+    sections['regional'] ||
+    regionalBlockSection ||
+    regionalEntriesSection ||
+    sectionList.find(section =>
+      /chestnut|elkhart|latham/i.test(String(section?.title || ''))
+    ) ||
+    null;
+
+  const derivedRegionalBlocks =
+    !Array.isArray(regional?.blocks) || !regional.blocks.length
+      ? [
+          {
+            title: 'Chestnut',
+            mapKey: 'chestnut',
+            entries: (regional?.entries || []).filter(entry =>
+              String(entry?.entry_code || entry?.number || '')
+                .toUpperCase()
+                .startsWith('C')
+            )
+          },
+          {
+            title: 'Elkhart',
+            mapKey: 'elkhart',
+            entries: (regional?.entries || []).filter(entry =>
+              String(entry?.entry_code || entry?.number || '')
+                .toUpperCase()
+                .startsWith('E')
+            )
+          },
+          {
+            title: 'Latham',
+            mapKey: 'latham',
+            entries: (regional?.entries || []).filter(entry =>
+              String(entry?.entry_code || entry?.number || '')
+                .toUpperCase()
+                .startsWith('L')
+            )
+          }
+        ].filter(block => block.entries.length)
+      : regional.blocks;
 
   const headerGraphic = assets.headerGraphic || '';
   const mainMap = maps.mtPulaski || '';
@@ -606,26 +638,108 @@ function renderCovhFlyer(data, flyer) {
         <div class="flyer-page-inner covh-page-inner">
           <header class="covh-banner">
             <div class="covh-banner-overlay">
-              ${headerGraphic ? `<div class="covh-banner-strip-overlay"><img class="covh-banner-strip-image-wide" src="${escapeHtml(headerGraphic)}" alt="${escapeHtml(flyer.document?.title || data.eventName || 'Flyer header')}"></div>` : ''}
+              ${
+                headerGraphic
+                  ? `<div class="covh-banner-strip-overlay">
+                      <img
+                        class="covh-banner-strip-image-wide"
+                        src="${escapeHtml(headerGraphic)}"
+                        alt="${escapeHtml(flyer.document?.title || data.eventName || 'Flyer header')}"
+                      >
+                    </div>`
+                  : ''
+              }
               <div class="covh-banner-copy covh-banner-copy-overlay">
-                ${flyer.document?.eyebrow ? `<div class="covh-banner-date">${escapeHtml(flyer.document.eyebrow)}</div>` : ''}
+                ${
+                  flyer.document?.eyebrow
+                    ? `<div class="covh-banner-date">${escapeHtml(flyer.document.eyebrow)}</div>`
+                    : ''
+                }
                 <div class="covh-banner-title">${escapeHtml(flyer.document?.title || data.eventName || 'Christmas on Vinegar Hill')}</div>
-                ${flyer.document?.subtitle ? `<div class="covh-banner-note">${escapeHtml(flyer.document.subtitle)}</div>` : ''}
+                ${
+                  flyer.document?.subtitle
+                    ? `<div class="covh-banner-note">${escapeHtml(flyer.document.subtitle)}</div>`
+                    : ''
+                }
               </div>
             </div>
           </header>
 
-          <section class="covh-page-one-grid">
-            <div class="covh-column">
-              ${pageOneLeft ? `<div class="covh-regional-title">${escapeHtml(pageOneLeft.title || '')}</div>${(pageOneLeft.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}` : ''}
+          <section class="covh-page-one-grid covh-page-one-grid-stacked">
+            <div class="covh-column covh-column-stacked">
+              ${
+                pageOneTopLeft
+                  ? `
+                    <section class="covh-page-one-block">
+                      <div class="covh-regional-title">${escapeHtml(pageOneTopLeft.title || '')}</div>
+                      ${(pageOneTopLeft.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
+                    </section>
+                  `
+                  : ''
+              }
+
+              ${
+                pageOneBottomLeft
+                  ? `
+                    <section class="covh-page-one-block">
+                      ${(pageOneTopLeft ? '' : `<div class="covh-regional-title">${escapeHtml(pageOneBottomLeft.title || '')}</div>`)}
+                      ${(pageOneBottomLeft.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
+                    </section>
+                  `
+                  : ''
+              }
             </div>
+
             <aside class="covh-key-card">
               <div class="covh-key-title">Key</div>
-              ${legend.map(item => `<div class="covh-key-row"><div class="covh-key-label">${escapeHtml(item.label || '')}</div><div>${escapeHtml(item.meaning || '')}</div></div>`).join('')}
-              ${callouts.bagNotice ? `<div class="covh-bag-callout">${bagIcon ? `<img class="covh-bag-icon covh-callout-bag-icon" src="${escapeHtml(bagIcon)}" alt="Bag icon">` : '<span class="covh-bag-text-symbol">Bag</span>'}${escapeHtml(callouts.bagNotice)}</div>` : ''}
+              ${legend
+                .map(
+                  item => `
+                    <div class="covh-key-row">
+                      <div class="covh-key-label">${escapeHtml(item.label || '')}</div>
+                      <div>${escapeHtml(item.meaning || '')}</div>
+                    </div>
+                  `
+                )
+                .join('')}
+              ${
+                callouts.bagNotice
+                  ? `
+                    <div class="covh-bag-callout">
+                      ${
+                        bagIcon
+                          ? `<img class="covh-bag-icon covh-callout-bag-icon" src="${escapeHtml(bagIcon)}" alt="Bag icon">`
+                          : '<span class="covh-bag-text-symbol">Bag</span>'
+                      }
+                      ${escapeHtml(callouts.bagNotice)}
+                    </div>
+                  `
+                  : ''
+              }
             </aside>
-            <div class="covh-column">
-              ${pageOneRight ? `<div class="covh-regional-title">${escapeHtml(pageOneRight.title || '')}</div>${(pageOneRight.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}` : ''}
+
+            <div class="covh-column covh-column-stacked">
+              ${
+                pageOneTopRight
+                  ? `
+                    <section class="covh-page-one-block">
+                      <div class="covh-regional-title">${escapeHtml(pageOneTopRight.title || '')}</div>
+                      ${(pageOneTopRight.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
+                    </section>
+                  `
+                  : ''
+              }
+
+              ${
+                regional
+                  ? `
+                    <section class="covh-page-one-block covh-page-one-regional-block">
+                      <div class="covh-regional-title">${escapeHtml(regional.title || '')}</div>
+                      ${(regional.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}
+                    </section>
+                  `
+                  : ''
+              }
             </div>
           </section>
         </div>
@@ -633,7 +747,6 @@ function renderCovhFlyer(data, flyer) {
 
       <article class="flyer-page covh-pamphlet-page">
         <div class="flyer-page-inner covh-page-inner">
-          ${pageTwoLeft ? `<section class="covh-page-two-list"><div class="covh-regional-title">${escapeHtml(pageTwoLeft.title || '')}</div>${(pageTwoLeft.entries || []).map(entry => renderCovhEntry(entry, bagIcon)).join('')}</section>` : ''}
           <section class="covh-map-layout">
             <div class="covh-map-main-card">
               <div class="covh-map-tag">Mt. Pulaski</div>
@@ -648,7 +761,11 @@ function renderCovhFlyer(data, flyer) {
             <div class="covh-thanks-block">
               ${callouts.thankYouTitle ? `<div class="covh-script-heading">${escapeHtml(callouts.thankYouTitle)}</div>` : ''}
               ${callouts.thankYouText ? `<p>${escapeHtml(callouts.thankYouText)}</p>` : ''}
-              ${Array.isArray(callouts.benefactors) ? `<ul class="covh-benefactor-list">${callouts.benefactors.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : ''}
+              ${
+                Array.isArray(callouts.benefactors)
+                  ? `<ul class="covh-benefactor-list">${callouts.benefactors.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
+                  : ''
+              }
             </div>
             <div class="covh-qr-block">
               ${callouts.scanText ? `<div class="covh-qr-title">${escapeHtml(callouts.scanText)}</div>` : ''}
@@ -656,11 +773,19 @@ function renderCovhFlyer(data, flyer) {
             </div>
             <div class="covh-art-block">
               ${assets.treeSign ? `<img class="covh-art-image" src="${escapeHtml(assets.treeSign)}" alt="Tree sign">` : ''}
-              ${Array.isArray(callouts.footer) ? `<div class="covh-footer-lines">${callouts.footer.map(line => `<div>${escapeHtml(line)}</div>`).join('')}</div>` : ''}
+              ${
+                Array.isArray(callouts.footer)
+                  ? `<div class="covh-footer-lines">${callouts.footer.map(line => `<div>${escapeHtml(line)}</div>`).join('')}</div>`
+                  : ''
+              }
             </div>
             <div class="covh-sponsor-block">
               ${callouts.sponsorsTitle ? `<div class="covh-script-heading">${escapeHtml(callouts.sponsorsTitle)}</div>` : ''}
-              ${Array.isArray(callouts.sponsors) ? `<ul class="covh-sponsor-list">${callouts.sponsors.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : ''}
+              ${
+                Array.isArray(callouts.sponsors)
+                  ? `<ul class="covh-sponsor-list">${callouts.sponsors.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
+                  : ''
+              }
             </div>
           </section>
         </div>
