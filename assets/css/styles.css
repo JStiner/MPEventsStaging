@@ -1551,6 +1551,7 @@ body.modal-open {
 .covh-callout-bag-icon-inline {
   width: 13px;
   height: 13px;
+  object-fit: contain;
 }
 
 .covh-tree-icon-inline {
