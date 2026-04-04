@@ -1,3 +1,5 @@
+function isCovhPage(page){ return page.slug === 'christmas-on-vinegar-hill'; }
+
 const supabaseClient = window.supabaseClient;
 
 const GROUP_SUBVIEW_KEYS = ['pages', 'calendar', 'schedule', 'vendors', 'locations', 'flyer', 'resources', 'settings'];
@@ -316,7 +318,7 @@ async function openLocationEditorModal(groupSlug, tabKey, page, data, record = n
       <input type="hidden" name="external_id" value="${escapeHtml(record?.external_id || '')}">
       <div class="admin-columns-2">
         <label>Name<input name="name" value="${escapeHtml(record?.name || '')}" required></label>
-        <label>Location Number<input name="location_number" value="${escapeHtml(record?.location_number || '')}" placeholder="12"></label>
+        <label>Flyer Number<input name="location_number" value="${escapeHtml(record?.location_number || '')}" placeholder="12"></label>
       </div>
       <div class="admin-columns-2">
         <label>Address<input name="address" value="${escapeHtml(record?.address || '')}"></label>
@@ -1415,7 +1417,7 @@ function renderDynamicEntityForm(type, record, groupSlug) {
       </div>
       <div class="admin-columns-2">
         <label>Name<input name="name" value="${escapeHtml(record?.name || '')}" required></label>
-        <label>Location Number<input name="location_number" value="${escapeHtml(record?.location_number || '')}" placeholder="12"></label>
+        <label>Flyer Number<input name="location_number" value="${escapeHtml(record?.location_number || '')}" placeholder="12"></label>
       </div>
       <div class="admin-columns-2">
         <label>Address<input name="address" value="${escapeHtml(record?.address || '')}"></label>
