@@ -939,3 +939,41 @@ button.danger {
     align-items: stretch;
   }
 }
+
+.admin-form-section {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.9rem;
+  border: 1px solid #dbe1ea;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.admin-form-section__header {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.admin-option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.65rem;
+}
+
+.admin-option-pill {
+  display: flex !important;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.admin-option-pill input {
+  margin: 0;
+}
+
+.admin-form input[type="time"] {
+  min-height: 44px;
+}

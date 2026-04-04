@@ -21,6 +21,22 @@ const PAGE_CALENDAR_MODES = {
   'second-fridays': 'monthly',
 };
 
+const DEFAULT_PAGE_TAB_OPTIONS = [
+  { value: 'schedule', label: 'Schedule' },
+  { value: 'map', label: 'Map' },
+  { value: 'vendors', label: 'Vendors' },
+  { value: 'locations', label: 'Locations' },
+  { value: 'flyer', label: 'Flyer' },
+  { value: 'resources', label: 'Resources' },
+];
+
+const DEFAULT_CONTROLLED_OPTIONS = {
+  event_type: ['Community Event', 'School Event', 'Town Service', 'Festival', 'Holiday Event', 'Monthly Series'],
+  category: ['General', 'Family', 'Food', 'Music', 'Vendor', 'Parade', 'Fundraiser', 'Civic', 'School', 'Holiday'],
+  area_label: ['Downtown', 'Town Square', 'Campus', 'Community Wide', 'Washington Street', 'Courthouse Square'],
+  vendor_category: ['Vendor', 'Food', 'Drink', 'Craft', 'Sponsor', 'Info', 'Multi Vendor'],
+};
+
 const state = {
   user: null,
   profile: null,
@@ -36,6 +52,8 @@ const state = {
   selectedDayByGroup: {},
   selectedCalendarDateByPage: {},
   selectedCalendarMonthByPage: {},
+  controlledOptions: { ...DEFAULT_CONTROLLED_OPTIONS },
+  controlledOptionsAvailable: false,
 };
 
 function escapeHtml(value) {
@@ -86,6 +104,70 @@ function parseJsonField(text, fallback = {}) {
   const value = String(text || '').trim();
   if (!value) return fallback;
   return JSON.parse(value);
+}
+
+
+
+function normalizeTimeInputValue(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^\d{2}:\d{2}$/.test(raw)) return raw;
+  const match = raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return raw;
+  let hour = Number(match[1]);
+  const minute = match[2];
+  const meridiem = match[3].toUpperCase();
+  if (meridiem === 'PM' && hour < 12) hour += 12;
+  if (meridiem === 'AM' && hour === 12) hour = 0;
+  return `${String(hour).padStart(2, '0')}:${minute}`;
+}
+
+function getControlledOptions(key, fallback = []) {
+  const values = Array.isArray(state.controlledOptions?.[key]) ? state.controlledOptions[key] : fallback;
+  return values.filter(Boolean);
+}
+
+function renderSelectOptions(options, selectedValue, includeBlank = true, blankLabel = '— Select —') {
+  const normalized = String(selectedValue || '').trim();
+  const optionRows = Array.from(new Set((options || []).map((item) => String(item || '').trim()).filter(Boolean)));
+  const html = optionRows.map((value) => `<option value="${escapeHtml(value)}" ${value === normalized ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('');
+  return `${includeBlank ? `<option value="">${escapeHtml(blankLabel)}</option>` : ''}${html}`;
+}
+
+function renderCheckboxList(name, options, selectedValues) {
+  const selected = new Set((selectedValues || []).map((value) => String(value || '').trim()).filter(Boolean));
+  return `<div class="admin-option-grid">${(options || []).map((item) => {
+    const value = typeof item === 'string' ? item : item?.value;
+    const label = typeof item === 'string' ? item : (item?.label || item?.value || 'Option');
+    return `<label class="admin-option-pill"><input type="checkbox" name="${escapeHtml(name)}" value="${escapeHtml(value || '')}" ${selected.has(String(value || '').trim()) ? 'checked' : ''}> <span>${escapeHtml(label || '')}</span></label>`;
+  }).join('')}</div>`;
+}
+
+async function fetchControlledOptions() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('event_admin_options')
+      .select('option_type, option_value, sort_order, is_active')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    const grouped = { ...DEFAULT_CONTROLLED_OPTIONS };
+    for (const row of data || []) {
+      const key = String(row?.option_type || '').trim();
+      const value = String(row?.option_value || '').trim();
+      if (!key || !value) continue;
+      if (!Array.isArray(grouped[key])) grouped[key] = [];
+      grouped[key].push(value);
+    }
+    Object.keys(grouped).forEach((key) => {
+      grouped[key] = Array.from(new Set(grouped[key]));
+    });
+    state.controlledOptions = grouped;
+    state.controlledOptionsAvailable = true;
+  } catch (error) {
+    state.controlledOptions = { ...DEFAULT_CONTROLLED_OPTIONS };
+    state.controlledOptionsAvailable = false;
+  }
 }
 
 function displayValue(value, fallback = '-') {
@@ -260,17 +342,16 @@ async function openLocationEditorModal(groupSlug, tabKey, page, data, record = n
 }
 
 async function openVendorEditorModal(groupSlug, tabKey, page, data, record = null) {
-  const locationOptions = sortLocationsForAdmin(data.locations.filter((row) => row.page_slug === page.slug))
-    .map((loc) => `<option value="${escapeHtml(loc.external_id)}">${escapeHtml(loc.location_group || 'Other')} · ${escapeHtml(loc.name || loc.external_id)}</option>`).join('');
+  const locations = sortLocationsForAdmin(data.locations.filter((row) => row.page_slug === page.slug));
   const bodyHtml = `
     <form class="admin-form" data-form="vendor-modal">
       <input type="hidden" name="external_id" value="${escapeHtml(record?.external_id || '')}">
       <div class="admin-columns-2">
         <label>Vendor Name<input name="name" value="${escapeHtml(record?.name || '')}" required></label>
-        <label>Category<input name="category" value="${escapeHtml(record?.category || '')}" placeholder="Vendor, Food, Multi Vendor"></label>
+        <label>Category<select name="category">${renderSelectOptions(getControlledOptions('vendor_category', DEFAULT_CONTROLLED_OPTIONS.vendor_category), record?.category)}</select></label>
       </div>
       <div class="admin-columns-3">
-        <label>Location<input name="location_external_id" list="location-id-list-modal" value="${escapeHtml(record?.location_external_id || '')}" required></label>
+        <label>Location<select name="location_external_id" required><option value="">— Select location —</option>${locations.map((loc) => `<option value="${escapeHtml(loc.external_id)}" ${loc.external_id === record?.location_external_id ? 'selected' : ''}>${escapeHtml(loc.location_group || 'Other')} · ${escapeHtml(loc.name || loc.external_id)}</option>`).join('')}</select></label>
         <label>Booth<input name="booth" value="${escapeHtml(record?.booth || '')}"></label>
         <label>Sort Order<input type="number" name="sort_order" value="${escapeHtml(String(record?.sort_order ?? ''))}"></label>
       </div>
@@ -298,7 +379,6 @@ async function openVendorEditorModal(groupSlug, tabKey, page, data, record = nul
         <button type="submit">Save Vendor</button>
         ${record ? '<button type="button" class="danger" data-delete-vendor-modal>Delete</button>' : ''}
       </div>
-      <datalist id="location-id-list-modal">${locationOptions}</datalist>
     </form>
   `;
   const modal = openAdminModal(record ? 'Edit Vendor' : 'Add Vendor', bodyHtml);
@@ -451,46 +531,56 @@ function openEventEditorModal(groupSlug, tabKey, page, data, dateStr, record = n
   const modal = ensureModalShell();
   if (!modal) return;
   const locations = sortByOrderThenName(data.locations.filter((row) => row.page_slug === page.slug));
+  const vendors = sortByOrderThenName(data.vendors.filter((row) => row.page_slug === page.slug));
+  const selectedVendorIds = Array.isArray(record?.vendor_ids) ? record.vendor_ids : [];
   const selectedDay = getOrCreateDayRecord(data, page.slug, dateStr);
   const title = record ? 'Edit Event' : 'Add Event';
   modal.innerHTML = `
     <div class="admin-modal-backdrop" data-modal-close></div>
-    <div class="admin-modal-card">
+    <div class="admin-modal-card admin-modal-card-wide">
       <div class="admin-modal-header">
         <h3>${escapeHtml(title)}</h3>
         <button type="button" class="admin-modal-close" data-modal-close>Close</button>
       </div>
-      <form class="admin-form" data-form="calendar-event-modal">
-        <input type="hidden" name="external_id" value="${escapeHtml(record?.external_id || '')}">
-        <input type="hidden" name="event_date" value="${escapeHtml(record?.event_date || dateStr)}">
-        <input type="hidden" name="day_external_id" value="${escapeHtml(record?.day_external_id || selectedDay?.external_id || '')}">
-        <div class="admin-columns-2">
-          <label>Title<input name="title" value="${escapeHtml(record?.title || '')}" required></label>
-          <label>Category<input name="category" value="${escapeHtml(record?.category || '')}"></label>
-        </div>
-        <div class="admin-columns-3">
-          <label>Date<input type="date" name="event_date_display" value="${escapeHtml(record?.event_date || dateStr)}" required></label>
-          <label>Start Time<input name="start_time" value="${escapeHtml(record?.start_time || '')}" placeholder="6:00 PM"></label>
-          <label>End Time<input name="end_time" value="${escapeHtml(record?.end_time || '')}" placeholder="8:00 PM"></label>
-        </div>
-        <div class="admin-columns-2">
-          <label>Location
-            <select name="location_external_id">
-              <option value="">—</option>
-              ${locations.map((loc) => `<option value="${escapeHtml(loc.external_id)}" ${loc.external_id === record?.location_external_id ? 'selected' : ''}>${escapeHtml(loc.name || loc.external_id)}</option>`).join('')}
-            </select>
-          </label>
-          <label>Sort Order<input type="number" name="sort_order" value="${escapeHtml(String(record?.sort_order ?? ''))}"></label>
-        </div>
-        <label>Description<textarea rows="4" name="description">${escapeHtml(record?.description || '')}</textarea></label>
-        <label>Vendor IDs (comma separated)<input name="vendor_ids" value="${escapeHtml((record?.vendor_ids || []).join(', '))}"></label>
-        <label>Raw JSON<textarea rows="4" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
-        <p class="error-text" data-message="modal"></p>
-        <div class="button-row">
-          <button type="submit">Save Event</button>
-          ${record ? '<button type="button" class="danger" data-calendar-delete-modal>Delete Event</button>' : ''}
-        </div>
-      </form>
+      <div class="admin-modal-body">
+        <form class="admin-form" data-form="calendar-event-modal">
+          <input type="hidden" name="external_id" value="${escapeHtml(record?.external_id || '')}">
+          <input type="hidden" name="event_date" value="${escapeHtml(record?.event_date || dateStr)}">
+          <input type="hidden" name="day_external_id" value="${escapeHtml(record?.day_external_id || selectedDay?.external_id || '')}">
+          <div class="admin-columns-2">
+            <label>Title<input name="title" value="${escapeHtml(record?.title || '')}" required></label>
+            <label>Category<select name="category">${renderSelectOptions(getControlledOptions('category', DEFAULT_CONTROLLED_OPTIONS.category), record?.category)}</select></label>
+          </div>
+          <div class="admin-columns-3">
+            <label>Date<input type="date" name="event_date_display" value="${escapeHtml(record?.event_date || dateStr)}" required></label>
+            <label>Start Time<input type="time" name="start_time" value="${escapeHtml(normalizeTimeInputValue(record?.start_time || ''))}"></label>
+            <label>End Time<input type="time" name="end_time" value="${escapeHtml(normalizeTimeInputValue(record?.end_time || ''))}"></label>
+          </div>
+          <div class="admin-columns-2">
+            <label>Location
+              <select name="location_external_id">
+                <option value="">—</option>
+                ${locations.map((loc) => `<option value="${escapeHtml(loc.external_id)}" ${loc.external_id === record?.location_external_id ? 'selected' : ''}>${escapeHtml(loc.name || loc.external_id)}</option>`).join('')}
+              </select>
+            </label>
+            <label>Sort Order<input type="number" name="sort_order" value="${escapeHtml(String(record?.sort_order ?? ''))}"></label>
+          </div>
+          <label>Description<textarea rows="4" name="description">${escapeHtml(record?.description || '')}</textarea></label>
+          <div class="admin-form-section">
+            <div class="admin-form-section__header">
+              <strong>Assigned vendors</strong>
+              <span class="subtle-text">Choose one or more vendors for this event block.</span>
+            </div>
+            ${vendors.length ? renderCheckboxList('vendor_ids', vendors.map((vendor) => ({ value: vendor.external_id, label: `${vendor.name || vendor.external_id}${vendor.location_external_id ? ` · ${vendor.location_external_id}` : ''}` })), selectedVendorIds) : '<p class="subtle-text">No vendors are available for this page yet.</p>'}
+          </div>
+          <label>Raw JSON<textarea rows="4" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
+          <p class="error-text" data-message="modal"></p>
+          <div class="button-row">
+            <button type="submit">Save Event</button>
+            ${record ? '<button type="button" class="danger" data-calendar-delete-modal>Delete Event</button>' : ''}
+          </div>
+        </form>
+      </div>
     </div>
   `;
   modal.classList.remove('hidden');
@@ -530,7 +620,7 @@ function openEventEditorModal(groupSlug, tabKey, page, data, dateStr, record = n
         location_external_id: String(form.get('location_external_id') || '').trim() || null,
         category: String(form.get('category') || '').trim() || null,
         description: String(form.get('description') || '').trim() || null,
-        vendor_ids: String(form.get('vendor_ids') || '').split(',').map((item) => item.trim()).filter(Boolean),
+        vendor_ids: form.getAll('vendor_ids').map((item) => String(item || '').trim()).filter(Boolean),
         event_date: eventDate,
         sort_order: form.get('sort_order') ? Number(form.get('sort_order')) : null,
         raw: parseJsonField(form.get('raw'), {}),
@@ -785,6 +875,12 @@ function getSelectedPage(groupSlug, data) {
 }
 
 function renderGeneralView(groupSlug, data, page) {
+  const tabOptions = getControlledOptions('page_tab', DEFAULT_PAGE_TAB_OPTIONS.map((item) => item.value));
+  const tabOptionRows = DEFAULT_PAGE_TAB_OPTIONS.map((item) => ({ ...item }));
+  tabOptions.forEach((value) => {
+    if (!tabOptionRows.find((row) => row.value === value)) tabOptionRows.push({ value, label: value });
+  });
+
   return `
     <section class="admin-card">
       <h3>General / Pages</h3>
@@ -794,15 +890,21 @@ function renderGeneralView(groupSlug, data, page) {
           <label>Slug<input name="slug" value="${escapeHtml(page.slug || '')}" required></label>
         </div>
         <div class="admin-columns-2">
-          <label>Event Type<input name="event_type" value="${escapeHtml(page.event_type || '')}"></label>
-          <label>Category<input name="category" value="${escapeHtml(page.category || '')}"></label>
+          <label>Event Type<select name="event_type">${renderSelectOptions(getControlledOptions('event_type', DEFAULT_CONTROLLED_OPTIONS.event_type), page.event_type)}</select></label>
+          <label>Category<select name="category">${renderSelectOptions(getControlledOptions('category', DEFAULT_CONTROLLED_OPTIONS.category), page.category)}</select></label>
         </div>
         <label>Summary<textarea rows="3" name="summary">${escapeHtml(page.summary || '')}</textarea></label>
         <div class="admin-columns-2">
           <label>Date Label<input name="date_label" value="${escapeHtml(page.date_label || '')}"></label>
-          <label>Area Label<textarea rows="2" name="area_label">${escapeHtml(page.area_label || '')}</textarea></label>
+          <label>Area Label<select name="area_label">${renderSelectOptions(getControlledOptions('area_label', DEFAULT_CONTROLLED_OPTIONS.area_label), page.area_label)}</select></label>
         </div>
-        <label>Tabs (comma separated)<input name="tabs" value="${escapeHtml((page.tabs || []).join(', '))}"></label>
+        <div class="admin-form-section">
+          <div class="admin-form-section__header">
+            <strong>Tabs visible on the front end</strong>
+            <span class="subtle-text">Turn page tabs on or off for this event page.</span>
+          </div>
+          ${renderCheckboxList('tabs', tabOptionRows, Array.isArray(page.tabs) ? page.tabs : [])}
+        </div>
         <p class="error-text" data-message="pages"></p>
         <div class="button-row"><button type="submit">Save General</button></div>
       </form>
@@ -1132,6 +1234,7 @@ function renderResourcesView(page) {
 }
 
 function renderSettingsView(page) {
+  const pageTabValues = getControlledOptions('page_tab', DEFAULT_PAGE_TAB_OPTIONS.map((item) => item.value));
   return `
     <section class="admin-card">
       <h3>Settings</h3>
@@ -1141,6 +1244,23 @@ function renderSettingsView(page) {
         <label>Raw JSON<textarea rows="8" name="raw">${escapeHtml(JSON.stringify(page.raw || {}, null, 2))}</textarea></label>
         <p class="error-text" data-message="settings"></p>
         <div class="button-row"><button type="submit">Save Settings</button></div>
+      </form>
+    </section>
+    <section class="admin-card">
+      <h3>Controlled Lists</h3>
+      <p class="subtle-text">These values drive the dropdowns and tab toggles used across the admin UI. Apply the included migration before saving changes here.</p>
+      <form class="admin-form" data-form="controlled-lists">
+        <div class="admin-columns-2">
+          <label>Event Types<textarea rows="5" name="event_type_list">${escapeHtml(getControlledOptions('event_type', DEFAULT_CONTROLLED_OPTIONS.event_type).join('\n'))}</textarea></label>
+          <label>Categories<textarea rows="5" name="category_list">${escapeHtml(getControlledOptions('category', DEFAULT_CONTROLLED_OPTIONS.category).join('\n'))}</textarea></label>
+        </div>
+        <div class="admin-columns-2">
+          <label>Area Labels<textarea rows="5" name="area_label_list">${escapeHtml(getControlledOptions('area_label', DEFAULT_CONTROLLED_OPTIONS.area_label).join('\n'))}</textarea></label>
+          <label>Vendor Categories<textarea rows="5" name="vendor_category_list">${escapeHtml(getControlledOptions('vendor_category', DEFAULT_CONTROLLED_OPTIONS.vendor_category).join('\n'))}</textarea></label>
+        </div>
+        <label>Available Page Tabs<textarea rows="4" name="page_tab_list">${escapeHtml(pageTabValues.join('\n'))}</textarea></label>
+        <p class="error-text" data-message="controlled-lists"></p>
+        <div class="button-row"><button type="submit">Save Controlled Lists</button></div>
       </form>
     </section>
   `;
@@ -1252,7 +1372,7 @@ function renderDynamicEntityForm(type, record, groupSlug) {
       <input type="hidden" name="external_id" value="${escapeHtml(record?.external_id || '')}">
       <div class="admin-columns-2">
         <label>Title<input name="title" value="${escapeHtml(record?.title || '')}" required></label>
-        <label>Category<input name="category" value="${escapeHtml(record?.category || '')}"></label>
+        <label>Category<select name="category">${renderSelectOptions(getControlledOptions('category', DEFAULT_CONTROLLED_OPTIONS.category), record?.category)}</select></label>
       </div>
       <div class="admin-columns-3">
         <label>Day<select name="day_external_id" required>${days.map((d) => `<option value="${escapeHtml(d.external_id)}" ${d.external_id === (record?.day_external_id || state.selectedDayByGroup[groupSlug]) ? 'selected' : ''}>${escapeHtml(d.label || d.event_date)}</option>`).join('')}</select></label>
@@ -1260,11 +1380,11 @@ function renderDynamicEntityForm(type, record, groupSlug) {
         <label>Location<select name="location_external_id">${locations.map((loc) => `<option value="${escapeHtml(loc.external_id)}" ${loc.external_id === record?.location_external_id ? 'selected' : ''}>${escapeHtml(loc.name || loc.external_id)}</option>`).join('')}</select></label>
       </div>
       <div class="admin-columns-3">
-        <label>Start Time<input name="start_time" value="${escapeHtml(record?.start_time || '')}"></label>
-        <label>End Time<input name="end_time" value="${escapeHtml(record?.end_time || '')}"></label>
+        <label>Start Time<input type="time" name="start_time" value="${escapeHtml(normalizeTimeInputValue(record?.start_time || ''))}"></label>
+        <label>End Time<input type="time" name="end_time" value="${escapeHtml(normalizeTimeInputValue(record?.end_time || ''))}"></label>
         <label>Sort Order<input type="number" name="sort_order" value="${escapeHtml(String(record?.sort_order ?? ''))}"></label>
       </div>
-      <label>Vendor IDs (comma)<input name="vendor_ids" value="${escapeHtml((record?.vendor_ids || []).join(', '))}"></label>
+      <div class="admin-form-section"><div class="admin-form-section__header"><strong>Assigned vendors</strong><span class="subtle-text">Use checkboxes instead of free text vendor IDs.</span></div>${(() => { const vendors = sortByOrderThenName(data.vendors.filter((row) => row.page_slug === page.slug)); return vendors.length ? renderCheckboxList('vendor_ids', vendors.map((vendor) => ({ value: vendor.external_id, label: vendor.name || vendor.external_id })), Array.isArray(record?.vendor_ids) ? record.vendor_ids : []) : "<p class=\"subtle-text\">No vendors are available for this page yet.</p>"; })()}</div>
       <label>Description<textarea rows="2" name="description">${escapeHtml(record?.description || '')}</textarea></label>
       <label>Raw JSON<textarea rows="2" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
       <div class="button-row"><button type="submit">Save Schedule</button></div>
@@ -1392,7 +1512,7 @@ async function bindGroupActions(groupSlug, tabKey) {
       summary: String(form.get('summary') || '').trim() || null,
       date_label: String(form.get('date_label') || '').trim() || null,
       area_label: String(form.get('area_label') || '').trim() || null,
-      tabs: String(form.get('tabs') || '').split(',').map((item) => item.trim()).filter(Boolean),
+      tabs: form.getAll('tabs').map((item) => String(item || '').trim()).filter(Boolean),
     };
     await savePageSection(groupSlug, tabKey, page.slug, payload, 'pages', 'General settings saved.');
   });
@@ -1431,6 +1551,46 @@ async function bindGroupActions(groupSlug, tabKey) {
       await savePageSection(groupSlug, tabKey, page.slug, payload, 'settings', 'Settings saved.');
     } catch (error) {
       setMessage(panel, 'settings', error.message || 'Invalid JSON.');
+    }
+  });
+
+  panel.querySelector('[data-form="controlled-lists"]')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!state.profile?.is_admin) {
+      setMessage(panel, 'controlled-lists', 'Only admins can update controlled lists.');
+      return;
+    }
+    const form = new FormData(event.currentTarget);
+    const mappings = [
+      ['event_type', 'event_type_list'],
+      ['category', 'category_list'],
+      ['area_label', 'area_label_list'],
+      ['vendor_category', 'vendor_category_list'],
+      ['page_tab', 'page_tab_list'],
+    ];
+    const rows = [];
+    mappings.forEach(([type, field]) => {
+      String(form.get(field) || '').split('\n').map((item) => item.trim()).filter(Boolean).forEach((value, index) => {
+        rows.push({ option_type: type, option_value: value, sort_order: index + 1, is_active: true });
+      });
+    });
+    if (!state.controlledOptionsAvailable) {
+      setMessage(panel, 'controlled-lists', 'Apply supabase/migrations/20260404_admin_controlled_inputs.sql before saving controlled lists.');
+      return;
+    }
+    try {
+      const optionTypes = mappings.map(([type]) => type);
+      const { error: deleteError } = await supabaseClient.from('event_admin_options').delete().in('option_type', optionTypes);
+      if (deleteError) throw deleteError;
+      if (rows.length) {
+        const { error: insertError } = await supabaseClient.from('event_admin_options').insert(rows);
+        if (insertError) throw insertError;
+      }
+      await fetchControlledOptions();
+      setMessage(panel, 'controlled-lists', 'Controlled lists saved.');
+      renderGroupPanel(tabKey);
+    } catch (error) {
+      setMessage(panel, 'controlled-lists', error.message || 'Failed to save controlled lists.');
     }
   });
 
@@ -1569,7 +1729,7 @@ async function bindGroupActions(groupSlug, tabKey) {
         location_external_id: String(form.get('location_external_id') || '').trim() || null,
         category: String(form.get('category') || '').trim() || null,
         description: String(form.get('description') || '').trim() || null,
-        vendor_ids: String(form.get('vendor_ids') || '').split(',').map((item) => item.trim()).filter(Boolean),
+        vendor_ids: form.getAll('vendor_ids').map((item) => String(item || '').trim()).filter(Boolean),
         event_date: String(form.get('event_date') || '').trim(),
         sort_order: form.get('sort_order') ? Number(form.get('sort_order')) : null,
         raw: parseJsonField(form.get('raw'), {}),
@@ -1651,6 +1811,7 @@ async function initAdmin() {
   if (!state.user) return;
 
   state.profile = await fetchProfile(state.user.id);
+  await fetchControlledOptions();
   state.memberships = await fetchMemberships(state.user.id);
   state.groups = state.profile?.is_admin
     ? await fetchAllGroups()
