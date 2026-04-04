@@ -588,8 +588,45 @@ function renderSchedule(data) {
 
 function renderMap(data) {
   if (!el.mapSurface) return;
+
+  const mapEmbedUrl = data.mapEmbedUrl || data.map_embed_url || '';
+  const mapViewUrl = data.mapViewUrl || data.map_view_url || '';
+  const mapTitle =
+    data.mapTitle ||
+    data.map_title ||
+    data.eventName ||
+    'Event map';
+
+  if (mapEmbedUrl) {
+    el.mapSurface.innerHTML = `
+      <div class="external-map-wrap">
+        <iframe
+          src="${mapEmbedUrl}"
+          title="${mapTitle}"
+          class="map-embed-frame"
+          loading="lazy"
+          allowfullscreen>
+        </iframe>
+        ${
+          mapViewUrl
+            ? `<div class="map-actions">
+                <a
+                  class="button-link"
+                  href="${mapViewUrl}"
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  Open full map
+                </a>
+              </div>`
+            : ''
+        }
+      </div>
+    `;
+    return;
+  }
+
   el.mapSurface.innerHTML = data.mapImage
-    ? `<img src="${data.mapImage}" alt="${data.eventName || 'Event map'}" class="map-image" />`
+    ? `<img src="${data.mapImage}" alt="${mapTitle}" class="map-image" />`
     : '<div class="empty-state">No map is available for this event yet.</div>';
 }
 
