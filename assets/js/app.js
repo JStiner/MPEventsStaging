@@ -541,7 +541,7 @@ function renderCovhRegionalBlock(block, maps = {}) {
       <div class="covh-regional-title">${escapeHtml(block?.title || '')}</div>
       ${
         mapSrc
-          ? `<img class="flyer-mini-map covh-regional-map-image" src="${escapeHtml(mapSrc)}" alt="${escapeHtml(block?.title || 'Regional map')}">`
+          ? `<img class="covh-regional-map-image" src="${escapeHtml(mapSrc)}" alt="${escapeHtml(block?.title || 'Regional map')}">`
           : ''
       }
     </section>
