@@ -34,8 +34,21 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const corsHeaders = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-headers': 'authorization, x-client-info, apikey, content-type',
+  'access-control-allow-methods': 'POST, OPTIONS',
+};
 
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  if (req.method !== 'POST') {
+    return json({ ok: false, error: 'Method not allowed. Use POST.' }, 405);
+  }
+
   try {
     const body = await req.json().catch(() => ({}));
     const requestedSourceKeys = Array.isArray(body?.sourceKeys)
@@ -336,6 +349,9 @@ function stableHash(input: string): string {
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
     status,
-    headers: { 'content-type': 'application/json; charset=utf-8' },
+    headers: {
+      ...corsHeaders,
+      'content-type': 'application/json; charset=utf-8',
+    },
   });
 }
