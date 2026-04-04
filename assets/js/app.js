@@ -732,22 +732,7 @@ function renderCovhFlyer(data, flyer) {
 					</div>
 				  </section>
 				` : ''}
-			  
-			    ${
-                callouts.bagNotice
-                  ? `
-                    <div class="covh-bag-callout">
-                      ${
-                        bagIcon
-                          ? `<img class="covh-bag-icon covh-callout-bag-icon" src="${escapeHtml(bagIcon)}" alt="Bag icon">`
-                          : '<span class="covh-bag-text-symbol">Bag</span>'
-                      }
-                      ${escapeHtml(callouts.bagNotice)}
-                    </div>
-                  `
-                  : ''
-              }
-            </div>
+			</div>
           </section>
         </div>
       </article>
