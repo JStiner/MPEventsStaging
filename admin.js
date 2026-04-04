@@ -14,6 +14,10 @@ const GROUP_SUBVIEW_LABELS = {
 
 const PAGE_CALENDAR_MODES = {
   'community-events': 'full',
+  'community-events-general': 'full',
+  'community-events-camp': 'full',
+  'community-events-library': 'full',
+  'community-events-nightlife': 'full',
   'high-school-events': 'full',
   'town-services': 'full',
   'christmas-on-vinegar-hill': 'single',
@@ -42,6 +46,7 @@ const state = {
   profile: null,
   groups: [],
   memberships: [],
+  pageAccess: [],
   tabs: [],
   activeTab: null,
   auditRows: [],
@@ -106,6 +111,30 @@ function parseJsonField(text, fallback = {}) {
   return JSON.parse(value);
 }
 
+
+function getAudienceTypeForPage(pageOrSlug) {
+  const slug = String(typeof pageOrSlug === 'string' ? pageOrSlug : pageOrSlug?.slug || '').trim().toLowerCase();
+  return slug.includes('nightlife') ? 'adult' : 'general';
+}
+
+function isAdultPage(pageOrSlug) {
+  return getAudienceTypeForPage(pageOrSlug) === 'adult';
+}
+
+function getAccessiblePageRowsForGroup(groupSlug) {
+  return (state.pageAccess || []).filter((row) => row.group_slug === groupSlug && row.page_slug);
+}
+
+function getAccessiblePageSlugsForGroup(groupSlug) {
+  return Array.from(new Set(getAccessiblePageRowsForGroup(groupSlug).map((row) => row.page_slug).filter(Boolean)));
+}
+
+function canAccessPage(groupSlug, pageSlug) {
+  if (state.profile?.is_admin) return true;
+  const allowed = getAccessiblePageSlugsForGroup(groupSlug);
+  if (!allowed.length) return false;
+  return allowed.includes(pageSlug);
+}
 
 
 function normalizeTimeInputValue(value) {
@@ -565,6 +594,7 @@ function openEventEditorModal(groupSlug, tabKey, page, data, dateStr, record = n
             </label>
             <label>Sort Order<input type="number" name="sort_order" value="${escapeHtml(String(record?.sort_order ?? ''))}"></label>
           </div>
+          <p class="subtle-text">Audience is fixed for this page: <strong>${isAdultPage(page) ? 'Adult / Night Life' : 'General Community'}</strong></p>
           <label>Description<textarea rows="4" name="description">${escapeHtml(record?.description || '')}</textarea></label>
           <div class="admin-form-section">
             <div class="admin-form-section__header">
@@ -624,6 +654,7 @@ function openEventEditorModal(groupSlug, tabKey, page, data, dateStr, record = n
         event_date: eventDate,
         sort_order: form.get('sort_order') ? Number(form.get('sort_order')) : null,
         raw: parseJsonField(form.get('raw'), {}),
+        audience_type: getAudienceTypeForPage(page),
         is_imported: false,
         is_active: true,
       };
@@ -688,6 +719,12 @@ async function fetchMemberships(userId) {
   return data || [];
 }
 
+async function fetchPageAccess() {
+  const { data, error } = await supabaseClient.rpc('get_my_page_access');
+  if (error) throw error;
+  return data || [];
+}
+
 async function fetchAuditRows() {
   const viewResult = await supabaseClient
     .from('v_audit_log_admin')
@@ -717,7 +754,17 @@ async function fetchImportRuns() {
 }
 
 async function loadGroupData(groupSlug) {
-  const pageResult = await supabaseClient.from('event_pages').select('*').eq('group_slug', groupSlug).order('event_name');
+  let pageQuery = supabaseClient.from('event_pages').select('*').eq('group_slug', groupSlug).order('event_name');
+
+  if (!state.profile?.is_admin) {
+    const allowedPageSlugs = getAccessiblePageSlugsForGroup(groupSlug);
+    if (!allowedPageSlugs.length) {
+      return { pages: [], days: [], schedule: [], locations: [], vendors: [], loaded: true, error: null };
+    }
+    pageQuery = pageQuery.in('slug', allowedPageSlugs);
+  }
+
+  const pageResult = await pageQuery;
   if (pageResult.error) throw pageResult.error;
 
   const pages = pageResult.data || [];
@@ -767,11 +814,14 @@ function buildTabs() {
   }
 
   const seen = new Set();
-  state.memberships.forEach((membership) => {
-    const group = membership.event_groups;
-    if (!group?.slug || seen.has(group.slug)) return;
-    seen.add(group.slug);
-    tabs.push({ key: `group:${group.slug}`, type: 'group', group });
+  (state.pageAccess || []).forEach((row) => {
+    if (!row?.group_slug || seen.has(row.group_slug)) return;
+    seen.add(row.group_slug);
+    tabs.push({
+      key: `group:${row.group_slug}`,
+      type: 'group',
+      group: { slug: row.group_slug, name: row.group_slug === 'community-events' ? 'Community Events' : (row.group_slug || 'Group') },
+    });
   });
   tabs.push({ key: 'admin', type: 'admin', label: 'Admin' });
   return tabs;
@@ -866,7 +916,7 @@ function renderAdminPanel() {
 }
 
 function getSelectedPage(groupSlug, data) {
-  const pages = data.pages || [];
+  const pages = (data.pages || []).filter((page) => canAccessPage(groupSlug, page.slug));
   if (!pages.length) return null;
   const selected = state.selectedPageByGroup[groupSlug];
   const row = pages.find((page) => page.slug === selected) || pages[0];
@@ -1385,6 +1435,7 @@ function renderDynamicEntityForm(type, record, groupSlug) {
         <label>Sort Order<input type="number" name="sort_order" value="${escapeHtml(String(record?.sort_order ?? ''))}"></label>
       </div>
       <div class="admin-form-section"><div class="admin-form-section__header"><strong>Assigned vendors</strong><span class="subtle-text">Use checkboxes instead of free text vendor IDs.</span></div>${(() => { const vendors = sortByOrderThenName(data.vendors.filter((row) => row.page_slug === page.slug)); return vendors.length ? renderCheckboxList('vendor_ids', vendors.map((vendor) => ({ value: vendor.external_id, label: vendor.name || vendor.external_id })), Array.isArray(record?.vendor_ids) ? record.vendor_ids : []) : "<p class=\"subtle-text\">No vendors are available for this page yet.</p>"; })()}</div>
+      <p class="subtle-text">Audience is fixed for this page: <strong>${isAdultPage(page) ? 'Adult / Night Life' : 'General Community'}</strong></p>
       <label>Description<textarea rows="2" name="description">${escapeHtml(record?.description || '')}</textarea></label>
       <label>Raw JSON<textarea rows="2" name="raw">${escapeHtml(JSON.stringify(record?.raw || {}, null, 2))}</textarea></label>
       <div class="button-row"><button type="submit">Save Schedule</button></div>
@@ -1431,7 +1482,8 @@ function renderGroupPanel(tabKey) {
   state.selectedGroupViewBySlug[group.slug] = view;
 
   const page = getSelectedPage(group.slug, data);
-  const pageTabs = data.pages.map((p) => `<button type="button" class="admin-tab ${p.slug === page.slug ? 'active' : ''}" data-page-slug="${escapeHtml(p.slug)}">${escapeHtml(p.event_name || p.slug)}</button>`).join('');
+  const visiblePages = (data.pages || []).filter((p) => canAccessPage(group.slug, p.slug));
+  const pageTabs = visiblePages.map((p) => `<button type="button" class="admin-tab ${p.slug === page.slug ? 'active' : ''}" data-page-slug="${escapeHtml(p.slug)}">${escapeHtml(p.event_name || p.slug)}</button>`).join('');
   const subviewTabs = GROUP_SUBVIEW_KEYS.map((key) => `<button type="button" class="admin-tab ${key === view ? 'active' : ''}" data-group-view="${escapeHtml(key)}">${escapeHtml(GROUP_SUBVIEW_LABELS[key])}</button>`).join('');
 
   let body = '';
@@ -1813,9 +1865,10 @@ async function initAdmin() {
   state.profile = await fetchProfile(state.user.id);
   await fetchControlledOptions();
   state.memberships = await fetchMemberships(state.user.id);
+  state.pageAccess = await fetchPageAccess();
   state.groups = state.profile?.is_admin
     ? await fetchAllGroups()
-    : sortByName(state.memberships.map((membership) => membership.event_groups).filter(Boolean), 'name');
+    : sortByName(Array.from(new Map((state.pageAccess || []).filter((row) => row.group_slug).map((row) => [row.group_slug, { id: row.group_slug, slug: row.group_slug, name: row.group_slug === 'community-events' ? 'Community Events' : row.group_slug }])).values()), 'name');
 
   if (state.profile?.is_admin) {
     state.auditRows = await fetchAuditRows();

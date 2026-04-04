@@ -11,7 +11,7 @@ async function getSession() {
 }
 
 async function getAccess() {
-  const { data, error } = await supabaseClient.rpc('get_my_access');
+  const { data, error } = await supabaseClient.rpc('get_my_page_access');
   if (error) throw error;
   return data || [];
 }
@@ -28,8 +28,8 @@ async function signOut() {
 
 function renderAccessLines(accessRows) {
   return accessRows
-    .filter(row => row.group_slug)
-    .map(row => `<li><strong>${row.group_name}</strong> — ${row.role}</li>`)
+    .filter(row => row.group_slug && row.page_slug)
+    .map(row => `<li><strong>${row.group_slug}</strong> → ${row.page_name || row.page_slug} — ${row.role}</li>`)
     .join('');
 }
 
@@ -52,10 +52,10 @@ async function refreshUi() {
 
   const accessRows = await getAccess();
   const first = accessRows[0] || {};
-  const groupLinks = accessRows
+  const groupLinks = Array.from(new Map(accessRows
     .filter(row => row.group_slug)
-    .map(row => `<a class="admin-link" href="./admin.html?group=${encodeURIComponent(row.group_slug)}">${row.group_name}</a>`)
-    .join('');
+    .map(row => [row.group_slug, `<a class=\"admin-link\" href=\"./admin.html?group=${encodeURIComponent(row.group_slug)}\">${row.group_slug === 'community-events' ? 'Community Events' : row.group_slug}</a>`]))
+    .values()).join('');
 
   loginWrap?.classList.add('hidden');
   userWrap?.classList.remove('hidden');
